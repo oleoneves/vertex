@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { Clock } from "lucide-react";
 import { getCurrentWorker } from "@/lib/workforce";
 import { getSupabaseServer } from "@/lib/supabase/server";
 
@@ -37,83 +38,94 @@ export default async function WorkerHoursPage() {
 
   return (
     <div>
-      <h1 className="text-xl font-bold tracking-tight">Your hours</h1>
+      <h1 className="text-xl font-extrabold tracking-tight sm:text-2xl">Your hours</h1>
+
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
-        <div className="rounded-lg border border-border bg-background p-4">
-          <p className="text-xs uppercase tracking-wider text-muted-foreground">Approved</p>
-          <p className="mt-1 text-2xl font-extrabold tracking-tight">
-            {totalApproved.toFixed(2)} <span className="text-sm font-medium text-muted-foreground">hrs</span>
-          </p>
-        </div>
-        <div className="rounded-lg border border-border bg-background p-4">
-          <p className="text-xs uppercase tracking-wider text-muted-foreground">Pending review</p>
-          <p className="mt-1 text-2xl font-extrabold tracking-tight">
-            {totalPending.toFixed(2)} <span className="text-sm font-medium text-muted-foreground">hrs</span>
-          </p>
-        </div>
+        <SummaryCard label="Approved" value={totalApproved} accent />
+        <SummaryCard label="Pending review" value={totalPending} />
       </div>
-      <div className="mt-6 overflow-hidden rounded-lg border border-border">
-        <table className="w-full text-sm">
-          <thead className="bg-muted text-left text-xs uppercase tracking-wider text-muted-foreground">
-            <tr>
-              <th className="px-3 py-2">When</th>
-              <th className="px-3 py-2">Placement</th>
-              <th className="px-3 py-2 text-right">Hours</th>
-              <th className="px-3 py-2">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.length === 0 && (
-              <tr>
-                <td colSpan={4} className="px-3 py-6 text-center text-muted-foreground">
-                  No time entries yet.
-                </td>
-              </tr>
-            )}
-            {rows.map((r) => (
-              <tr key={r.id} className="border-t border-border">
-                <td className="px-3 py-2">
-                  <div>{new Date(r.clock_in_at).toLocaleDateString()}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {new Date(r.clock_in_at).toLocaleTimeString([], {
-                      hour: "numeric",
-                      minute: "2-digit",
+
+      {rows.length === 0 ? (
+        <div className="mt-8 rounded-xl border-2 border-dashed border-border bg-muted/20 px-6 py-16 text-center">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+            <Clock className="h-5 w-5 text-muted-foreground" />
+          </div>
+          <p className="mt-4 text-muted-foreground">No time entries yet.</p>
+        </div>
+      ) : (
+        <ul className="mt-6 space-y-2">
+          {rows.map((r) => (
+            <li
+              key={r.id}
+              className="flex items-center justify-between gap-3 rounded-xl border border-border bg-background p-4"
+            >
+              <div className="min-w-0 flex-1">
+                <div className="flex items-baseline gap-2 text-sm">
+                  <span className="font-semibold">
+                    {new Date(r.clock_in_at).toLocaleDateString(undefined, {
+                      month: "short",
+                      day: "numeric",
                     })}
+                  </span>
+                  <span className="text-muted-foreground">
+                    {new Date(r.clock_in_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
                     {" → "}
                     {r.clock_out_at
-                      ? new Date(r.clock_out_at).toLocaleTimeString([], {
-                          hour: "numeric",
-                          minute: "2-digit",
-                        })
+                      ? new Date(r.clock_out_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
                       : "in progress"}
-                  </div>
-                </td>
-                <td className="px-3 py-2 text-muted-foreground">
-                  {r.placement?.employer?.name ?? "—"} — {r.placement?.role_title ?? "—"}
-                </td>
-                <td className="px-3 py-2 text-right font-mono">
+                  </span>
+                </div>
+                <div className="mt-0.5 truncate text-xs text-muted-foreground">
+                  {r.placement?.employer?.name ?? "—"} · {r.placement?.role_title ?? "—"}
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-lg font-extrabold tabular-nums">
                   {r.hours_worked != null ? Number(r.hours_worked).toFixed(2) : "—"}
-                </td>
-                <td className="px-3 py-2">
+                  <span className="ml-1 text-xs font-medium text-muted-foreground">hrs</span>
+                </div>
+                <div className="mt-0.5">
                   {r.approved ? (
-                    <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-800">
+                    <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-green-800 dark:bg-green-900/40 dark:text-green-300">
                       approved
                     </span>
                   ) : r.clock_out_at ? (
-                    <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800">
+                    <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
                       pending
                     </span>
                   ) : (
-                    <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-800">
+                    <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">
                       open
                     </span>
                   )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function SummaryCard({
+  label,
+  value,
+  accent,
+}: {
+  label: string;
+  value: number;
+  accent?: boolean;
+}) {
+  return (
+    <div
+      className={`rounded-xl border border-border p-5 ${accent ? "bg-accent/10" : "bg-background"}`}
+    >
+      <p className="text-xs uppercase tracking-wider text-muted-foreground">{label}</p>
+      <p className="mt-2 text-3xl font-extrabold tracking-tight tabular-nums">
+        {value.toFixed(2)}
+        <span className="ml-1 text-sm font-medium text-muted-foreground">hrs</span>
+      </p>
     </div>
   );
 }

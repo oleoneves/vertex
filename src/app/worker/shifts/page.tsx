@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { CalendarDays, MapPin } from "lucide-react";
 import { getCurrentWorker } from "@/lib/workforce";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import type { Shift } from "@/types/db";
@@ -31,49 +32,87 @@ export default async function WorkerShiftsPage() {
     .limit(50);
 
   const shifts = (data as unknown as Row[]) ?? [];
+
+  const grouped = new Map<string, Row[]>();
+  for (const s of shifts) {
+    const k = new Date(s.scheduled_start).toDateString();
+    const list = grouped.get(k) ?? [];
+    list.push(s);
+    grouped.set(k, list);
+  }
+
   return (
     <div>
-      <h1 className="text-xl font-bold tracking-tight">Your shifts</h1>
-      <ul className="mt-4 space-y-3">
-        {shifts.length === 0 && (
-          <li className="rounded-lg border border-border bg-background p-5 text-sm text-muted-foreground">
-            No upcoming shifts scheduled.
-          </li>
-        )}
-        {shifts.map((s) => {
-          const start = new Date(s.scheduled_start);
-          const end = new Date(s.scheduled_end);
-          return (
-            <li
-              key={s.id}
-              className="rounded-lg border border-border bg-background p-5"
-            >
-              <div className="flex items-baseline justify-between gap-3">
-                <div className="text-lg font-bold tracking-tight">
-                  {start.toLocaleDateString(undefined, {
-                    weekday: "short",
-                    month: "short",
-                    day: "numeric",
+      <h1 className="text-xl font-extrabold tracking-tight sm:text-2xl">Your shifts</h1>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Schedule for the next several days.
+      </p>
+
+      {shifts.length === 0 ? (
+        <div className="mt-6 rounded-xl border-2 border-dashed border-border bg-muted/20 px-6 py-16 text-center">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+            <CalendarDays className="h-5 w-5 text-muted-foreground" />
+          </div>
+          <p className="mt-4 text-muted-foreground">No upcoming shifts scheduled.</p>
+        </div>
+      ) : (
+        <div className="mt-6 space-y-6">
+          {Array.from(grouped.entries()).map(([day, list]) => {
+            const d = new Date(day);
+            const isToday = d.toDateString() === new Date().toDateString();
+            return (
+              <section key={day}>
+                <div className="flex items-baseline gap-2">
+                  <h2 className="text-sm font-bold uppercase tracking-wider">
+                    {d.toLocaleDateString(undefined, {
+                      weekday: "long",
+                      month: "short",
+                      day: "numeric",
+                    })}
+                  </h2>
+                  {isToday && (
+                    <span className="rounded-full bg-accent px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent-foreground">
+                      Today
+                    </span>
+                  )}
+                </div>
+                <ul className="mt-2 space-y-2">
+                  {list.map((s) => {
+                    const start = new Date(s.scheduled_start);
+                    const end = new Date(s.scheduled_end);
+                    const hrs = (end.getTime() - start.getTime()) / 3600000;
+                    return (
+                      <li
+                        key={s.id}
+                        className="rounded-xl border border-border bg-background p-4"
+                      >
+                        <div className="flex items-baseline justify-between gap-3">
+                          <div className="text-lg font-bold tracking-tight">
+                            {start.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+                            <span className="text-muted-foreground"> — </span>
+                            {end.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+                          </div>
+                          <span className="text-xs uppercase tracking-wider text-muted-foreground">
+                            {hrs.toFixed(1)}h · {s.status.replace("_", " ")}
+                          </span>
+                        </div>
+                        <div className="mt-1 text-sm text-muted-foreground">
+                          {s.placement?.employer?.name ?? "—"} · {s.placement?.role_title ?? "—"}
+                        </div>
+                        {s.location && (
+                          <div className="mt-2 inline-flex items-center gap-1 text-xs text-muted-foreground">
+                            <MapPin className="h-3 w-3" /> {s.location}
+                          </div>
+                        )}
+                      </li>
+                    );
                   })}
-                </div>
-                <div className="text-xs uppercase tracking-wider text-muted-foreground">
-                  {s.status.replace("_", " ")}
-                </div>
-              </div>
-              <div className="mt-1 text-sm">
-                {start.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })} —{" "}
-                {end.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
-              </div>
-              <div className="mt-2 text-sm text-muted-foreground">
-                {s.placement?.employer?.name ?? "—"} · {s.placement?.role_title ?? "—"}
-              </div>
-              {s.location && (
-                <div className="mt-1 text-xs text-muted-foreground">📍 {s.location}</div>
-              )}
-            </li>
-          );
-        })}
-      </ul>
+                </ul>
+              </section>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
