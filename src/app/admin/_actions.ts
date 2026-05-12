@@ -236,3 +236,76 @@ export async function deleteJob(formData: FormData) {
   revalidatePath("/admin/jobs");
   redirect("/admin/jobs");
 }
+
+// ============ Documents ============
+
+export async function reviewDocument(formData: FormData) {
+  const id = String(formData.get("id"));
+  const decision = String(formData.get("decision"));
+  if (!["approved", "rejected"].includes(decision)) return;
+  const supabase = await getSupabaseServer();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  await supabase
+    .from("documents")
+    .update({
+      status: decision,
+      reviewed_by: user?.id ?? null,
+      reviewed_at: new Date().toISOString(),
+    })
+    .eq("id", id);
+  revalidatePath("/admin/documents");
+}
+
+export async function deleteDocument(formData: FormData) {
+  const id = String(formData.get("id"));
+  const supabase = await getSupabaseServer();
+  const { data: doc } = await supabase
+    .from("documents")
+    .select("storage_path")
+    .eq("id", id)
+    .maybeSingle();
+  if (doc?.storage_path) {
+    await supabase.storage.from("documents").remove([doc.storage_path]);
+  }
+  await supabase.from("documents").delete().eq("id", id);
+  revalidatePath("/admin/documents");
+}
+
+// ============ Job edit ============
+
+export async function updateJob(formData: FormData) {
+  const id = String(formData.get("id"));
+  const supabase = await getSupabaseServer();
+  const title = String(formData.get("title") || "").trim();
+  const slug =
+    String(formData.get("slug") || "")
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "") ||
+    title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+  const payload = {
+    slug,
+    title,
+    employer: String(formData.get("employer") || ""),
+    category: String(formData.get("category") || "other"),
+    employment_type: String(formData.get("employment_type") || "full_time"),
+    location_city: String(formData.get("location_city") || ""),
+    location_state: String(formData.get("location_state") || "").toUpperCase().slice(0, 2),
+    hourly_rate_min: Number(formData.get("hourly_rate_min")) || null,
+    hourly_rate_max: Number(formData.get("hourly_rate_max")) || null,
+    description: String(formData.get("description") || ""),
+    requirements: String(formData.get("requirements") || "") || null,
+    benefits: String(formData.get("benefits") || "") || null,
+    featured: formData.get("featured") === "on",
+    active: formData.get("active") === "on",
+  };
+  const { error } = await supabase.from("jobs").update(payload).eq("id", id);
+  if (error) throw new Error(error.message);
+  redirect("/admin/jobs");
+}

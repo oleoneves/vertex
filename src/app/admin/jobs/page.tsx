@@ -46,9 +46,15 @@ export default async function AdminJobsPage() {
                 <div className="p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <h2 className="truncate text-base font-bold tracking-tight">{j.title}</h2>
+                      <Link
+                        href={`/admin/jobs/${j.id}/edit`}
+                        className="truncate text-base font-bold tracking-tight hover:text-accent"
+                      >
+                        {j.title}
+                      </Link>
                       <p className="mt-0.5 truncate text-xs text-muted-foreground">
                         {j.employer} · {j.location_city}, {j.location_state}
+                        {!j.active && <span className="ml-1.5 text-red-600">· hidden</span>}
                       </p>
                     </div>
                     <div className="text-right">
@@ -78,10 +84,16 @@ export default async function AdminJobsPage() {
                         </button>
                       </form>
                       <Link
-                        href={`/jobs/${j.slug}`}
+                        href={`/admin/jobs/${j.id}/edit`}
                         className="text-accent underline-offset-4 hover:underline"
                       >
-                        Public →
+                        Edit
+                      </Link>
+                      <Link
+                        href={`/jobs/${j.slug}`}
+                        className="text-muted-foreground underline-offset-4 hover:underline"
+                      >
+                        Public ↗
                       </Link>
                     </div>
                   </div>
