@@ -7,6 +7,8 @@ type Placement = {
   worker: string;
   employer: string;
   employerId: string;
+  projectId: string | null;
+  projectName: string | null;
   role: string;
   payRate: number;
   billRate: number;
@@ -16,12 +18,15 @@ export function BulkScheduleForm({
   action,
   placements,
   employers,
+  projects,
 }: {
   action: (formData: FormData) => void;
   placements: Placement[];
   employers: { id: string; name: string }[];
+  projects: { id: string; name: string }[];
 }) {
   const [employerFilter, setEmployerFilter] = useState<string>("");
+  const [projectFilter, setProjectFilter] = useState<string>("");
   const [selected, setSelected] = useState<Set<string>>(
     () => new Set(placements.map((p) => p.id)),
   );
@@ -42,10 +47,12 @@ export function BulkScheduleForm({
 
   const visible = useMemo(
     () =>
-      employerFilter
-        ? placements.filter((p) => p.employerId === employerFilter)
-        : placements,
-    [placements, employerFilter],
+      placements.filter((p) => {
+        if (employerFilter && p.employerId !== employerFilter) return false;
+        if (projectFilter && p.projectId !== projectFilter) return false;
+        return true;
+      }),
+    [placements, employerFilter, projectFilter],
   );
 
   const visibleIds = useMemo(() => visible.map((v) => v.id), [visible]);
@@ -182,7 +189,19 @@ export function BulkScheduleForm({
               {selected.size} of {placements.length} selected · {visible.length} visible
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <select
+              value={projectFilter}
+              onChange={(e) => setProjectFilter(e.target.value)}
+              className="h-9 rounded-md border border-border bg-background px-3 text-sm"
+            >
+              <option value="">All projects</option>
+              {projects.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
             <select
               value={employerFilter}
               onChange={(e) => setEmployerFilter(e.target.value)}
@@ -228,6 +247,11 @@ export function BulkScheduleForm({
                     <div className="truncate font-medium">{p.worker}</div>
                     <div className="truncate text-xs text-muted-foreground">
                       {p.employer} · {p.role}
+                      {p.projectName && (
+                        <span className="ml-1.5 rounded-full bg-accent/15 px-1.5 py-0.5 text-[10px] font-bold text-accent">
+                          {p.projectName}
+                        </span>
+                      )}
                     </div>
                   </div>
                   <span className="text-xs font-mono text-muted-foreground">

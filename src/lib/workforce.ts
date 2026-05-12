@@ -39,6 +39,7 @@ export async function listEmployers(): Promise<Employer[]> {
 export type PlacementWithRefs = Placement & {
   worker: Pick<Worker, "full_name" | "employee_code"> | null;
   employer: Pick<Employer, "name"> | null;
+  project?: { name: string } | null;
 };
 
 export async function listPlacements(): Promise<PlacementWithRefs[]> {
