@@ -3,6 +3,8 @@ import Link from "next/link";
 import { Clock, Calendar, TrendingUp, AlertCircle } from "lucide-react";
 import { getCurrentWorker, getOpenTimeEntry, getWorkerWeek } from "@/lib/workforce";
 import { getSupabaseServer } from "@/lib/supabase/server";
+import { t, type TKey } from "@/lib/i18n";
+import { getLocale } from "@/lib/i18n-server";
 import { clockIn, clockOut } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -12,6 +14,7 @@ export default async function WorkerDashboard() {
   if (!worker) {
     redirect("/worker/login?next=/worker");
   }
+  const locale = await getLocale();
   const supabase = await getSupabaseServer();
 
   const [open, placements, week] = await Promise.all([
@@ -32,40 +35,40 @@ export default async function WorkerDashboard() {
     }>) ?? [];
 
   const firstName = worker.full_name.split(" ")[0];
-  const greeting = greetingFor(new Date());
+  const greeting = greetingKeyFor(new Date());
 
   return (
     <div className="space-y-6">
       <header>
         <p className="text-sm uppercase tracking-wider text-muted-foreground">
-          {greeting}, {firstName} 👋
+          {t(locale, greeting)}, {firstName} 👋
         </p>
         <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
-          {open ? "You're on the clock" : "Ready to start your day?"}
+          {open ? t(locale, "w.today.on_the_clock") : t(locale, "w.today.ready")}
         </h1>
       </header>
 
       {open ? (
-        <ClockedInPanel open={open} />
+        <ClockedInPanel open={open} locale={locale} />
       ) : (
-        <ClockInPanel placements={activePlacements} />
+        <ClockInPanel placements={activePlacements} locale={locale} />
       )}
 
       <section className="grid gap-3 sm:grid-cols-3">
         <StatCard
           icon={<Clock className="h-4 w-4" />}
-          label="Hours this week"
+          label={t(locale, "w.today.hours_week")}
           value={week.hours.toFixed(2)}
           unit="hrs"
         />
         <StatCard
           icon={<Calendar className="h-4 w-4" />}
-          label="Shifts this week"
+          label={t(locale, "w.today.shifts_week")}
           value={String(week.shifts.length)}
         />
         <StatCard
           icon={<TrendingUp className="h-4 w-4" />}
-          label="Active placements"
+          label={t(locale, "w.today.active_placements")}
           value={String(activePlacements.length)}
         />
       </section>
@@ -74,13 +77,13 @@ export default async function WorkerDashboard() {
         <section className="rounded-xl border border-border bg-background p-5">
           <div className="flex items-baseline justify-between">
             <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-              This week
+              {t(locale, "w.today.this_week")}
             </h2>
             <Link
               href="/worker/shifts"
               className="text-xs font-medium text-accent underline-offset-4 hover:underline"
             >
-              View all →
+              {t(locale, "w.today.view_all")} →
             </Link>
           </div>
           <ul className="mt-4 space-y-2 text-sm">
@@ -95,11 +98,11 @@ export default async function WorkerDashboard() {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline gap-2">
                       <span className="font-semibold">
-                        {start.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}
+                        {start.toLocaleDateString(locale, { weekday: "short", month: "short", day: "numeric" })}
                       </span>
                       <span className="text-muted-foreground">
-                        {start.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}–
-                        {end.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+                        {start.toLocaleTimeString(locale, { hour: "numeric", minute: "2-digit" })}–
+                        {end.toLocaleTimeString(locale, { hour: "numeric", minute: "2-digit" })}
                       </span>
                     </div>
                     <div className="truncate text-xs text-muted-foreground">
@@ -127,11 +130,11 @@ export default async function WorkerDashboard() {
   );
 }
 
-function greetingFor(d: Date): string {
+function greetingKeyFor(d: Date): TKey {
   const h = d.getHours();
-  if (h < 12) return "Good morning";
-  if (h < 18) return "Good afternoon";
-  return "Good evening";
+  if (h < 12) return "w.greeting.morning";
+  if (h < 18) return "w.greeting.afternoon";
+  return "w.greeting.evening";
 }
 
 function StatCard({
@@ -160,8 +163,10 @@ function StatCard({
 
 function ClockedInPanel({
   open,
+  locale,
 }: {
   open: { id: string; clock_in_at: string };
+  locale: "en" | "es" | "pt";
 }) {
   const since = new Date(open.clock_in_at);
   return (
@@ -174,10 +179,11 @@ function ClockedInPanel({
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-60" />
           <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-500" />
         </span>
-        On the clock since {since.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+        {t(locale, "w.today.on_clock_since")}{" "}
+        {since.toLocaleTimeString(locale, { hour: "numeric", minute: "2-digit" })}
       </div>
       <label className="mt-5 block">
-        <span className="text-sm font-medium">Break minutes today</span>
+        <span className="text-sm font-medium">{t(locale, "w.today.break_minutes")}</span>
         <input
           name="break_minutes"
           type="number"
@@ -186,14 +192,14 @@ function ClockedInPanel({
           className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
         />
         <span className="mt-1 block text-xs text-muted-foreground">
-          Total unpaid break time during this shift.
+          {t(locale, "w.today.break_hint")}
         </span>
       </label>
       <button
         type="submit"
         className="mt-5 inline-flex h-14 w-full items-center justify-center rounded-xl bg-foreground px-6 text-lg font-extrabold text-background hover:opacity-90"
       >
-        Clock out
+        {t(locale, "w.today.clock_out")}
       </button>
     </form>
   );
@@ -201,17 +207,19 @@ function ClockedInPanel({
 
 function ClockInPanel({
   placements,
+  locale,
 }: {
   placements: Array<{ id: string; role_title: string; employer: { name: string } | null }>;
+  locale: "en" | "es" | "pt";
 }) {
   if (placements.length === 0) {
     return (
       <div className="flex items-start gap-3 rounded-2xl border-2 border-dashed border-border bg-muted/30 p-6">
         <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
         <div>
-          <p className="font-medium">No active placements yet</p>
+          <p className="font-medium">{t(locale, "w.today.no_placements_title")}</p>
           <p className="mt-1 text-sm text-muted-foreground">
-            Vertex will assign you to an employer soon. You&apos;ll see your shifts here when ready.
+            {t(locale, "w.today.no_placements_body")}
           </p>
         </div>
       </div>
@@ -220,7 +228,7 @@ function ClockInPanel({
   return (
     <form action={clockIn} className="rounded-2xl border-2 border-accent/40 bg-accent/5 p-6">
       <label className="block">
-        <span className="text-sm font-medium">Where are you working today?</span>
+        <span className="text-sm font-medium">{t(locale, "w.today.where")}</span>
         <select
           name="placement_id"
           required
@@ -237,7 +245,7 @@ function ClockInPanel({
         type="submit"
         className="mt-5 inline-flex h-14 w-full items-center justify-center rounded-xl bg-accent px-6 text-lg font-extrabold text-accent-foreground hover:opacity-90"
       >
-        Clock in →
+        {t(locale, "w.today.clock_in")} →
       </button>
     </form>
   );

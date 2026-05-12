@@ -2,7 +2,8 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, MapPin } from "lucide-react";
 import { getSupabaseServer } from "@/lib/supabase/server";
-import type { Worker, Placement, TimeEntry } from "@/types/db";
+import type { Worker, Placement, TimeEntry, WorkerDocument, DocumentType } from "@/types/db";
+import { DOCUMENT_LABELS } from "@/lib/documents";
 import { PageHeader } from "../../_components/page-header";
 import {
   FormSection,
@@ -31,7 +32,7 @@ export default async function WorkerDetail({
   }
 
   const supabase = await getSupabaseServer();
-  const [workerRes, placementsRes, entriesRes] = await Promise.all([
+  const [workerRes, placementsRes, entriesRes, docsRes] = await Promise.all([
     supabase.from("workers").select("*").eq("id", id).maybeSingle(),
     supabase
       .from("placements")
@@ -46,6 +47,11 @@ export default async function WorkerDetail({
       .eq("worker_id", id)
       .order("clock_in_at", { ascending: false })
       .limit(20),
+    supabase
+      .from("documents")
+      .select("*")
+      .eq("worker_id", id)
+      .order("uploaded_at", { ascending: false }),
   ]);
 
   const worker = workerRes.data as Worker | null;
@@ -62,6 +68,7 @@ export default async function WorkerDetail({
         placement: { role_title: string; employer: { name: string } | null } | null;
       }
     >) ?? [];
+  const docs = (docsRes.data as WorkerDocument[]) ?? [];
 
   const thisMonth = new Date();
   thisMonth.setDate(1);
@@ -303,6 +310,54 @@ export default async function WorkerDetail({
                       <StatusPill status="pending" variant="amber" />
                     ) : (
                       <StatusPill status="open" variant="blue" />
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          {/* Documents */}
+          <section className="rounded-xl border border-border bg-background p-5">
+            <div className="flex items-baseline justify-between">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Documents ({docs.length})
+              </h2>
+              <Link
+                href="/admin/documents"
+                className="text-xs text-accent underline-offset-4 hover:underline"
+              >
+                All →
+              </Link>
+            </div>
+            {docs.length === 0 ? (
+              <p className="mt-4 text-sm text-muted-foreground">
+                No documents uploaded yet. Worker can upload from{" "}
+                <code className="font-mono text-xs">/worker/documents</code>.
+              </p>
+            ) : (
+              <ul className="mt-4 space-y-2 text-sm">
+                {docs.map((d) => (
+                  <li
+                    key={d.id}
+                    className="flex items-baseline justify-between gap-3 rounded-md border border-border/60 px-3 py-2"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate font-medium">
+                        {DOCUMENT_LABELS[d.type as DocumentType]}
+                      </div>
+                      <div className="truncate text-xs text-muted-foreground">
+                        {d.filename} · {new Date(d.uploaded_at).toLocaleDateString()}
+                      </div>
+                    </div>
+                    {d.status === "approved" ? (
+                      <StatusPill status="approved" variant="green" />
+                    ) : d.status === "rejected" ? (
+                      <StatusPill status="rejected" variant="red" />
+                    ) : d.status === "expired" ? (
+                      <StatusPill status="expired" variant="amber" />
+                    ) : (
+                      <StatusPill status="pending" variant="blue" />
                     )}
                   </li>
                 ))}

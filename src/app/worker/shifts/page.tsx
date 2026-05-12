@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { CalendarDays, MapPin } from "lucide-react";
 import { getCurrentWorker } from "@/lib/workforce";
 import { getSupabaseServer } from "@/lib/supabase/server";
+import { t } from "@/lib/i18n";
+import { getLocale } from "@/lib/i18n-server";
 import type { Shift } from "@/types/db";
 
 export const dynamic = "force-dynamic";
@@ -13,6 +15,7 @@ type Row = Shift & {
 export default async function WorkerShiftsPage() {
   const worker = await getCurrentWorker();
   if (!worker) redirect("/worker/login?next=/worker/shifts");
+  const locale = await getLocale();
 
   const supabase = await getSupabaseServer();
   const { data: placementIds } = await supabase
@@ -43,9 +46,9 @@ export default async function WorkerShiftsPage() {
 
   return (
     <div>
-      <h1 className="text-xl font-extrabold tracking-tight sm:text-2xl">Your shifts</h1>
+      <h1 className="text-xl font-extrabold tracking-tight sm:text-2xl">{t(locale, "w.shifts.title")}</h1>
       <p className="mt-1 text-sm text-muted-foreground">
-        Schedule for the next several days.
+        {t(locale, "w.shifts.subtitle")}
       </p>
 
       {shifts.length === 0 ? (
@@ -53,7 +56,7 @@ export default async function WorkerShiftsPage() {
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-muted">
             <CalendarDays className="h-5 w-5 text-muted-foreground" />
           </div>
-          <p className="mt-4 text-muted-foreground">No upcoming shifts scheduled.</p>
+          <p className="mt-4 text-muted-foreground">{t(locale, "w.shifts.no_upcoming")}</p>
         </div>
       ) : (
         <div className="mt-6 space-y-6">
@@ -72,7 +75,7 @@ export default async function WorkerShiftsPage() {
                   </h2>
                   {isToday && (
                     <span className="rounded-full bg-accent px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent-foreground">
-                      Today
+                      {t(locale, "w.shifts.today_badge")}
                     </span>
                   )}
                 </div>
