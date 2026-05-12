@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { HardHat } from "lucide-react";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import type { Worker } from "@/types/db";
@@ -89,12 +90,15 @@ export default async function WorkersPage({
           {workers.map((w) => (
             <Tr key={w.id}>
               <Td>
-                <div className="flex items-center gap-2">
+                <Link
+                  href={`/admin/workers/${w.id}`}
+                  className="flex items-center gap-2 hover:text-accent"
+                >
                   <span className="flex h-7 w-7 items-center justify-center rounded-full bg-muted text-[10px] font-bold text-muted-foreground">
                     {initials(w.full_name)}
                   </span>
                   <span className="font-medium">{w.full_name}</span>
-                </div>
+                </Link>
               </Td>
               <Td>
                 <span className="font-mono text-xs text-muted-foreground">

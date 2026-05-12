@@ -4,6 +4,7 @@ import { PageHeader } from "../_components/page-header";
 import { EmptyState } from "../_components/empty-state";
 import { DataTable, Th, Tr, Td, StatusPill } from "../_components/data-table";
 import { FilterBar } from "../_components/filter-bar";
+import { hireApplicant, rejectApplicant, reopenApplicant } from "../_actions";
 
 export const dynamic = "force-dynamic";
 
@@ -64,6 +65,7 @@ export default async function ApplicationsPage({
               <Th>Score</Th>
               <Th>Status</Th>
               <Th>Submitted</Th>
+              <Th>Actions</Th>
             </>
           }
         >
@@ -106,7 +108,43 @@ export default async function ApplicationsPage({
                 />
               </Td>
               <Td className="text-xs text-muted-foreground">
-                {new Date(a.created_at).toLocaleString()}
+                {new Date(a.created_at).toLocaleDateString()}
+              </Td>
+              <Td>
+                {a.status === "accepted" ? (
+                  <span className="text-xs text-muted-foreground">hired</span>
+                ) : a.status === "rejected" ? (
+                  <form action={reopenApplicant} className="inline">
+                    <input type="hidden" name="id" value={a.id} />
+                    <button
+                      type="submit"
+                      className="rounded-md border border-border bg-background px-2 py-1 text-xs hover:bg-muted"
+                    >
+                      Reopen
+                    </button>
+                  </form>
+                ) : (
+                  <div className="flex gap-1.5">
+                    <form action={hireApplicant} className="inline">
+                      <input type="hidden" name="id" value={a.id} />
+                      <button
+                        type="submit"
+                        className="rounded-md bg-green-600 px-2 py-1 text-xs font-bold text-white hover:bg-green-700"
+                      >
+                        Hire
+                      </button>
+                    </form>
+                    <form action={rejectApplicant} className="inline">
+                      <input type="hidden" name="id" value={a.id} />
+                      <button
+                        type="submit"
+                        className="rounded-md border border-border bg-background px-2 py-1 text-xs hover:bg-muted"
+                      >
+                        Reject
+                      </button>
+                    </form>
+                  </div>
+                )}
               </Td>
             </Tr>
           ))}

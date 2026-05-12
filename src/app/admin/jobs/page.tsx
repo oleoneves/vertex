@@ -5,6 +5,7 @@ import { styleForCategory } from "@/lib/industries";
 import { formatHourlyRange } from "@/lib/utils";
 import { PageHeader } from "../_components/page-header";
 import { EmptyState } from "../_components/empty-state";
+import { setJobActive } from "../_actions";
 
 export const dynamic = "force-dynamic";
 
@@ -65,12 +66,24 @@ export default async function AdminJobsPage() {
                     >
                       {j.category}
                     </span>
-                    <Link
-                      href={`/jobs/${j.slug}`}
-                      className="text-accent underline-offset-4 hover:underline"
-                    >
-                      Public →
-                    </Link>
+                    <div className="flex items-center gap-2">
+                      <form action={setJobActive} className="inline">
+                        <input type="hidden" name="id" value={j.id} />
+                        <input type="hidden" name="active" value={j.active ? "false" : "true"} />
+                        <button
+                          type="submit"
+                          className="rounded-md border border-border bg-background px-2 py-0.5 text-[10px] uppercase tracking-wider hover:bg-muted"
+                        >
+                          {j.active ? "Deactivate" : "Activate"}
+                        </button>
+                      </form>
+                      <Link
+                        href={`/jobs/${j.slug}`}
+                        className="text-accent underline-offset-4 hover:underline"
+                      >
+                        Public →
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </li>

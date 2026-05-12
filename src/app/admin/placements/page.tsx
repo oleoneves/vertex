@@ -3,6 +3,7 @@ import { listPlacements } from "@/lib/workforce";
 import { PageHeader } from "../_components/page-header";
 import { EmptyState } from "../_components/empty-state";
 import { DataTable, Th, Tr, Td, StatusPill } from "../_components/data-table";
+import { endPlacement } from "../_actions";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +34,7 @@ export default async function PlacementsPage() {
               <Th className="text-right">Margin</Th>
               <Th>Period</Th>
               <Th>Status</Th>
+              <Th></Th>
             </>
           }
         >
@@ -62,6 +64,19 @@ export default async function PlacementsPage() {
                       p.status === "active" ? "green" : p.status === "paused" ? "amber" : "muted"
                     }
                   />
+                </Td>
+                <Td>
+                  {p.status === "active" && (
+                    <form action={endPlacement} className="inline">
+                      <input type="hidden" name="id" value={p.id} />
+                      <button
+                        type="submit"
+                        className="rounded-md border border-border bg-background px-2 py-1 text-xs hover:bg-muted"
+                      >
+                        End
+                      </button>
+                    </form>
+                  )}
                 </Td>
               </Tr>
             );

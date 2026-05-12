@@ -3,6 +3,7 @@ import { listShifts } from "@/lib/workforce";
 import { PageHeader } from "../_components/page-header";
 import { EmptyState } from "../_components/empty-state";
 import { DataTable, Th, Tr, Td, StatusPill } from "../_components/data-table";
+import { cancelShift } from "../_actions";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +32,7 @@ export default async function ShiftsPage() {
               <Th>Employer</Th>
               <Th>Role</Th>
               <Th>Status</Th>
+              <Th></Th>
             </>
           }
         >
@@ -68,6 +70,19 @@ export default async function ShiftsPage() {
                         : "blue"
                     }
                   />
+                </Td>
+                <Td>
+                  {(s.status === "scheduled" || s.status === "in_progress") && (
+                    <form action={cancelShift} className="inline">
+                      <input type="hidden" name="id" value={s.id} />
+                      <button
+                        type="submit"
+                        className="rounded-md border border-border bg-background px-2 py-1 text-xs hover:bg-muted"
+                      >
+                        Cancel
+                      </button>
+                    </form>
+                  )}
                 </Td>
               </Tr>
             );
