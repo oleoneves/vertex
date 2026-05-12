@@ -179,3 +179,33 @@ export type Payment = {
   notes: string | null;
   created_at: string;
 };
+
+export type DocumentType =
+  | "i9"
+  | "w9"
+  | "drivers_license"
+  | "ssn_card"
+  | "work_authorization"
+  | "osha10"
+  | "osha30"
+  | "iicrc_wrt"
+  | "iicrc_amrt"
+  | "workers_comp"
+  | "photo"
+  | "other";
+
+export type DocumentStatus = "pending" | "approved" | "rejected" | "expired";
+
+export type WorkerDocument = {
+  id: string;
+  worker_id: string;
+  type: DocumentType;
+  filename: string;
+  storage_path: string;
+  status: DocumentStatus;
+  expires_at: string | null;
+  uploaded_at: string;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  notes: string | null;
+};
