@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Download } from "lucide-react";
 import { getCurrentEmployer } from "@/lib/employer";
 import { getInvoiceDetail } from "@/lib/workforce";
 import { brand } from "@/lib/brand";
@@ -23,12 +23,22 @@ export default async function EmployerInvoiceDetail({
 
   return (
     <div>
-      <Link
-        href="/employer/invoices"
-        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="h-3.5 w-3.5" /> Invoices
-      </Link>
+      <div className="flex items-center justify-between gap-2">
+        <Link
+          href="/employer/invoices"
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" /> Invoices
+        </Link>
+        <a
+          href={`/api/invoices/${inv.id}/pdf`}
+          target="_blank"
+          rel="noopener"
+          className="inline-flex items-center gap-1 rounded-md bg-foreground px-3 py-1.5 text-sm font-bold text-background hover:opacity-90"
+        >
+          <Download className="h-3.5 w-3.5" /> Download PDF
+        </a>
+      </div>
 
       <article className="mt-4 rounded-xl border border-border bg-background p-6 sm:p-8">
         <header className="flex flex-wrap items-start justify-between gap-6 border-b border-border pb-6">

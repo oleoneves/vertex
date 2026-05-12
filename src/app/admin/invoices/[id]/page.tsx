@@ -1,8 +1,11 @@
 import { notFound } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { Download } from "lucide-react";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { getInvoiceDetail } from "@/lib/workforce";
 import { brand } from "@/lib/brand";
+import { emailReady } from "@/lib/email";
+import { SendInvoiceButton } from "./send-button";
 
 export const dynamic = "force-dynamic";
 
@@ -37,8 +40,21 @@ export default async function InvoiceDetail({
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3 print:hidden">
-        <h1 className="text-xl font-bold tracking-tight">{inv.invoice_number}</h1>
-        <div className="flex gap-2">
+        <h1 className="font-mono text-xl font-bold tracking-tight">{inv.invoice_number}</h1>
+        <div className="flex flex-wrap gap-2">
+          <a
+            href={`/api/invoices/${inv.id}/pdf`}
+            target="_blank"
+            rel="noopener"
+            className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-3 py-1.5 text-sm font-medium hover:bg-muted"
+          >
+            <Download className="h-3.5 w-3.5" /> PDF
+          </a>
+          <SendInvoiceButton
+            invoiceId={inv.id}
+            billingEmail={(inv.employer as { billing_email?: string | null } | null)?.billing_email ?? null}
+            disabled={!emailReady() || !((inv.employer as { billing_email?: string | null } | null)?.billing_email)}
+          />
           <form action={markAction}>
             <input type="hidden" name="id" value={inv.id} />
             <input type="hidden" name="action" value="send" />
@@ -61,16 +77,15 @@ export default async function InvoiceDetail({
               Mark paid
             </button>
           </form>
-          <a
-            href={`/admin/invoices/${inv.id}/print`}
-            target="_blank"
-            rel="noopener"
-            className="rounded-md bg-foreground px-3 py-1.5 text-sm font-medium text-background hover:opacity-90"
-          >
-            Printable
-          </a>
         </div>
       </div>
+
+      {!emailReady() && (
+        <div className="mt-4 rounded-lg border border-dashed border-border bg-muted/30 p-3 text-xs text-muted-foreground">
+          <strong>Email sending disabled:</strong> set <code className="font-mono">RESEND_API_KEY</code>{" "}
+          (and optionally <code className="font-mono">INVOICE_FROM_EMAIL</code>) in your Vercel env to enable &quot;Send to employer&quot;.
+        </div>
+      )}
 
       <article className="mt-8 rounded-lg border border-border bg-background p-8">
         <header className="flex flex-wrap items-start justify-between gap-6 border-b border-border pb-6">
