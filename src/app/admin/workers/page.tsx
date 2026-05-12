@@ -1,66 +1,80 @@
-import Link from "next/link";
+import { HardHat } from "lucide-react";
 import { listWorkers } from "@/lib/workforce";
+import { PageHeader } from "../_components/page-header";
+import { EmptyState } from "../_components/empty-state";
+import { DataTable, Th, Tr, Td, StatusPill } from "../_components/data-table";
 
 export const dynamic = "force-dynamic";
+
+function initials(name: string) {
+  return name
+    .split(/\s+/)
+    .map((w) => w[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+}
 
 export default async function WorkersPage() {
   const workers = await listWorkers();
   return (
     <div>
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Workers</h1>
-        <Link
-          href="/admin/workers/new"
-          className="inline-flex h-9 items-center rounded-md bg-accent px-3 text-sm font-medium text-accent-foreground hover:opacity-90"
+      <PageHeader
+        title="Workers"
+        subtitle="Hired labors actively on the platform."
+        count={workers.length}
+        action={{ href: "/admin/workers/new", label: "New worker" }}
+      />
+      {workers.length === 0 ? (
+        <EmptyState
+          icon={<HardHat className="h-5 w-5" />}
+          title="No workers yet"
+          body="Convert applications into workers as you onboard them."
+        />
+      ) : (
+        <DataTable
+          head={
+            <>
+              <Th>Name</Th>
+              <Th>Code</Th>
+              <Th>Status</Th>
+              <Th>Pay rate</Th>
+              <Th>Contact</Th>
+            </>
+          }
         >
-          + New
-        </Link>
-      </div>
-      <div className="mt-6 overflow-x-auto rounded-lg border border-border">
-        <table className="min-w-full text-sm">
-          <thead className="bg-muted text-left text-xs uppercase tracking-wider text-muted-foreground">
-            <tr>
-              <th className="px-3 py-2">Name</th>
-              <th className="px-3 py-2">Code</th>
-              <th className="px-3 py-2">Status</th>
-              <th className="px-3 py-2">Pay rate</th>
-              <th className="px-3 py-2">Contact</th>
-            </tr>
-          </thead>
-          <tbody>
-            {workers.length === 0 && (
-              <tr>
-                <td colSpan={5} className="px-3 py-6 text-center text-muted-foreground">
-                  No workers yet.
-                </td>
-              </tr>
-            )}
-            {workers.map((w) => (
-              <tr key={w.id} className="border-t border-border">
-                <td className="px-3 py-2 font-medium">{w.full_name}</td>
-                <td className="px-3 py-2 text-muted-foreground">{w.employee_code ?? "—"}</td>
-                <td className="px-3 py-2 capitalize">
-                  <span
-                    className={
-                      w.status === "active"
-                        ? "rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-800"
-                        : "rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground"
-                    }
-                  >
-                    {w.status}
+          {workers.map((w) => (
+            <Tr key={w.id}>
+              <Td>
+                <div className="flex items-center gap-2">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-muted text-[10px] font-bold text-muted-foreground">
+                    {initials(w.full_name)}
                   </span>
-                </td>
-                <td className="px-3 py-2">
-                  {w.default_pay_rate ? `$${w.default_pay_rate}/hr` : "—"}
-                </td>
-                <td className="px-3 py-2 text-muted-foreground">
-                  {w.email ?? w.phone ?? "—"}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                  <span className="font-medium">{w.full_name}</span>
+                </div>
+              </Td>
+              <Td>
+                <span className="font-mono text-xs text-muted-foreground">
+                  {w.employee_code ?? "—"}
+                </span>
+              </Td>
+              <Td>
+                <StatusPill
+                  status={w.status}
+                  variant={
+                    w.status === "active" ? "green" : w.status === "onboarding" ? "amber" : "muted"
+                  }
+                />
+              </Td>
+              <Td className="tabular-nums">
+                {w.default_pay_rate ? `$${Number(w.default_pay_rate).toFixed(2)}/hr` : "—"}
+              </Td>
+              <Td className="text-xs text-muted-foreground">{w.email ?? w.phone ?? "—"}</Td>
+            </Tr>
+          ))}
+        </DataTable>
+      )}
     </div>
   );
 }

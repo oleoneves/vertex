@@ -1,63 +1,102 @@
 import Link from "next/link";
+import { Receipt } from "lucide-react";
 import { listInvoices } from "@/lib/workforce";
+import { PageHeader } from "../_components/page-header";
+import { EmptyState } from "../_components/empty-state";
+import { DataTable, Th, Tr, Td, StatusPill } from "../_components/data-table";
 
 export const dynamic = "force-dynamic";
 
 export default async function InvoicesPage() {
   const invoices = await listInvoices();
+  const totals = invoices.reduce(
+    (acc, i) => {
+      if (i.status === "paid") acc.paid += Number(i.total);
+      else if (i.status === "sent" || i.status === "overdue") acc.outstanding += Number(i.total);
+      return acc;
+    },
+    { paid: 0, outstanding: 0 },
+  );
+
   return (
     <div>
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Invoices</h1>
-        <Link
-          href="/admin/invoices/new"
-          className="inline-flex h-9 items-center rounded-md bg-accent px-3 text-sm font-medium text-accent-foreground hover:opacity-90"
+      <PageHeader
+        title="Invoices"
+        subtitle="Billing to employers."
+        count={invoices.length}
+        action={{ href: "/admin/invoices/new", label: "Generate" }}
+      />
+
+      {invoices.length > 0 && (
+        <div className="mb-6 grid gap-3 sm:grid-cols-2">
+          <div className="rounded-lg border border-border bg-background p-4">
+            <p className="text-xs uppercase tracking-wider text-muted-foreground">Paid (all time)</p>
+            <p className="mt-1 text-2xl font-extrabold tabular-nums">${totals.paid.toFixed(0)}</p>
+          </div>
+          <div className="rounded-lg border border-border bg-accent/10 p-4">
+            <p className="text-xs uppercase tracking-wider text-muted-foreground">Outstanding</p>
+            <p className="mt-1 text-2xl font-extrabold tabular-nums">${totals.outstanding.toFixed(0)}</p>
+          </div>
+        </div>
+      )}
+
+      {invoices.length === 0 ? (
+        <EmptyState
+          icon={<Receipt className="h-5 w-5" />}
+          title="No invoices yet"
+          body="Generate the first invoice from approved hours in a date range."
+        />
+      ) : (
+        <DataTable
+          head={
+            <>
+              <Th>Number</Th>
+              <Th>Employer</Th>
+              <Th>Period</Th>
+              <Th className="text-right">Total</Th>
+              <Th>Status</Th>
+              <Th></Th>
+            </>
+          }
         >
-          + Generate
-        </Link>
-      </div>
-      <div className="mt-6 overflow-x-auto rounded-lg border border-border">
-        <table className="min-w-full text-sm">
-          <thead className="bg-muted text-left text-xs uppercase tracking-wider text-muted-foreground">
-            <tr>
-              <th className="px-3 py-2">Number</th>
-              <th className="px-3 py-2">Employer</th>
-              <th className="px-3 py-2">Period</th>
-              <th className="px-3 py-2">Total</th>
-              <th className="px-3 py-2">Status</th>
-              <th className="px-3 py-2"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {invoices.length === 0 && (
-              <tr>
-                <td colSpan={6} className="px-3 py-6 text-center text-muted-foreground">
-                  No invoices yet.
-                </td>
-              </tr>
-            )}
-            {invoices.map((i) => (
-              <tr key={i.id} className="border-t border-border">
-                <td className="px-3 py-2 font-mono">{i.invoice_number}</td>
-                <td className="px-3 py-2">{i.employer?.name ?? "—"}</td>
-                <td className="px-3 py-2 text-muted-foreground">
-                  {i.period_start} → {i.period_end}
-                </td>
-                <td className="px-3 py-2 font-medium">${Number(i.total).toFixed(2)}</td>
-                <td className="px-3 py-2 capitalize">{i.status}</td>
-                <td className="px-3 py-2">
-                  <Link
-                    className="text-xs text-accent underline-offset-4 hover:underline"
-                    href={`/admin/invoices/${i.id}`}
-                  >
-                    View →
-                  </Link>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+          {invoices.map((i) => (
+            <Tr key={i.id}>
+              <Td className="font-mono text-xs font-medium">{i.invoice_number}</Td>
+              <Td>{i.employer?.name ?? "—"}</Td>
+              <Td className="text-xs text-muted-foreground">
+                {i.period_start} → {i.period_end}
+              </Td>
+              <Td className="text-right font-mono tabular-nums">
+                ${Number(i.total).toFixed(2)}
+              </Td>
+              <Td>
+                <StatusPill
+                  status={i.status}
+                  variant={
+                    i.status === "paid"
+                      ? "green"
+                      : i.status === "overdue"
+                      ? "red"
+                      : i.status === "sent"
+                      ? "blue"
+                      : i.status === "void"
+                      ? "muted"
+                      : "amber"
+                  }
+                />
+              </Td>
+              <Td>
+                <Link
+                  className="text-xs text-accent underline-offset-4 hover:underline"
+                  href={`/admin/invoices/${i.id}`}
+                >
+                  View →
+                </Link>
+              </Td>
+            </Tr>
+          ))}
+        </DataTable>
+      )}
     </div>
   );
 }

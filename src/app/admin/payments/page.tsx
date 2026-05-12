@@ -1,4 +1,8 @@
+import { DollarSign, ArrowDownLeft, ArrowUpRight } from "lucide-react";
 import { getSupabaseServer } from "@/lib/supabase/server";
+import { PageHeader } from "../_components/page-header";
+import { EmptyState } from "../_components/empty-state";
+import { DataTable, Th, Tr, Td } from "../_components/data-table";
 
 export const dynamic = "force-dynamic";
 
@@ -32,61 +36,110 @@ async function load(): Promise<Row[]> {
 
 export default async function PaymentsPage() {
   const payments = await load();
+  const net = payments.reduce(
+    (acc, p) => {
+      const amt = Number(p.amount) || 0;
+      if (p.direction === "in") acc.in += amt;
+      else acc.out += amt;
+      return acc;
+    },
+    { in: 0, out: 0 },
+  );
+
   return (
     <div>
-      <h1 className="text-2xl font-bold tracking-tight">Payments</h1>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Track money in (from employers) and money out (to workers).
-      </p>
-      <div className="mt-6 overflow-x-auto rounded-lg border border-border">
-        <table className="min-w-full text-sm">
-          <thead className="bg-muted text-left text-xs uppercase tracking-wider text-muted-foreground">
-            <tr>
-              <th className="px-3 py-2">When</th>
-              <th className="px-3 py-2">Direction</th>
-              <th className="px-3 py-2">Counterparty</th>
-              <th className="px-3 py-2">Method</th>
-              <th className="px-3 py-2">Reference</th>
-              <th className="px-3 py-2 text-right">Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            {payments.length === 0 && (
-              <tr>
-                <td colSpan={6} className="px-3 py-6 text-center text-muted-foreground">
-                  No payments recorded yet.
-                </td>
-              </tr>
-            )}
-            {payments.map((p) => (
-              <tr key={p.id} className="border-t border-border">
-                <td className="px-3 py-2">{new Date(p.occurred_at).toLocaleDateString()}</td>
-                <td className="px-3 py-2">
-                  <span
-                    className={
-                      p.direction === "in"
-                        ? "rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-800"
-                        : "rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-800"
-                    }
-                  >
-                    {p.direction === "in" ? "Received" : "Paid out"}
+      <PageHeader
+        title="Payments"
+        subtitle="Money in (from employers) and money out (to workers)."
+        count={payments.length}
+      />
+
+      {payments.length > 0 && (
+        <div className="mb-6 grid gap-3 sm:grid-cols-3">
+          <SummaryCard label="Received" value={net.in} positive />
+          <SummaryCard label="Paid out" value={net.out} />
+          <SummaryCard label="Net" value={net.in - net.out} accent />
+        </div>
+      )}
+
+      {payments.length === 0 ? (
+        <EmptyState
+          icon={<DollarSign className="h-5 w-5" />}
+          title="No payments recorded"
+          body="Receipts and payouts will appear here."
+        />
+      ) : (
+        <DataTable
+          head={
+            <>
+              <Th>When</Th>
+              <Th>Direction</Th>
+              <Th>Counterparty</Th>
+              <Th>Method</Th>
+              <Th>Reference</Th>
+              <Th className="text-right">Amount</Th>
+            </>
+          }
+        >
+          {payments.map((p) => (
+            <Tr key={p.id}>
+              <Td className="text-xs">{new Date(p.occurred_at).toLocaleDateString()}</Td>
+              <Td>
+                {p.direction === "in" ? (
+                  <span className="inline-flex items-center gap-1 text-xs font-bold text-green-700 dark:text-green-400">
+                    <ArrowDownLeft className="h-3 w-3" /> Received
                   </span>
-                </td>
-                <td className="px-3 py-2">
-                  {p.direction === "in"
-                    ? p.invoice?.invoice_number ?? "—"
-                    : p.worker?.full_name ?? "—"}
-                </td>
-                <td className="px-3 py-2 capitalize text-muted-foreground">{p.method}</td>
-                <td className="px-3 py-2 text-muted-foreground">{p.reference ?? "—"}</td>
-                <td className="px-3 py-2 text-right font-mono font-medium">
-                  ${Number(p.amount).toFixed(2)}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-xs font-bold text-blue-700 dark:text-blue-400">
+                    <ArrowUpRight className="h-3 w-3" /> Paid out
+                  </span>
+                )}
+              </Td>
+              <Td>
+                {p.direction === "in"
+                  ? p.invoice?.invoice_number ?? "—"
+                  : p.worker?.full_name ?? "—"}
+              </Td>
+              <Td className="text-xs uppercase tracking-wider text-muted-foreground">
+                {p.method}
+              </Td>
+              <Td className="text-xs text-muted-foreground">{p.reference ?? "—"}</Td>
+              <Td className="text-right font-mono tabular-nums font-medium">
+                ${Number(p.amount).toFixed(2)}
+              </Td>
+            </Tr>
+          ))}
+        </DataTable>
+      )}
+    </div>
+  );
+}
+
+function SummaryCard({
+  label,
+  value,
+  positive,
+  accent,
+}: {
+  label: string;
+  value: number;
+  positive?: boolean;
+  accent?: boolean;
+}) {
+  return (
+    <div
+      className={`rounded-lg border border-border p-4 ${
+        accent ? "bg-accent/10" : "bg-background"
+      }`}
+    >
+      <p className="text-xs uppercase tracking-wider text-muted-foreground">{label}</p>
+      <p
+        className={`mt-1 text-2xl font-extrabold tabular-nums ${
+          positive ? "text-green-700 dark:text-green-400" : ""
+        }`}
+      >
+        ${value.toFixed(0)}
+      </p>
     </div>
   );
 }
