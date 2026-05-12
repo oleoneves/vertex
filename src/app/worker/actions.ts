@@ -8,6 +8,7 @@ import { getCurrentWorker, getOpenTimeEntry } from "@/lib/workforce";
 export async function clockIn(formData: FormData) {
   const placementId = String(formData.get("placement_id") || "");
   const shiftId = String(formData.get("shift_id") || "") || null;
+  const location = String(formData.get("location") || "") || null;
   if (!placementId) throw new Error("Missing placement");
 
   const worker = await getCurrentWorker();
@@ -33,6 +34,7 @@ export async function clockIn(formData: FormData) {
     clock_in_at: new Date().toISOString(),
     pay_rate_at_entry: placement.pay_rate,
     bill_rate_at_entry: placement.bill_rate,
+    location,
   });
   if (error) throw new Error(error.message);
 

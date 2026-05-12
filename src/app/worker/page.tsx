@@ -6,6 +6,7 @@ import { getSupabaseServer } from "@/lib/supabase/server";
 import { t, type TKey } from "@/lib/i18n";
 import { getLocale } from "@/lib/i18n-server";
 import { clockIn, clockOut } from "./actions";
+import { ClockForm } from "./clock-form";
 
 export const dynamic = "force-dynamic";
 
@@ -170,7 +171,7 @@ function ClockedInPanel({
 }) {
   const since = new Date(open.clock_in_at);
   return (
-    <form
+    <ClockForm
       action={clockOut}
       className="rounded-2xl border-2 border-green-500/40 bg-green-500/5 p-6"
     >
@@ -201,7 +202,7 @@ function ClockedInPanel({
       >
         {t(locale, "w.today.clock_out")}
       </button>
-    </form>
+    </ClockForm>
   );
 }
 
@@ -226,7 +227,12 @@ function ClockInPanel({
     );
   }
   return (
-    <form action={clockIn} className="rounded-2xl border-2 border-accent/40 bg-accent/5 p-6">
+    <ClockForm
+      action={clockIn}
+      captureGeo
+      className="rounded-2xl border-2 border-accent/40 bg-accent/5 p-6"
+    >
+      <input type="hidden" name="location" defaultValue="" />
       <label className="block">
         <span className="text-sm font-medium">{t(locale, "w.today.where")}</span>
         <select
@@ -247,6 +253,6 @@ function ClockInPanel({
       >
         {t(locale, "w.today.clock_in")} →
       </button>
-    </form>
+    </ClockForm>
   );
 }

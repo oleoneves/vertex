@@ -60,17 +60,22 @@ export default async function ShiftsPage({
             return (
               <Tr key={s.id}>
                 <Td>
-                  <div className="font-medium">
-                    {start.toLocaleDateString(undefined, {
-                      weekday: "short",
-                      month: "short",
-                      day: "numeric",
-                    })}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {start.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })} —{" "}
-                    {end.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
-                  </div>
+                  <Link
+                    href={`/admin/shifts/${s.id}`}
+                    className="block hover:text-accent"
+                  >
+                    <div className="font-medium">
+                      {start.toLocaleDateString(undefined, {
+                        weekday: "short",
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {start.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })} —{" "}
+                      {end.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+                    </div>
+                  </Link>
                 </Td>
                 <Td>{s.placement?.worker?.full_name ?? "—"}</Td>
                 <Td>{s.placement?.employer?.name ?? "—"}</Td>
