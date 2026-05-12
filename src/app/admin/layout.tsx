@@ -12,6 +12,7 @@ import {
   Clock,
   Receipt,
   DollarSign,
+  BarChart3,
 } from "lucide-react";
 
 const RECRUIT = [
@@ -32,6 +33,7 @@ const WORKFORCE = [
 const MONEY = [
   { href: "/admin/invoices", label: "Invoices", Icon: Receipt },
   { href: "/admin/payments", label: "Payments", Icon: DollarSign },
+  { href: "/admin/reports", label: "Reports", Icon: BarChart3 },
 ];
 
 export default function AdminLayout({ children }: { children: ReactNode }) {

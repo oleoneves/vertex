@@ -32,7 +32,14 @@ export default async function InvoicesPage({
         subtitle="Billing to employers."
         count={invoices.length}
         action={{ href: "/admin/invoices/new", label: "Generate" }}
-      />
+      >
+        <a
+          href="/api/admin/export?type=invoices"
+          className="inline-flex h-9 items-center gap-1 rounded-md border border-border bg-background px-3 text-sm font-medium hover:bg-muted"
+        >
+          ⇩ CSV
+        </a>
+      </PageHeader>
 
       {all.length > 0 && (
         <div className="mb-6 grid gap-3 sm:grid-cols-2">
