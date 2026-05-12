@@ -17,15 +17,19 @@ export async function SiteHeader({ theme }: { theme: Theme }) {
   ];
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/85 backdrop-blur">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-2 px-4 sm:px-6">
+      <div
+        className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-2 px-4 sm:px-6"
+        style={{ paddingTop: "env(safe-area-inset-top, 0)" }}
+      >
         <Link href="/" className="flex items-center" aria-label={brand.name}>
           <Image
             src="/logo.svg"
             alt={brand.name}
-            width={132}
-            height={29}
+            width={120}
+            height={26}
             priority
             unoptimized
+            className="w-[100px] sm:w-[132px]"
           />
         </Link>
 

@@ -8,8 +8,8 @@ export function DataTable({
   children: ReactNode;
 }) {
   return (
-    <div className="overflow-x-auto rounded-xl border border-border">
-      <table className="min-w-full text-sm">
+    <div className="-mx-4 overflow-x-auto rounded-xl border-y border-border sm:mx-0 sm:rounded-xl sm:border">
+      <table className="min-w-full text-xs sm:text-sm">
         <thead className="bg-muted/60 text-left text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
           <tr>{head}</tr>
         </thead>
@@ -26,7 +26,9 @@ export function Th({
   children?: ReactNode;
   className?: string;
 }) {
-  return <th className={`px-3 py-2.5 ${className}`}>{children}</th>;
+  return (
+    <th className={`whitespace-nowrap px-3 py-2.5 ${className}`}>{children}</th>
+  );
 }
 
 export function Tr({ children }: { children: ReactNode }) {

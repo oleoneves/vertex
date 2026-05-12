@@ -15,13 +15,19 @@ import {
   ClipboardList,
 } from "lucide-react";
 
-const RECRUIT = [
+type NavItem = {
+  href: string;
+  label: string;
+  Icon: React.ComponentType<{ className?: string }>;
+};
+
+const RECRUIT: NavItem[] = [
   { href: "/admin", label: "Dashboard", Icon: LayoutDashboard },
   { href: "/admin/applications", label: "Applications", Icon: FileText },
   { href: "/admin/jobs", label: "Jobs", Icon: Briefcase },
 ];
 
-const WORKFORCE = [
+const WORKFORCE: NavItem[] = [
   { href: "/admin/projects", label: "Projects", Icon: ClipboardList },
   { href: "/admin/workers", label: "Workers", Icon: HardHat },
   { href: "/admin/employers", label: "Employers", Icon: Building2 },
@@ -30,34 +36,51 @@ const WORKFORCE = [
   { href: "/admin/timesheet", label: "Timesheet", Icon: Clock },
 ];
 
-const MONEY = [
+const MONEY: NavItem[] = [
   { href: "/admin/invoices", label: "Invoices", Icon: Receipt },
+  { href: "/admin/payroll", label: "Payroll", Icon: DollarSign },
   { href: "/admin/payments", label: "Payments", Icon: DollarSign },
   { href: "/admin/reports", label: "Reports", Icon: BarChart3 },
 ];
 
+const ALL_ITEMS: NavItem[] = [...RECRUIT, ...WORKFORCE, ...MONEY];
+
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6 lg:flex-row lg:gap-10">
-      <aside className="lg:w-60 lg:shrink-0">
-        <nav className="lg:sticky lg:top-24 flex flex-col gap-1 text-sm">
+    <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-8 lg:flex lg:gap-10">
+      {/* Mobile: horizontal scrollable chip nav */}
+      <nav
+        aria-label="Admin"
+        className="-mx-4 mb-4 flex gap-1.5 overflow-x-auto px-4 pb-2 sm:-mx-6 sm:px-6 lg:hidden"
+        style={{ scrollbarWidth: "none" }}
+      >
+        {ALL_ITEMS.map((it) => (
+          <Link
+            key={it.href}
+            href={it.href}
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted"
+          >
+            <it.Icon className="h-3.5 w-3.5 text-muted-foreground" />
+            {it.label}
+          </Link>
+        ))}
+      </nav>
+
+      {/* Desktop: grouped sidebar */}
+      <aside className="hidden lg:block lg:w-60 lg:shrink-0">
+        <nav className="sticky top-24 flex flex-col gap-1 text-sm">
           <Group label="Recruitment" items={RECRUIT} />
           <Group label="Workforce" items={WORKFORCE} />
           <Group label="Money" items={MONEY} />
         </nav>
       </aside>
+
       <section className="min-w-0 flex-1">{children}</section>
     </div>
   );
 }
 
-function Group({
-  label,
-  items,
-}: {
-  label: string;
-  items: { href: string; label: string; Icon: React.ComponentType<{ className?: string }> }[];
-}) {
+function Group({ label, items }: { label: string; items: NavItem[] }) {
   return (
     <div className="mb-3">
       <p className="px-3 pb-1 pt-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">

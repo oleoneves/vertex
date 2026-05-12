@@ -152,21 +152,21 @@ export function FormActions({
   cancelHref?: string;
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-3 pt-2">
-      <button
-        type="submit"
-        className="inline-flex h-10 items-center rounded-md bg-accent px-5 text-sm font-bold text-accent-foreground hover:opacity-90"
-      >
-        {submitLabel}
-      </button>
+    <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:items-center sm:gap-3">
       {cancelHref && (
         <Link
           href={cancelHref}
-          className="inline-flex h-10 items-center rounded-md border border-border bg-background px-4 text-sm font-medium hover:bg-muted"
+          className="inline-flex h-11 items-center justify-center rounded-md border border-border bg-background px-4 text-sm font-medium hover:bg-muted sm:h-10"
         >
           Cancel
         </Link>
       )}
+      <button
+        type="submit"
+        className="inline-flex h-11 items-center justify-center rounded-md bg-accent px-5 text-sm font-bold text-accent-foreground hover:opacity-90 sm:order-2 sm:h-10"
+      >
+        {submitLabel}
+      </button>
     </div>
   );
 }

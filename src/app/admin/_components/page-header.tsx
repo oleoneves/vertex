@@ -16,29 +16,35 @@ export function PageHeader({
   children?: ReactNode;
 }) {
   return (
-    <header className="mb-6 flex flex-wrap items-end justify-between gap-3 border-b border-border pb-5">
-      <div>
+    <header className="mb-5 flex flex-col gap-3 border-b border-border pb-5 sm:mb-6 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
+      <div className="min-w-0 flex-1">
         <div className="flex items-baseline gap-2">
-          <h1 className="text-2xl font-extrabold tracking-tight">{title}</h1>
+          <h1 className="truncate text-xl font-extrabold tracking-tight sm:text-2xl">
+            {title}
+          </h1>
           {count != null && (
-            <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground">
+            <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground">
               {count}
             </span>
           )}
         </div>
-        {subtitle && <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>}
-      </div>
-      <div className="flex items-center gap-2">
-        {children}
-        {action && (
-          <Link
-            href={action.href}
-            className="inline-flex h-9 items-center gap-1 rounded-md bg-accent px-3 text-sm font-bold text-accent-foreground hover:opacity-90"
-          >
-            <Plus className="h-4 w-4" /> {action.label}
-          </Link>
+        {subtitle && (
+          <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
         )}
       </div>
+      {(children || action) && (
+        <div className="flex flex-wrap items-center gap-2">
+          {children}
+          {action && (
+            <Link
+              href={action.href}
+              className="inline-flex h-9 items-center gap-1 rounded-md bg-accent px-3 text-sm font-bold text-accent-foreground hover:opacity-90"
+            >
+              <Plus className="h-4 w-4" /> {action.label}
+            </Link>
+          )}
+        </div>
+      )}
     </header>
   );
 }

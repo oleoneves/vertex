@@ -27,26 +27,26 @@ export default async function Home() {
           className="object-cover opacity-50"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/80" />
-        <div className="relative mx-auto max-w-6xl px-4 py-24 sm:px-6 sm:py-32">
-          <p className="mb-4 text-xs font-bold uppercase tracking-[0.18em] text-accent">
+        <div className="relative mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-32">
+          <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.18em] text-accent sm:mb-4 sm:text-xs">
             {t(locale, "hero.eyebrow")}
           </p>
-          <h1 className="max-w-3xl text-4xl font-black leading-[1.05] tracking-tight sm:text-6xl">
+          <h1 className="max-w-3xl text-3xl font-black leading-[1.1] tracking-tight sm:text-6xl sm:leading-[1.05]">
             {t(locale, "hero.title")}
           </h1>
-          <p className="mt-6 max-w-2xl text-lg text-white/85 sm:text-xl">
+          <p className="mt-4 max-w-2xl text-base text-white/85 sm:mt-6 sm:text-xl">
             {t(locale, "hero.subtitle")}
           </p>
-          <div className="mt-10 flex flex-wrap gap-3">
+          <div className="mt-6 flex flex-col gap-3 sm:mt-10 sm:flex-row sm:flex-wrap">
             <Link
               href="/jobs"
-              className="inline-flex h-12 items-center rounded-md bg-accent px-7 text-base font-bold text-black hover:opacity-90"
+              className="inline-flex h-12 items-center justify-center rounded-md bg-accent px-7 text-base font-bold text-black hover:opacity-90"
             >
               {t(locale, "hero.cta.jobs")} →
             </Link>
             <Link
               href="/jobs"
-              className="inline-flex h-12 items-center rounded-md border border-white/30 bg-white/5 px-7 text-base font-medium text-white backdrop-blur hover:bg-white/10"
+              className="inline-flex h-12 items-center justify-center rounded-md border border-white/30 bg-white/5 px-7 text-base font-medium text-white backdrop-blur hover:bg-white/10"
             >
               {t(locale, "hero.cta.apply")}
             </Link>
