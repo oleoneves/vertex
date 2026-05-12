@@ -5,6 +5,7 @@ import { listTimeEntries } from "@/lib/workforce";
 import { PageHeader } from "../_components/page-header";
 import { EmptyState } from "../_components/empty-state";
 import { DataTable, Th, Tr, Td, StatusPill } from "../_components/data-table";
+import { FilterBar } from "../_components/filter-bar";
 
 export const dynamic = "force-dynamic";
 
@@ -26,15 +27,32 @@ async function approveEntry(formData: FormData) {
   revalidatePath("/admin/timesheet");
 }
 
-export default async function TimesheetPage() {
-  const entries = await listTimeEntries();
+export default async function TimesheetPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string; from?: string; to?: string }>;
+}) {
+  const sp = await searchParams;
+  const filterArgs: { unapprovedOnly?: boolean; from?: string; to?: string } = {};
+  if (sp.status === "pending") filterArgs.unapprovedOnly = true;
+  if (sp.from) filterArgs.from = new Date(sp.from).toISOString();
+  if (sp.to) filterArgs.to = new Date(new Date(sp.to).getTime() + 86400000 - 1).toISOString();
+
+  const entries = await listTimeEntries(filterArgs);
+  const filtered =
+    sp.status === "approved"
+      ? entries.filter((e) => e.approved)
+      : sp.status === "open"
+      ? entries.filter((e) => !e.clock_out_at)
+      : entries;
   const pending = entries.filter((e) => !e.approved && e.clock_out_at).length;
+
   return (
     <div>
       <PageHeader
         title="Timesheet"
         subtitle="Review and approve clock entries before invoicing."
-        count={entries.length}
+        count={filtered.length}
       >
         {pending > 0 && (
           <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
@@ -43,10 +61,25 @@ export default async function TimesheetPage() {
         )}
       </PageHeader>
 
-      {entries.length === 0 ? (
+      <FilterBar
+        filters={[
+          {
+            name: "status",
+            label: "Status",
+            value: sp.status,
+            options: [
+              { value: "pending", label: "Pending only" },
+              { value: "approved", label: "Approved" },
+              { value: "open", label: "Open (in progress)" },
+            ],
+          },
+        ]}
+      />
+
+      {filtered.length === 0 ? (
         <EmptyState
           icon={<Clock className="h-5 w-5" />}
-          title="No time entries"
+          title="No time entries match"
           body="Entries appear here as workers clock in and out."
         />
       ) : (
@@ -63,7 +96,7 @@ export default async function TimesheetPage() {
             </>
           }
         >
-          {entries.map((e) => (
+          {filtered.map((e) => (
             <Tr key={e.id}>
               <Td className="font-medium">{e.worker?.full_name ?? "—"}</Td>
               <Td className="text-xs text-muted-foreground">

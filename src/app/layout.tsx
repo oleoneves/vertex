@@ -25,12 +25,25 @@ export const metadata: Metadata = {
     template: `%s · ${brand.name}`,
   },
   description: brand.tagline.en,
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    title: brand.name,
+    statusBarStyle: "black-translucent",
+  },
   openGraph: {
     title: brand.name,
     description: brand.tagline.en,
     siteName: brand.name,
     type: "website",
   },
+};
+
+export const viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
+  ],
 };
 
 export default async function RootLayout({

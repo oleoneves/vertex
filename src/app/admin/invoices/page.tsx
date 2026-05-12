@@ -4,12 +4,19 @@ import { listInvoices } from "@/lib/workforce";
 import { PageHeader } from "../_components/page-header";
 import { EmptyState } from "../_components/empty-state";
 import { DataTable, Th, Tr, Td, StatusPill } from "../_components/data-table";
+import { FilterBar } from "../_components/filter-bar";
 
 export const dynamic = "force-dynamic";
 
-export default async function InvoicesPage() {
-  const invoices = await listInvoices();
-  const totals = invoices.reduce(
+export default async function InvoicesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string }>;
+}) {
+  const sp = await searchParams;
+  const all = await listInvoices();
+  const invoices = sp.status ? all.filter((i) => i.status === sp.status) : all;
+  const totals = all.reduce(
     (acc, i) => {
       if (i.status === "paid") acc.paid += Number(i.total);
       else if (i.status === "sent" || i.status === "overdue") acc.outstanding += Number(i.total);
@@ -27,23 +34,46 @@ export default async function InvoicesPage() {
         action={{ href: "/admin/invoices/new", label: "Generate" }}
       />
 
-      {invoices.length > 0 && (
+      {all.length > 0 && (
         <div className="mb-6 grid gap-3 sm:grid-cols-2">
           <div className="rounded-lg border border-border bg-background p-4">
-            <p className="text-xs uppercase tracking-wider text-muted-foreground">Paid (all time)</p>
-            <p className="mt-1 text-2xl font-extrabold tabular-nums">${totals.paid.toFixed(0)}</p>
+            <p className="text-xs uppercase tracking-wider text-muted-foreground">
+              Paid (all time)
+            </p>
+            <p className="mt-1 text-2xl font-extrabold tabular-nums">
+              ${totals.paid.toFixed(0)}
+            </p>
           </div>
           <div className="rounded-lg border border-border bg-accent/10 p-4">
             <p className="text-xs uppercase tracking-wider text-muted-foreground">Outstanding</p>
-            <p className="mt-1 text-2xl font-extrabold tabular-nums">${totals.outstanding.toFixed(0)}</p>
+            <p className="mt-1 text-2xl font-extrabold tabular-nums">
+              ${totals.outstanding.toFixed(0)}
+            </p>
           </div>
         </div>
       )}
 
+      <FilterBar
+        filters={[
+          {
+            name: "status",
+            label: "Status",
+            value: sp.status,
+            options: [
+              { value: "draft", label: "Draft" },
+              { value: "sent", label: "Sent" },
+              { value: "paid", label: "Paid" },
+              { value: "overdue", label: "Overdue" },
+              { value: "void", label: "Void" },
+            ],
+          },
+        ]}
+      />
+
       {invoices.length === 0 ? (
         <EmptyState
           icon={<Receipt className="h-5 w-5" />}
-          title="No invoices yet"
+          title="No invoices match"
           body="Generate the first invoice from approved hours in a date range."
         />
       ) : (

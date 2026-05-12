@@ -1,13 +1,39 @@
 import { Building2 } from "lucide-react";
-import { listEmployers } from "@/lib/workforce";
+import { getSupabaseServer } from "@/lib/supabase/server";
+import type { Employer } from "@/types/db";
 import { PageHeader } from "../_components/page-header";
 import { EmptyState } from "../_components/empty-state";
 import { DataTable, Th, Tr, Td } from "../_components/data-table";
+import { FilterBar } from "../_components/filter-bar";
 
 export const dynamic = "force-dynamic";
 
-export default async function EmployersPage() {
-  const employers = await listEmployers();
+async function load(filters: { q?: string }): Promise<Employer[]> {
+  if (
+    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
+    !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  ) {
+    return [];
+  }
+  const supabase = await getSupabaseServer();
+  let q = supabase
+    .from("employers")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(200);
+  if (filters.q)
+    q = q.or(`name.ilike.%${filters.q}%,contact_name.ilike.%${filters.q}%,billing_email.ilike.%${filters.q}%`);
+  const { data } = await q;
+  return (data as Employer[]) ?? [];
+}
+
+export default async function EmployersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
+  const sp = await searchParams;
+  const employers = await load(sp);
   return (
     <div>
       <PageHeader
@@ -16,10 +42,14 @@ export default async function EmployersPage() {
         count={employers.length}
         action={{ href: "/admin/employers/new", label: "New employer" }}
       />
+      <FilterBar
+        searchValue={sp.q}
+        searchPlaceholder="Search name, contact, or email…"
+      />
       {employers.length === 0 ? (
         <EmptyState
           icon={<Building2 className="h-5 w-5" />}
-          title="No employers yet"
+          title="No employers match"
           body="Add an employer before you can create a placement."
         />
       ) : (

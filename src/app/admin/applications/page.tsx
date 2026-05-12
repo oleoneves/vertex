@@ -3,6 +3,7 @@ import { getSupabaseServer } from "@/lib/supabase/server";
 import { PageHeader } from "../_components/page-header";
 import { EmptyState } from "../_components/empty-state";
 import { DataTable, Th, Tr, Td, StatusPill } from "../_components/data-table";
+import { FilterBar } from "../_components/filter-bar";
 
 export const dynamic = "force-dynamic";
 
@@ -17,8 +18,13 @@ type Row = {
   job: { title: string; slug: string } | null;
 };
 
-export default async function ApplicationsPage() {
-  const apps = await load();
+export default async function ApplicationsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string; q?: string }>;
+}) {
+  const sp = await searchParams;
+  const apps = await load(sp);
   return (
     <div>
       <PageHeader
@@ -26,11 +32,28 @@ export default async function ApplicationsPage() {
         subtitle="Candidates who applied via the public site."
         count={apps.length}
       />
+      <FilterBar
+        searchValue={sp.q}
+        searchPlaceholder="Search candidate name or email…"
+        filters={[
+          {
+            name: "status",
+            label: "Status",
+            value: sp.status,
+            options: [
+              { value: "new", label: "New" },
+              { value: "reviewing", label: "Reviewing" },
+              { value: "accepted", label: "Accepted" },
+              { value: "rejected", label: "Rejected" },
+            ],
+          },
+        ]}
+      />
       {apps.length === 0 ? (
         <EmptyState
           icon={<FileText className="h-5 w-5" />}
-          title="No applications yet"
-          body="Once candidates submit, they'll show up here ranked by AI score."
+          title="No applications match"
+          body="Adjust the filter or wait for new submissions."
         />
       ) : (
         <DataTable
@@ -93,7 +116,7 @@ export default async function ApplicationsPage() {
   );
 }
 
-async function load(): Promise<Row[]> {
+async function load(filters: { status?: string; q?: string }): Promise<Row[]> {
   if (
     !process.env.NEXT_PUBLIC_SUPABASE_URL ||
     !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -101,12 +124,20 @@ async function load(): Promise<Row[]> {
     return [];
   }
   const supabase = await getSupabaseServer();
-  const { data } = await supabase
+  let q = supabase
     .from("applications")
     .select(
-      "id, status, ai_score, ai_summary, experience_summary, created_at, candidate:candidates(full_name, email), job:jobs(title, slug)",
+      "id, status, ai_score, ai_summary, experience_summary, created_at, candidate:candidates!inner(full_name, email), job:jobs(title, slug)",
     )
     .order("created_at", { ascending: false })
-    .limit(100);
+    .limit(200);
+  if (filters.status) q = q.eq("status", filters.status);
+  if (filters.q) {
+    q = q.or(
+      `full_name.ilike.%${filters.q}%,email.ilike.%${filters.q}%`,
+      { foreignTable: "candidates" },
+    );
+  }
+  const { data } = await q;
   return (data as unknown as Row[]) ?? [];
 }
