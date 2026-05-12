@@ -53,14 +53,37 @@ select
 from generate_series(1, 100) n, names
 on conflict (employee_code) do nothing;
 
--- ============== 3. Placements: 100 workers → Sunbelt @ $15/$25 ==============
-with emp as (select id from public.employers where name = 'Sunbelt Industrial Group')
-insert into public.placements (
-  worker_id, employer_id, role_title, pay_rate, bill_rate, start_date, status, notes
+-- ============== 2a. Project for the simulation ==============
+insert into public.projects (
+  employer_id, name, slug, location, start_date, end_date,
+  budget_hours, budget_amount, status, notes
 )
 select
-  w.id, emp.id,
-  case (n % 8)
+  e.id,
+  'Sunbelt Refinery Expansion',
+  'sunbelt-refinery-expansion',
+  'Galveston, TX · Refinery Site',
+  (current_date - 30),
+  (current_date + 60),
+  20000,
+  500000,
+  'active',
+  '100-headcount refinery expansion · Mon–Fri 7am–3pm shifts.'
+from public.employers e
+where e.name = 'Sunbelt Industrial Group'
+  and not exists (
+    select 1 from public.projects p where p.slug = 'sunbelt-refinery-expansion'
+  );
+
+-- ============== 3. Placements: 100 workers → Sunbelt project @ $15/$25 ==============
+with emp as (select id from public.employers where name = 'Sunbelt Industrial Group'),
+     proj as (select id from public.projects where slug = 'sunbelt-refinery-expansion')
+insert into public.placements (
+  worker_id, employer_id, project_id, role_title, pay_rate, bill_rate, start_date, status, notes
+)
+select
+  w.id, emp.id, proj.id,
+  case (parsed.n % 8)
     when 0 then 'Welder Helper'
     when 1 then 'Pipefitter Helper'
     when 2 then 'Scaffolder'
@@ -75,6 +98,7 @@ select
   'Sunbelt refinery expansion'
 from public.workers w
 cross join emp
+cross join proj
 cross join lateral (select substring(w.employee_code from 3)::int as n) parsed
 where w.employee_code like 'W-2%'
   and parsed.n between 2001 and 2100

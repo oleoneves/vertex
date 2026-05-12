@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { CalendarDays } from "lucide-react";
 import { listShifts } from "@/lib/workforce";
 import { PageHeader } from "../_components/page-header";
@@ -7,7 +8,12 @@ import { cancelShift } from "../_actions";
 
 export const dynamic = "force-dynamic";
 
-export default async function ShiftsPage() {
+export default async function ShiftsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ bulk?: string }>;
+}) {
+  const sp = await searchParams;
   const shifts = await listShifts({ upcoming: true });
   return (
     <div>
@@ -16,7 +22,19 @@ export default async function ShiftsPage() {
         subtitle="Scheduled within the next several days."
         count={shifts.length}
         action={{ href: "/admin/shifts/new", label: "Schedule shift" }}
-      />
+      >
+        <Link
+          href="/admin/shifts/bulk"
+          className="inline-flex h-9 items-center rounded-md border border-border bg-background px-3 text-sm font-medium hover:bg-muted"
+        >
+          Bulk schedule
+        </Link>
+      </PageHeader>
+      {sp.bulk && (
+        <div className="mb-4 rounded-lg border border-green-300 bg-green-50 px-3 py-2 text-sm text-green-800 dark:border-green-900/60 dark:bg-green-950/40 dark:text-green-300">
+          ✓ Created {sp.bulk} shifts.
+        </div>
+      )}
       {shifts.length === 0 ? (
         <EmptyState
           icon={<CalendarDays className="h-5 w-5" />}

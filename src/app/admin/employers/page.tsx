@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Building2 } from "lucide-react";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import type { Employer } from "@/types/db";
@@ -65,7 +66,14 @@ export default async function EmployersPage({
         >
           {employers.map((e) => (
             <Tr key={e.id}>
-              <Td className="font-medium">{e.name}</Td>
+              <Td>
+                <Link
+                  href={`/admin/employers/${e.id}`}
+                  className="font-medium hover:text-accent"
+                >
+                  {e.name}
+                </Link>
+              </Td>
               <Td className="text-xs text-muted-foreground">
                 <div>{e.contact_name ?? "—"}</div>
                 {e.billing_email && (

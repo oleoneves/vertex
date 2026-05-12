@@ -169,6 +169,56 @@ export async function cancelShift(formData: FormData) {
   revalidatePath("/admin/shifts");
 }
 
+export async function bulkScheduleShifts(formData: FormData) {
+  const placementIds = formData.getAll("placement_ids").map(String).filter(Boolean);
+  const startDate = String(formData.get("start_date"));
+  const endDate = String(formData.get("end_date"));
+  const startTime = String(formData.get("start_time") || "07:00");
+  const endTime = String(formData.get("end_time") || "15:00");
+  const weekdaysOnly = formData.get("weekdays_only") === "on";
+  const location = String(formData.get("location") || "") || null;
+  if (placementIds.length === 0) throw new Error("Select at least one placement");
+  if (!startDate || !endDate) throw new Error("Pick a date range");
+
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  if (end < start) throw new Error("End date is before start date");
+
+  const days: string[] = [];
+  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+    const dow = d.getDay();
+    if (weekdaysOnly && (dow === 0 || dow === 6)) continue;
+    days.push(d.toISOString().slice(0, 10));
+  }
+  if (days.length === 0) throw new Error("No working days in the selected range");
+
+  const rows: Array<Record<string, unknown>> = [];
+  for (const pid of placementIds) {
+    for (const day of days) {
+      rows.push({
+        placement_id: pid,
+        scheduled_start: `${day}T${startTime}:00`,
+        scheduled_end: `${day}T${endTime}:00`,
+        status: "scheduled",
+        location,
+      });
+    }
+  }
+
+  const supabase = await getSupabaseServer();
+  // Chunk inserts to avoid request size limits (2,200 rows in one go is fine but
+  // batch at 1000 to be safe across PostgREST).
+  const CHUNK = 1000;
+  for (let i = 0; i < rows.length; i += CHUNK) {
+    const slice = rows.slice(i, i + CHUNK);
+    const { error } = await supabase.from("shifts").insert(slice);
+    if (error) throw new Error(`Insert failed at row ${i}: ${error.message}`);
+  }
+
+  revalidatePath("/admin/shifts");
+  redirect(`/admin/shifts?bulk=${rows.length}`);
+}
+
 // ============ Jobs ============
 
 export async function setJobActive(formData: FormData) {

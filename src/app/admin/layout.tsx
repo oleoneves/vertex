@@ -4,7 +4,6 @@ import {
   LayoutDashboard,
   FileText,
   Briefcase,
-  Plus,
   HardHat,
   Building2,
   Link2,
@@ -13,16 +12,17 @@ import {
   Receipt,
   DollarSign,
   BarChart3,
+  ClipboardList,
 } from "lucide-react";
 
 const RECRUIT = [
   { href: "/admin", label: "Dashboard", Icon: LayoutDashboard },
   { href: "/admin/applications", label: "Applications", Icon: FileText },
   { href: "/admin/jobs", label: "Jobs", Icon: Briefcase },
-  { href: "/admin/jobs/new", label: "New job", Icon: Plus },
 ];
 
 const WORKFORCE = [
+  { href: "/admin/projects", label: "Projects", Icon: ClipboardList },
   { href: "/admin/workers", label: "Workers", Icon: HardHat },
   { href: "/admin/employers", label: "Employers", Icon: Building2 },
   { href: "/admin/placements", label: "Placements", Icon: Link2 },

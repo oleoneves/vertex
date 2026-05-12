@@ -80,12 +80,30 @@ export type Placement = {
   worker_id: string;
   employer_id: string;
   job_id: string | null;
+  project_id: string | null;
   role_title: string;
   pay_rate: number;
   bill_rate: number;
   start_date: string;
   end_date: string | null;
   status: PlacementStatus;
+  notes: string | null;
+  created_at: string;
+};
+
+export type ProjectStatus = "active" | "completed" | "cancelled" | "paused";
+
+export type Project = {
+  id: string;
+  employer_id: string;
+  name: string;
+  slug: string | null;
+  location: string | null;
+  start_date: string | null;
+  end_date: string | null;
+  budget_hours: number | null;
+  budget_amount: number | null;
+  status: ProjectStatus;
   notes: string | null;
   created_at: string;
 };
