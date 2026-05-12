@@ -9,8 +9,9 @@ export const brand = {
   domain: "vertex.work",
   supportEmail: "hello@vertex.work",
   colors: {
-    primary: "#0F172A",
-    accent: "#F97316",
+    primary: "#0A0A0A",
+    accent: "#FACC15",
+    accentForeground: "#0A0A0A",
   },
   social: {
     instagram: "vertex.work",
