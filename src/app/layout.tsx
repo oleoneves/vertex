@@ -4,6 +4,7 @@ import "./globals.css";
 import { brand } from "@/lib/brand";
 import { getLocale } from "@/lib/i18n-server";
 import { LocaleProvider } from "@/lib/i18n-client";
+import { getTheme } from "@/lib/theme-server";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 
@@ -37,15 +38,17 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const locale = await getLocale();
+  const [locale, theme] = await Promise.all([getLocale(), getTheme()]);
+  const dataTheme = theme === "system" ? undefined : theme;
   return (
     <html
       lang={locale}
+      data-theme={dataTheme}
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <LocaleProvider locale={locale}>
-          <SiteHeader />
+          <SiteHeader theme={theme} />
           <main className="flex-1">{children}</main>
           <SiteFooter />
         </LocaleProvider>

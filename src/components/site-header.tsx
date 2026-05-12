@@ -3,9 +3,11 @@ import Link from "next/link";
 import { brand } from "@/lib/brand";
 import { t } from "@/lib/i18n";
 import { getLocale } from "@/lib/i18n-server";
+import type { Theme } from "@/lib/theme";
 import { LocaleSwitcher } from "./locale-switcher";
+import { ThemeSwitcher } from "./theme-switcher";
 
-export async function SiteHeader() {
+export async function SiteHeader({ theme }: { theme: Theme }) {
   const locale = await getLocale();
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/85 backdrop-blur">
@@ -21,13 +23,13 @@ export async function SiteHeader() {
           />
         </Link>
         <nav className="flex items-center gap-1 text-sm">
-          <Link className="rounded-md px-3 py-2 hover:bg-muted" href="/jobs">
+          <Link className="hidden rounded-md px-3 py-2 hover:bg-muted sm:inline-flex" href="/jobs">
             {t(locale, "nav.jobs")}
           </Link>
-          <Link className="rounded-md px-3 py-2 hover:bg-muted" href="/about">
+          <Link className="hidden rounded-md px-3 py-2 hover:bg-muted sm:inline-flex" href="/about">
             {t(locale, "nav.about")}
           </Link>
-          <Link className="rounded-md px-3 py-2 hover:bg-muted" href="/contact">
+          <Link className="hidden rounded-md px-3 py-2 hover:bg-muted sm:inline-flex" href="/contact">
             {t(locale, "nav.contact")}
           </Link>
           <Link
@@ -39,6 +41,7 @@ export async function SiteHeader() {
           <div className="ml-2">
             <LocaleSwitcher />
           </div>
+          <ThemeSwitcher current={theme} />
         </nav>
       </div>
     </header>
