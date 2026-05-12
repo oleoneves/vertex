@@ -1,6 +1,14 @@
 import { redirect } from "next/navigation";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { listEmployers } from "@/lib/workforce";
+import { PageHeader } from "../../_components/page-header";
+import {
+  FormSection,
+  FormGrid,
+  FormField,
+  FormSelect,
+  FormActions,
+} from "../../_components/form";
 
 async function generateInvoice(formData: FormData) {
   "use server";
@@ -10,7 +18,6 @@ async function generateInvoice(formData: FormData) {
   const periodEnd = String(formData.get("period_end"));
   const taxRate = Number(formData.get("tax_rate") || 0);
 
-  // Pull approved time entries in the window for this employer
   const { data: entries } = await supabase
     .from("time_entries")
     .select(
@@ -35,7 +42,6 @@ async function generateInvoice(formData: FormData) {
     (e) => e.placement?.employer_id === employerId,
   );
 
-  // Aggregate by worker + placement
   const groups = new Map<
     string,
     { worker_id: string; placement_id: string; description: string; hours: number; rate: number }
@@ -103,64 +109,49 @@ export default async function NewInvoicePage() {
   const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10);
   return (
     <div>
-      <h1 className="text-2xl font-bold tracking-tight">Generate invoice</h1>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Aggregates approved time entries for the employer in the selected period.
-      </p>
-      <form action={generateInvoice} className="mt-6 grid gap-4 sm:grid-cols-2">
-        <label className="sm:col-span-2 block">
-          <span className="text-sm font-medium">Employer *</span>
-          <select
+      <PageHeader
+        title="Generate invoice"
+        subtitle="Aggregates approved hours for an employer in a date range."
+      />
+      <form action={generateInvoice} className="space-y-6">
+        <FormSection title="Employer & period">
+          <FormSelect
+            label="Employer"
             name="employer_id"
             required
-            className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
-          >
-            <option value="">Select employer…</option>
-            {employers.map((e) => (
-              <option key={e.id} value={e.id}>
-                {e.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="block">
-          <span className="text-sm font-medium">Period start *</span>
-          <input
-            name="period_start"
-            type="date"
-            required
-            defaultValue={weekAgo}
-            className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+            placeholder="Select employer…"
+            span2
+            options={employers.map((e) => ({ value: e.id, label: e.name }))}
           />
-        </label>
-        <label className="block">
-          <span className="text-sm font-medium">Period end *</span>
-          <input
-            name="period_end"
-            type="date"
-            required
-            defaultValue={today}
-            className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
-          />
-        </label>
-        <label className="block">
-          <span className="text-sm font-medium">Tax rate (%)</span>
-          <input
+          <FormGrid>
+            <FormField
+              label="Period start"
+              name="period_start"
+              type="date"
+              required
+              defaultValue={weekAgo}
+            />
+            <FormField
+              label="Period end"
+              name="period_end"
+              type="date"
+              required
+              defaultValue={today}
+            />
+          </FormGrid>
+        </FormSection>
+
+        <FormSection title="Tax" description="Optional tax rate applied to the subtotal.">
+          <FormField
+            label="Tax rate (%)"
             name="tax_rate"
             type="number"
             step="0.01"
             defaultValue="0"
-            className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
           />
-        </label>
-        <div className="sm:col-span-2">
-          <button
-            type="submit"
-            className="inline-flex h-10 items-center rounded-md bg-accent px-5 text-sm font-medium text-accent-foreground hover:opacity-90"
-          >
-            Generate invoice
-          </button>
-        </div>
+        </FormSection>
+
+        <FormActions submitLabel="Generate invoice" cancelHref="/admin/invoices" />
       </form>
     </div>
   );

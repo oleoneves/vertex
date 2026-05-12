@@ -1,5 +1,14 @@
 import { redirect } from "next/navigation";
 import { getSupabaseServer } from "@/lib/supabase/server";
+import { PageHeader } from "../../_components/page-header";
+import {
+  FormSection,
+  FormGrid,
+  FormField,
+  FormSelect,
+  FormTextarea,
+  FormActions,
+} from "../../_components/form";
 
 async function createWorker(formData: FormData) {
   "use server";
@@ -23,112 +32,70 @@ async function createWorker(formData: FormData) {
 export default function NewWorkerPage() {
   return (
     <div>
-      <h1 className="text-2xl font-bold tracking-tight">New worker</h1>
-      <form action={createWorker} className="mt-6 grid gap-4 sm:grid-cols-2">
-        <Field name="full_name" label="Full name" required />
-        <Field name="employee_code" label="Employee code" placeholder="e.g. W-1001" />
-        <Field name="email" label="Email" type="email" />
-        <Field name="phone" label="Phone" type="tel" />
-        <SelectField
-          name="status"
-          label="Status"
-          options={[
-            ["onboarding", "Onboarding"],
-            ["active", "Active"],
-            ["inactive", "Inactive"],
-          ]}
-        />
-        <SelectField
-          name="pay_type"
-          label="Pay type"
-          options={[
-            ["hourly", "Hourly"],
-            ["salary", "Salary"],
-          ]}
-        />
-        <Field name="default_pay_rate" label="Default pay rate ($/hr)" type="number" />
-        <SelectField
-          name="payment_method"
-          label="Payment method"
-          options={[
-            ["check", "Check"],
-            ["ach", "ACH"],
-            ["zelle", "Zelle"],
-            ["cashapp", "CashApp"],
-          ]}
-        />
-        <label className="sm:col-span-2 block">
-          <span className="text-sm font-medium">Notes</span>
-          <textarea
-            name="notes"
-            rows={3}
-            className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
-          />
-        </label>
-        <div className="sm:col-span-2">
-          <button
-            type="submit"
-            className="inline-flex h-10 items-center rounded-md bg-accent px-5 text-sm font-medium text-accent-foreground hover:opacity-90"
-          >
-            Create worker
-          </button>
-        </div>
+      <PageHeader
+        title="New worker"
+        subtitle="Add a hired labor to the workforce roster."
+      />
+      <form action={createWorker} className="space-y-6">
+        <FormSection title="Identity" description="How we'll address and identify this worker.">
+          <FormGrid>
+            <FormField label="Full name" name="full_name" required />
+            <FormField
+              label="Employee code"
+              name="employee_code"
+              placeholder="e.g. W-1001"
+              hint="Internal ID. Leave blank to assign later."
+            />
+            <FormField label="Email" name="email" type="email" />
+            <FormField label="Phone" name="phone" type="tel" />
+          </FormGrid>
+        </FormSection>
+
+        <FormSection title="Employment" description="Status and how this worker is paid.">
+          <FormGrid>
+            <FormSelect
+              label="Status"
+              name="status"
+              options={[
+                { value: "onboarding", label: "Onboarding" },
+                { value: "active", label: "Active" },
+                { value: "inactive", label: "Inactive" },
+              ]}
+            />
+            <FormSelect
+              label="Pay type"
+              name="pay_type"
+              options={[
+                { value: "hourly", label: "Hourly" },
+                { value: "salary", label: "Salary" },
+              ]}
+            />
+            <FormField
+              label="Default pay rate"
+              name="default_pay_rate"
+              type="number"
+              step="0.01"
+              hint="$/hour. Per-placement rates override this."
+            />
+            <FormSelect
+              label="Payment method"
+              name="payment_method"
+              options={[
+                { value: "check", label: "Check" },
+                { value: "ach", label: "ACH" },
+                { value: "zelle", label: "Zelle" },
+                { value: "cashapp", label: "CashApp" },
+              ]}
+            />
+          </FormGrid>
+        </FormSection>
+
+        <FormSection title="Notes">
+          <FormTextarea label="Internal notes" name="notes" rows={3} />
+        </FormSection>
+
+        <FormActions submitLabel="Create worker" cancelHref="/admin/workers" />
       </form>
     </div>
-  );
-}
-
-function Field({
-  name,
-  label,
-  type = "text",
-  required = false,
-  placeholder,
-}: {
-  name: string;
-  label: string;
-  type?: string;
-  required?: boolean;
-  placeholder?: string;
-}) {
-  return (
-    <label className="block">
-      <span className="text-sm font-medium">
-        {label} {required && <span className="text-red-500">*</span>}
-      </span>
-      <input
-        name={name}
-        type={type}
-        required={required}
-        placeholder={placeholder}
-        className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
-      />
-    </label>
-  );
-}
-
-function SelectField({
-  name,
-  label,
-  options,
-}: {
-  name: string;
-  label: string;
-  options: [string, string][];
-}) {
-  return (
-    <label className="block">
-      <span className="text-sm font-medium">{label}</span>
-      <select
-        name={name}
-        className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
-      >
-        {options.map(([v, t]) => (
-          <option key={v} value={v}>
-            {t}
-          </option>
-        ))}
-      </select>
-    </label>
   );
 }

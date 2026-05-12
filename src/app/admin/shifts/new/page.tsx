@@ -1,6 +1,15 @@
 import { redirect } from "next/navigation";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { listPlacements } from "@/lib/workforce";
+import { PageHeader } from "../../_components/page-header";
+import {
+  FormSection,
+  FormGrid,
+  FormField,
+  FormSelect,
+  FormTextarea,
+  FormActions,
+} from "../../_components/form";
 
 async function createShift(formData: FormData) {
   "use server";
@@ -22,65 +31,58 @@ export default async function NewShiftPage() {
   const active = placements.filter((p) => p.status === "active");
   return (
     <div>
-      <h1 className="text-2xl font-bold tracking-tight">Schedule shift</h1>
-      <form action={createShift} className="mt-6 grid gap-4 sm:grid-cols-2">
-        <label className="sm:col-span-2 block">
-          <span className="text-sm font-medium">Placement *</span>
-          <select
+      <PageHeader
+        title="Schedule shift"
+        subtitle="A scheduled block of work against an active placement."
+      />
+      <form action={createShift} className="space-y-6">
+        <FormSection title="Placement">
+          <FormSelect
+            label="Placement"
             name="placement_id"
             required
-            className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
-          >
-            <option value="">Select placement…</option>
-            {active.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.worker?.full_name} → {p.employer?.name} ({p.role_title})
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="block">
-          <span className="text-sm font-medium">Start *</span>
-          <input
-            name="scheduled_start"
-            type="datetime-local"
-            required
-            className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+            placeholder="Select placement…"
+            span2
+            options={active.map((p) => ({
+              value: p.id,
+              label: `${p.worker?.full_name ?? "—"} → ${p.employer?.name ?? "—"} (${p.role_title})`,
+            }))}
+            hint={
+              active.length === 0
+                ? "No active placements yet — create one first."
+                : undefined
+            }
           />
-        </label>
-        <label className="block">
-          <span className="text-sm font-medium">End *</span>
-          <input
-            name="scheduled_end"
-            type="datetime-local"
-            required
-            className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
-          />
-        </label>
-        <label className="sm:col-span-2 block">
-          <span className="text-sm font-medium">Location</span>
-          <input
+        </FormSection>
+
+        <FormSection title="Schedule">
+          <FormGrid>
+            <FormField
+              label="Start"
+              name="scheduled_start"
+              type="datetime-local"
+              required
+            />
+            <FormField
+              label="End"
+              name="scheduled_end"
+              type="datetime-local"
+              required
+            />
+          </FormGrid>
+        </FormSection>
+
+        <FormSection title="Details">
+          <FormField
+            label="Location"
             name="location"
             placeholder="Address or job site name"
-            className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+            span2
           />
-        </label>
-        <label className="sm:col-span-2 block">
-          <span className="text-sm font-medium">Notes</span>
-          <textarea
-            name="notes"
-            rows={2}
-            className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
-          />
-        </label>
-        <div className="sm:col-span-2">
-          <button
-            type="submit"
-            className="inline-flex h-10 items-center rounded-md bg-accent px-5 text-sm font-medium text-accent-foreground hover:opacity-90"
-          >
-            Create shift
-          </button>
-        </div>
+          <FormTextarea label="Notes" name="notes" rows={2} />
+        </FormSection>
+
+        <FormActions submitLabel="Create shift" cancelHref="/admin/shifts" />
       </form>
     </div>
   );

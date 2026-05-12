@@ -1,6 +1,14 @@
 import { redirect } from "next/navigation";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { listEmployers, listWorkers } from "@/lib/workforce";
+import { PageHeader } from "../../_components/page-header";
+import {
+  FormSection,
+  FormGrid,
+  FormField,
+  FormSelect,
+  FormActions,
+} from "../../_components/form";
 
 async function createPlacement(formData: FormData) {
   "use server";
@@ -26,91 +34,64 @@ export default async function NewPlacementPage() {
   const [workers, employers] = await Promise.all([listWorkers(), listEmployers()]);
   return (
     <div>
-      <h1 className="text-2xl font-bold tracking-tight">New placement</h1>
-      <form action={createPlacement} className="mt-6 grid gap-4 sm:grid-cols-2">
-        <label className="block">
-          <span className="text-sm font-medium">Worker *</span>
-          <select
-            name="worker_id"
-            required
-            className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
-          >
-            <option value="">Select worker…</option>
-            {workers.map((w) => (
-              <option key={w.id} value={w.id}>
-                {w.full_name} {w.employee_code && `(${w.employee_code})`}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="block">
-          <span className="text-sm font-medium">Employer *</span>
-          <select
-            name="employer_id"
-            required
-            className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
-          >
-            <option value="">Select employer…</option>
-            {employers.map((e) => (
-              <option key={e.id} value={e.id}>
-                {e.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="sm:col-span-2 block">
-          <span className="text-sm font-medium">Role title *</span>
-          <input
-            name="role_title"
-            required
-            className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
-          />
-        </label>
-        <label className="block">
-          <span className="text-sm font-medium">Pay rate ($/hr) *</span>
-          <input
-            name="pay_rate"
-            type="number"
-            step="0.01"
-            required
-            className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
-          />
-        </label>
-        <label className="block">
-          <span className="text-sm font-medium">Bill rate ($/hr) *</span>
-          <input
-            name="bill_rate"
-            type="number"
-            step="0.01"
-            required
-            className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
-          />
-        </label>
-        <label className="block">
-          <span className="text-sm font-medium">Start date *</span>
-          <input
-            name="start_date"
-            type="date"
-            required
-            className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
-          />
-        </label>
-        <label className="block">
-          <span className="text-sm font-medium">End date</span>
-          <input
-            name="end_date"
-            type="date"
-            className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
-          />
-        </label>
-        <div className="sm:col-span-2">
-          <button
-            type="submit"
-            className="inline-flex h-10 items-center rounded-md bg-accent px-5 text-sm font-medium text-accent-foreground hover:opacity-90"
-          >
-            Create placement
-          </button>
-        </div>
+      <PageHeader
+        title="New placement"
+        subtitle="Assign a worker to an employer with pay and bill rates."
+      />
+      <form action={createPlacement} className="space-y-6">
+        <FormSection title="Assignment">
+          <FormGrid>
+            <FormSelect
+              label="Worker"
+              name="worker_id"
+              required
+              placeholder="Select worker…"
+              options={workers.map((w) => ({
+                value: w.id,
+                label: `${w.full_name}${w.employee_code ? ` (${w.employee_code})` : ""}`,
+              }))}
+            />
+            <FormSelect
+              label="Employer"
+              name="employer_id"
+              required
+              placeholder="Select employer…"
+              options={employers.map((e) => ({ value: e.id, label: e.name }))}
+            />
+            <FormField label="Role title" name="role_title" required span2 />
+          </FormGrid>
+        </FormSection>
+
+        <FormSection
+          title="Rates"
+          description="Worker pay is what we pay the worker; bill rate is what we charge the employer."
+        >
+          <FormGrid>
+            <FormField
+              label="Pay rate ($/hr)"
+              name="pay_rate"
+              type="number"
+              step="0.01"
+              required
+            />
+            <FormField
+              label="Bill rate ($/hr)"
+              name="bill_rate"
+              type="number"
+              step="0.01"
+              required
+            />
+          </FormGrid>
+        </FormSection>
+
+        <FormSection title="Period">
+          <FormGrid>
+            <FormField label="Start date" name="start_date" type="date" required />
+            <FormField label="End date" name="end_date" type="date" hint="Leave blank for ongoing." />
+          </FormGrid>
+        </FormSection>
+
+        <FormActions submitLabel="Create placement" cancelHref="/admin/placements" />
       </form>
     </div>
   );
