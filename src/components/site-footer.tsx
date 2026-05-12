@@ -74,9 +74,9 @@ export async function SiteFooter() {
             <FooterLink href="/worker/login">Worker sign-in</FooterLink>
           </FooterCol>
 
-          <FooterCol title="Company">
+          <FooterCol title="For employers">
+            <FooterLink href="/employer/login">Employer sign-in</FooterLink>
             <FooterLink href="/about">{t(locale, "nav.about")}</FooterLink>
-            <FooterLink href="/contact">{t(locale, "nav.contact")}</FooterLink>
             <FooterLink href={`mailto:${brand.supportEmail}`}>{brand.supportEmail}</FooterLink>
           </FooterCol>
 

@@ -1,7 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
-const PROTECTED = ["/admin", "/worker"];
+const PROTECTED = ["/admin", "/worker", "/employer"];
+const PUBLIC_LOGINS = new Set(["/admin/login", "/worker/login", "/employer/login"]);
 
 export async function proxy(request: NextRequest) {
   const url = request.nextUrl;
@@ -9,7 +10,7 @@ export async function proxy(request: NextRequest) {
     (p) => url.pathname === p || url.pathname.startsWith(p + "/"),
   );
   if (!needsAuth) return NextResponse.next();
-  if (url.pathname === "/admin/login" || url.pathname === "/worker/login") {
+  if (PUBLIC_LOGINS.has(url.pathname)) {
     return NextResponse.next();
   }
 
@@ -45,7 +46,11 @@ export async function proxy(request: NextRequest) {
 
   if (!user) {
     const loginUrl = url.clone();
-    loginUrl.pathname = url.pathname.startsWith("/worker") ? "/worker/login" : "/admin/login";
+    loginUrl.pathname = url.pathname.startsWith("/worker")
+      ? "/worker/login"
+      : url.pathname.startsWith("/employer")
+      ? "/employer/login"
+      : "/admin/login";
     loginUrl.searchParams.set("next", url.pathname);
     return NextResponse.redirect(loginUrl);
   }
@@ -54,5 +59,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/worker/:path*"],
+  matcher: ["/admin/:path*", "/worker/:path*", "/employer/:path*"],
 };
