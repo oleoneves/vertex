@@ -22,11 +22,15 @@ export default async function AdminDashboard() {
           accent
         />
         <Kpi
+          label="Margin this week"
+          value={`$${d.marginThisWeek.toFixed(0)}`}
+          hint="bill − pay on logged hours"
+        />
+        <Kpi
           label="Outstanding"
           value={`$${d.outstanding.toFixed(0)}`}
           hint={d.outstanding > 0 ? "invoices sent" : ""}
         />
-        <Kpi label="Hours this week" value={`${d.hoursThisWeek}`} unit="hrs" />
         <Kpi
           label="Pending review"
           value={`${d.pendingTimesheets}`}

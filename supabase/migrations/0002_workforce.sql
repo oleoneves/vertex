@@ -27,7 +27,7 @@ create table if not exists public.employers (
   contact_name text,
   billing_email text,
   billing_address text,
-  bill_rate_multiplier numeric not null default 1.5,
+  bill_rate_multiplier numeric not null default 1.67,
   payment_terms_days int not null default 15,
   notes text,
   created_at timestamptz not null default now()

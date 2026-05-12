@@ -5,6 +5,7 @@ export type DashboardData = {
   revenueMtd: number;
   outstanding: number;
   pendingPayoutCents: number;
+  marginThisWeek: number;
   activeWorkers: number;
   activePlacements: number;
   openJobs: number;
@@ -21,6 +22,7 @@ export const EMPTY_DASHBOARD: DashboardData = {
   revenueMtd: 0,
   outstanding: 0,
   pendingPayoutCents: 0,
+  marginThisWeek: 0,
   activeWorkers: 0,
   activePlacements: 0,
   openJobs: 0,
@@ -105,7 +107,7 @@ export async function loadDashboard(): Promise<DashboardData> {
       .eq("active", true),
     supabase
       .from("time_entries")
-      .select("hours_worked, clock_in_at")
+      .select("hours_worked, clock_in_at, pay_rate_at_entry, bill_rate_at_entry")
       .gte("clock_in_at", weekStart)
       .lt("clock_in_at", weekEnd),
     supabase
@@ -158,8 +160,15 @@ export async function loadDashboard(): Promise<DashboardData> {
   const entries = (weekEntries.data ?? []) as Array<{
     hours_worked: number | null;
     clock_in_at: string;
+    pay_rate_at_entry: number | null;
+    bill_rate_at_entry: number | null;
   }>;
   const hoursThisWeek = entries.reduce((a, e) => a + (Number(e.hours_worked) || 0), 0);
+  const marginThisWeek = entries.reduce((a, e) => {
+    const hrs = Number(e.hours_worked) || 0;
+    const margin = (Number(e.bill_rate_at_entry) || 0) - (Number(e.pay_rate_at_entry) || 0);
+    return a + hrs * margin;
+  }, 0);
   const hoursByDay = buckets.map((b) => {
     const total = entries
       .filter((e) => {
@@ -240,6 +249,7 @@ export async function loadDashboard(): Promise<DashboardData> {
     revenueMtd: Math.round(revenueMtd * 100) / 100,
     outstanding: Math.round(outstanding * 100) / 100,
     pendingPayoutCents: 0,
+    marginThisWeek: Math.round(marginThisWeek * 100) / 100,
     activeWorkers: activeWorkersCount.count ?? 0,
     activePlacements: activePlacementsCount.count ?? 0,
     openJobs: openJobsCount.count ?? 0,

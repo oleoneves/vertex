@@ -30,35 +30,42 @@ export default async function PlacementsPage() {
               <Th>Employer</Th>
               <Th>Role</Th>
               <Th>Pay / Bill</Th>
+              <Th className="text-right">Margin</Th>
               <Th>Period</Th>
               <Th>Status</Th>
             </>
           }
         >
-          {placements.map((p) => (
-            <Tr key={p.id}>
-              <Td className="font-medium">{p.worker?.full_name ?? "—"}</Td>
-              <Td>{p.employer?.name ?? "—"}</Td>
-              <Td className="text-muted-foreground">{p.role_title}</Td>
-              <Td className="tabular-nums">
-                ${Number(p.pay_rate).toFixed(2)}{" "}
-                <span className="text-muted-foreground">
-                  / ${Number(p.bill_rate).toFixed(2)}
-                </span>
-              </Td>
-              <Td className="text-xs text-muted-foreground">
-                {p.start_date} → {p.end_date ?? "ongoing"}
-              </Td>
-              <Td>
-                <StatusPill
-                  status={p.status}
-                  variant={
-                    p.status === "active" ? "green" : p.status === "paused" ? "amber" : "muted"
-                  }
-                />
-              </Td>
-            </Tr>
-          ))}
+          {placements.map((p) => {
+            const margin = Number(p.bill_rate) - Number(p.pay_rate);
+            return (
+              <Tr key={p.id}>
+                <Td className="font-medium">{p.worker?.full_name ?? "—"}</Td>
+                <Td>{p.employer?.name ?? "—"}</Td>
+                <Td className="text-muted-foreground">{p.role_title}</Td>
+                <Td className="tabular-nums">
+                  ${Number(p.pay_rate).toFixed(2)}{" "}
+                  <span className="text-muted-foreground">
+                    / ${Number(p.bill_rate).toFixed(2)}
+                  </span>
+                </Td>
+                <Td className="text-right font-mono tabular-nums font-semibold text-accent">
+                  +${margin.toFixed(2)}/hr
+                </Td>
+                <Td className="text-xs text-muted-foreground">
+                  {p.start_date} → {p.end_date ?? "ongoing"}
+                </Td>
+                <Td>
+                  <StatusPill
+                    status={p.status}
+                    variant={
+                      p.status === "active" ? "green" : p.status === "paused" ? "amber" : "muted"
+                    }
+                  />
+                </Td>
+              </Tr>
+            );
+          })}
         </DataTable>
       )}
     </div>
