@@ -3,6 +3,39 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getSupabaseServer } from "@/lib/supabase/server";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
+
+async function inviteWorkerByEmail(email: string, workerId: string) {
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return { ok: false, reason: "service role not set" };
+  try {
+    const admin = getSupabaseAdmin();
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "";
+    const { data, error } = await admin.auth.admin.inviteUserByEmail(email, {
+      redirectTo: siteUrl ? `${siteUrl}/worker` : undefined,
+      data: { role: "worker" },
+    });
+    if (error) {
+      // If user already exists, link them up instead of failing
+      if (error.message?.toLowerCase().includes("already") || error.status === 422) {
+        const { data: existing } = await admin.auth.admin.listUsers();
+        const found = existing?.users?.find((u) => u.email?.toLowerCase() === email.toLowerCase());
+        if (found) {
+          await admin.from("workers").update({ user_id: found.id }).eq("id", workerId);
+          return { ok: true, linked: true };
+        }
+      }
+      console.warn("[invite] failed", error);
+      return { ok: false, reason: error.message };
+    }
+    if (data?.user) {
+      await admin.from("workers").update({ user_id: data.user.id }).eq("id", workerId);
+    }
+    return { ok: true };
+  } catch (e) {
+    console.warn("[invite] exception", e);
+    return { ok: false, reason: e instanceof Error ? e.message : "unknown" };
+  }
+}
 
 // ============ Applications ============
 
@@ -27,22 +60,48 @@ export async function hireApplicant(formData: FormData) {
     .eq("candidate_id", a.candidate.id)
     .maybeSingle();
 
-  if (!existing) {
-    await supabase.from("workers").insert({
-      candidate_id: a.candidate.id,
-      full_name: a.candidate.full_name,
-      email: a.candidate.email,
-      phone: a.candidate.phone,
-      status: "onboarding",
-      pay_type: "hourly",
-      default_pay_rate: 15,
-      payment_method: "check",
-    });
+  let workerId = existing?.id;
+  if (!workerId) {
+    const { data: created, error } = await supabase
+      .from("workers")
+      .insert({
+        candidate_id: a.candidate.id,
+        full_name: a.candidate.full_name,
+        email: a.candidate.email,
+        phone: a.candidate.phone,
+        status: "onboarding",
+        pay_type: "hourly",
+        default_pay_rate: 15,
+        payment_method: "check",
+      })
+      .select("id")
+      .single();
+    if (error) throw new Error(error.message);
+    workerId = created.id;
+  }
+
+  // Fire-and-forget invite (don't fail the hire if email service unavailable)
+  if (a.candidate.email && workerId) {
+    await inviteWorkerByEmail(a.candidate.email, workerId);
   }
 
   await supabase.from("applications").update({ status: "accepted" }).eq("id", id);
   revalidatePath("/admin/applications");
   revalidatePath("/admin/workers");
+}
+
+export async function resendWorkerInvite(formData: FormData) {
+  const id = String(formData.get("id"));
+  const supabase = await getSupabaseServer();
+  const { data: worker } = await supabase
+    .from("workers")
+    .select("email")
+    .eq("id", id)
+    .maybeSingle();
+  if (!worker?.email) throw new Error("Worker has no email");
+  const result = await inviteWorkerByEmail(worker.email, id);
+  if (!result.ok) throw new Error(result.reason ?? "Failed to send invite");
+  revalidatePath(`/admin/workers/${id}`);
 }
 
 export async function rejectApplicant(formData: FormData) {

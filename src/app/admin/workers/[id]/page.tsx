@@ -13,7 +13,7 @@ import {
   FormActions,
 } from "../../_components/form";
 import { StatusPill } from "../../_components/data-table";
-import { updateWorker, setWorkerStatus } from "../../_actions";
+import { updateWorker, setWorkerStatus, resendWorkerInvite } from "../../_actions";
 
 export const dynamic = "force-dynamic";
 
@@ -98,6 +98,23 @@ export default async function WorkerDetail({
               : "muted"
           }
         />
+        {worker.email && !worker.user_id && (
+          <form action={resendWorkerInvite} className="inline">
+            <input type="hidden" name="id" value={worker.id} />
+            <button
+              type="submit"
+              title={`Send portal login invite to ${worker.email}`}
+              className="rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-muted"
+            >
+              Send invite
+            </button>
+          </form>
+        )}
+        {worker.user_id && (
+          <span className="rounded-full bg-green-100 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-green-800 dark:bg-green-900/40 dark:text-green-300">
+            ✓ portal access
+          </span>
+        )}
         <form action={setWorkerStatus} className="inline">
           <input type="hidden" name="id" value={worker.id} />
           <input
