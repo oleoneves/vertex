@@ -1,0 +1,12 @@
+-- Sample jobs for local/preview environments.
+insert into public.jobs (slug, title, employer, category, employment_type, location_city, location_state, hourly_rate_min, hourly_rate_max, description, requirements, benefits, featured)
+values
+  ('housekeeper-orlando-hilton', 'Housekeeper', 'Hilton Orlando', 'hospitality', 'full_time', 'Orlando', 'FL', 16, 19, 'Daily room cleaning and guest service at a 4-star resort hotel.', 'Reliable, attention to detail, prior cleaning experience preferred.', 'Health insurance after 60 days, employee meal program.', true),
+  ('construction-laborer-austin', 'Construction Laborer', 'Westlake Builders', 'construction', 'full_time', 'Austin', 'TX', 20, 24, 'General site labor on residential and light commercial projects.', 'Able to lift 50 lbs, OSHA-10 a plus.', 'Weekly pay, overtime available.', true),
+  ('warehouse-picker-atlanta', 'Warehouse Picker', 'Peach State Logistics', 'logistics', 'full_time', 'Atlanta', 'GA', 17, 19, 'Pick and pack orders in climate-controlled facility.', 'Forklift certification a plus but not required.', 'Free shuttle from MARTA.', false),
+  ('apple-picker-yakima', 'Apple Picker', 'Yakima Orchards Co-op', 'agriculture', 'seasonal', 'Yakima', 'WA', 18, 22, 'Seasonal apple harvest, August through October.', 'Outdoor work, comfortable ladders.', 'On-site housing available.', true),
+  ('line-cook-las-vegas', 'Line Cook', 'Desert Palms Resort', 'hospitality', 'full_time', 'Las Vegas', 'NV', 21, 25, 'Lunch and dinner service on the line at a busy resort restaurant.', '2+ years line cook experience.', 'Tipped pool, meals on shift.', false),
+  ('cdl-driver-dallas', 'CDL-A Driver (Regional)', 'Lone Star Freight', 'logistics', 'full_time', 'Dallas', 'TX', 26, 32, 'Regional routes, home weekends.', 'Valid CDL-A, 12 months experience.', 'Health, dental, vision, 401k match.', true),
+  ('roofer-phoenix', 'Roofer', 'Arizona Roofworks', 'construction', 'full_time', 'Phoenix', 'AZ', 22, 28, 'Residential reroofs across the Valley.', 'Comfortable working at heights, own basic tools.', 'Truck reimbursement.', false),
+  ('dishwasher-miami', 'Dishwasher', 'Ocean Avenue Group', 'hospitality', 'part_time', 'Miami', 'FL', 15, 17, 'Evening dish shifts at a beachfront restaurant.', 'Reliable, fast paced.', 'Shift meal, flexible schedule.', false)
+on conflict (slug) do nothing;
