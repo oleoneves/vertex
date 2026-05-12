@@ -47,6 +47,47 @@ export default async function AdminDashboard() {
         <Kpi label="Applications (24h)" value={`${d.newApplications24h}`} link="/admin/applications" />
       </section>
 
+      {/* Live: who's on the clock right now */}
+      {d.liveOnTheClock.length > 0 && (
+        <section className="rounded-xl border border-green-500/40 bg-green-500/5 p-5">
+          <div className="flex items-baseline justify-between">
+            <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-green-700 dark:text-green-400">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-60" />
+                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-500" />
+              </span>
+              On the clock right now ({d.liveOnTheClock.length})
+            </h2>
+          </div>
+          <ul className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {d.liveOnTheClock.slice(0, 12).map((e) => {
+              const minutes = Math.floor((Date.now() - +new Date(e.clockInAt)) / 60000);
+              return (
+                <li
+                  key={e.id}
+                  className="flex items-baseline justify-between gap-2 rounded-md bg-background px-3 py-2 text-sm"
+                >
+                  <div className="min-w-0">
+                    <div className="truncate font-medium">{e.worker}</div>
+                    <div className="truncate text-xs text-muted-foreground">{e.placement}</div>
+                  </div>
+                  <span className="shrink-0 text-xs font-mono text-muted-foreground tabular-nums">
+                    {minutes >= 60
+                      ? `${Math.floor(minutes / 60)}h ${minutes % 60}m`
+                      : `${minutes}m`}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+          {d.liveOnTheClock.length > 12 && (
+            <p className="mt-3 text-xs text-muted-foreground">
+              + {d.liveOnTheClock.length - 12} more clocked in
+            </p>
+          )}
+        </section>
+      )}
+
       {/* Hours chart + activity */}
       <section className="grid gap-6 lg:grid-cols-3">
         <div className="rounded-lg border border-border bg-background p-5 lg:col-span-2">
@@ -104,6 +145,83 @@ export default async function AdminDashboard() {
           </ul>
         </div>
       </section>
+
+      {/* Active projects */}
+      {d.activeProjects.length > 0 && (
+        <section className="rounded-xl border border-border bg-background p-5">
+          <div className="flex items-baseline justify-between">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+              Active projects ({d.activeProjects.length})
+            </h2>
+            <Link
+              href="/admin/projects"
+              className="text-xs font-medium text-accent underline-offset-4 hover:underline"
+            >
+              All projects →
+            </Link>
+          </div>
+          <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+            {d.activeProjects.slice(0, 6).map((p) => (
+              <li key={p.id}>
+                <Link
+                  href={`/admin/projects/${p.id}`}
+                  className="block rounded-lg border border-border/60 p-4 transition hover:border-foreground/30"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="truncate font-semibold tracking-tight">{p.name}</div>
+                      <div className="truncate text-xs text-muted-foreground">{p.employer}</div>
+                    </div>
+                    <span className="rounded-full bg-accent/15 px-2 py-0.5 text-[10px] font-bold text-accent">
+                      {p.activeWorkers} workers
+                    </span>
+                  </div>
+                  <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
+                    <div>
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                        Hours
+                      </div>
+                      <div className="font-mono tabular-nums">{p.hours.toFixed(0)}</div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                        Revenue
+                      </div>
+                      <div className="font-mono tabular-nums">${p.revenue}</div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                        Margin
+                      </div>
+                      <div className="font-mono tabular-nums text-accent">${p.margin}</div>
+                    </div>
+                  </div>
+                  {p.budgetPct != null && (
+                    <div className="mt-3">
+                      <div className="flex items-baseline justify-between text-[10px] text-muted-foreground">
+                        <span>{p.budgetPct}% of budget</span>
+                        {p.budgetAmount && <span>${p.budgetAmount.toFixed(0)} cap</span>}
+                      </div>
+                      <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                        <div
+                          className={`h-full ${
+                            p.budgetPct > 90
+                              ? "bg-red-500"
+                              : p.budgetPct > 75
+                              ? "bg-amber-500"
+                              : "bg-accent"
+                          }`}
+                          style={{ width: `${p.budgetPct}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {/* Top employers + workers */}
       <section className="grid gap-6 lg:grid-cols-2">

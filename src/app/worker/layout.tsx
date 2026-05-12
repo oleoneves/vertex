@@ -8,6 +8,8 @@ export default function WorkerLayout({ children }: { children: ReactNode }) {
         <WorkerLink href="/worker">Today</WorkerLink>
         <WorkerLink href="/worker/shifts">Shifts</WorkerLink>
         <WorkerLink href="/worker/hours">Hours</WorkerLink>
+        <WorkerLink href="/worker/paystubs">Pay</WorkerLink>
+        <WorkerLink href="/worker/profile">Profile</WorkerLink>
       </nav>
       {children}
     </div>

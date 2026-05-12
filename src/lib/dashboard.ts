@@ -12,6 +12,18 @@ export type DashboardData = {
   hoursThisWeek: number;
   pendingTimesheets: number;
   newApplications24h: number;
+  liveOnTheClock: { id: string; worker: string; placement: string; clockInAt: string }[];
+  activeProjects: {
+    id: string;
+    name: string;
+    employer: string;
+    activeWorkers: number;
+    hours: number;
+    revenue: number;
+    margin: number;
+    budgetAmount: number | null;
+    budgetPct: number | null;
+  }[];
   hoursByDay: { day: string; hours: number }[];
   topEmployers: { name: string; revenue: number }[];
   topWorkers: { name: string; hours: number }[];
@@ -29,6 +41,8 @@ export const EMPTY_DASHBOARD: DashboardData = {
   hoursThisWeek: 0,
   pendingTimesheets: 0,
   newApplications24h: 0,
+  liveOnTheClock: [],
+  activeProjects: [],
   hoursByDay: dayBuckets().map((d) => ({ day: d.label, hours: 0 })),
   topEmployers: [],
   topWorkers: [],
@@ -83,6 +97,8 @@ export async function loadDashboard(): Promise<DashboardData> {
     recentApps,
     recentInvoices,
     recentEntries,
+    liveOpen,
+    activeProjectsRaw,
   ] = await Promise.all([
     supabase
       .from("invoices")
@@ -146,6 +162,20 @@ export async function loadDashboard(): Promise<DashboardData> {
       .select("id, clock_in_at, clock_out_at, worker:workers(full_name)")
       .order("clock_in_at", { ascending: false })
       .limit(5),
+    supabase
+      .from("time_entries")
+      .select(
+        "id, clock_in_at, worker:workers(full_name), placement:placements(role_title, employer:employers(name))",
+      )
+      .is("clock_out_at", null)
+      .order("clock_in_at", { ascending: false })
+      .limit(20),
+    supabase
+      .from("projects")
+      .select(
+        "id, name, budget_amount, employer:employers(name), placements:placements(id, status, time_entries:time_entries(hours_worked, pay_rate_at_entry, bill_rate_at_entry, approved))",
+      )
+      .eq("status", "active"),
   ]);
 
   const revenueMtd = (paidInv.data ?? []).reduce(
@@ -245,6 +275,73 @@ export async function loadDashboard(): Promise<DashboardData> {
   }
   recentActivity.sort((a, b) => +new Date(b.at) - +new Date(a.at));
 
+  const liveOnTheClock = (
+    (liveOpen.data ?? []) as unknown as Array<{
+      id: string;
+      clock_in_at: string;
+      worker: { full_name: string } | null;
+      placement: { role_title: string; employer: { name: string } | null } | null;
+    }>
+  ).map((r) => ({
+    id: r.id,
+    worker: r.worker?.full_name ?? "Worker",
+    placement: `${r.placement?.employer?.name ?? "—"} · ${r.placement?.role_title ?? "—"}`,
+    clockInAt: r.clock_in_at,
+  }));
+
+  type ProjectRow = {
+    id: string;
+    name: string;
+    budget_amount: number | null;
+    employer: { name: string } | null;
+    placements:
+      | Array<{
+          id: string;
+          status: string;
+          time_entries:
+            | Array<{
+                hours_worked: number | null;
+                pay_rate_at_entry: number | null;
+                bill_rate_at_entry: number | null;
+                approved: boolean;
+              }>
+            | null;
+        }>
+      | null;
+  };
+  const activeProjects = ((activeProjectsRaw.data as unknown as ProjectRow[]) ?? [])
+    .map((p) => {
+      const placements = p.placements ?? [];
+      const activeWorkers = placements.filter((pl) => pl.status === "active").length;
+      let hours = 0;
+      let cost = 0;
+      let revenue = 0;
+      for (const pl of placements) {
+        for (const te of pl.time_entries ?? []) {
+          if (!te.approved) continue;
+          const h = Number(te.hours_worked) || 0;
+          hours += h;
+          cost += h * (Number(te.pay_rate_at_entry) || 0);
+          revenue += h * (Number(te.bill_rate_at_entry) || 0);
+        }
+      }
+      const budgetPct = p.budget_amount
+        ? Math.min(100, Math.round((revenue / Number(p.budget_amount)) * 100))
+        : null;
+      return {
+        id: p.id,
+        name: p.name,
+        employer: p.employer?.name ?? "—",
+        activeWorkers,
+        hours: Math.round(hours * 10) / 10,
+        revenue: Math.round(revenue),
+        margin: Math.round(revenue - cost),
+        budgetAmount: p.budget_amount != null ? Number(p.budget_amount) : null,
+        budgetPct,
+      };
+    })
+    .sort((a, b) => b.revenue - a.revenue);
+
   return {
     revenueMtd: Math.round(revenueMtd * 100) / 100,
     outstanding: Math.round(outstanding * 100) / 100,
@@ -256,6 +353,8 @@ export async function loadDashboard(): Promise<DashboardData> {
     hoursThisWeek: Math.round(hoursThisWeek * 10) / 10,
     pendingTimesheets: pendingCount.count ?? 0,
     newApplications24h: apps24Count.count ?? 0,
+    liveOnTheClock,
+    activeProjects,
     hoursByDay,
     topEmployers,
     topWorkers,
