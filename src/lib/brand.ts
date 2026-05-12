@@ -1,6 +1,6 @@
 export const brand = {
   name: "Vertex",
-  legalName: "Vertex Labor Solutions",
+  legalName: "Vertex Labor Service",
   tagline: {
     en: "Real jobs across the United States",
     es: "Trabajos reales en todo Estados Unidos",
