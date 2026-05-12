@@ -1,10 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { t } from "@/lib/i18n";
 import { getLocale } from "@/lib/i18n-server";
 import { listJobs } from "@/lib/jobs";
 import { INDUSTRIES } from "@/lib/industries";
-import { formatHourlyRange } from "@/lib/utils";
+import { JobCard } from "@/components/job-card";
 
 export const dynamic = "force-dynamic";
 
@@ -127,35 +128,10 @@ export default async function Home() {
                 {t(locale, "jobs.see_all")} →
               </Link>
             </div>
-            <ul className="mt-8 grid gap-4 sm:grid-cols-2">
+            <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {featured.map((j) => (
-                <li key={j.id}>
-                  <Link
-                    href={{ pathname: `/jobs/${j.slug}` }}
-                    className="flex items-stretch overflow-hidden rounded-lg border border-border bg-background transition hover:border-accent hover:shadow-sm"
-                  >
-                    <div className="flex flex-1 flex-col justify-between p-5">
-                      <div>
-                        <h3 className="text-lg font-bold tracking-tight">{j.title}</h3>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                          {j.employer} · {j.location_city}, {j.location_state}
-                        </p>
-                      </div>
-                      <div className="mt-4 flex items-baseline gap-1">
-                        <span className="text-2xl font-extrabold tracking-tight">
-                          {formatHourlyRange(j.hourly_rate_min, j.hourly_rate_max)}
-                        </span>
-                        <span className="text-sm text-muted-foreground">
-                          {t(locale, "jobs.hourly")}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="hidden w-28 shrink-0 bg-muted sm:block">
-                      <div className="flex h-full items-center justify-center text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                        {j.category}
-                      </div>
-                    </div>
-                  </Link>
+                <li key={j.id} className="flex">
+                  <JobCard job={j} locale={locale} />
                 </li>
               ))}
             </ul>

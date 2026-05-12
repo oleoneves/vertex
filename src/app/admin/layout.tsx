@@ -1,42 +1,76 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import {
+  LayoutDashboard,
+  FileText,
+  Briefcase,
+  Plus,
+  HardHat,
+  Building2,
+  Link2,
+  CalendarDays,
+  Clock,
+  Receipt,
+  DollarSign,
+} from "lucide-react";
+
+const RECRUIT = [
+  { href: "/admin", label: "Dashboard", Icon: LayoutDashboard },
+  { href: "/admin/applications", label: "Applications", Icon: FileText },
+  { href: "/admin/jobs", label: "Jobs", Icon: Briefcase },
+  { href: "/admin/jobs/new", label: "New job", Icon: Plus },
+];
+
+const WORKFORCE = [
+  { href: "/admin/workers", label: "Workers", Icon: HardHat },
+  { href: "/admin/employers", label: "Employers", Icon: Building2 },
+  { href: "/admin/placements", label: "Placements", Icon: Link2 },
+  { href: "/admin/shifts", label: "Shifts", Icon: CalendarDays },
+  { href: "/admin/timesheet", label: "Timesheet", Icon: Clock },
+];
+
+const MONEY = [
+  { href: "/admin/invoices", label: "Invoices", Icon: Receipt },
+  { href: "/admin/payments", label: "Payments", Icon: DollarSign },
+];
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-10 sm:px-6 lg:flex-row">
-      <aside className="lg:w-56">
-        <nav className="sticky top-20 flex flex-col gap-1 text-sm">
-          <p className="px-2 pb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Admin
-          </p>
-          <AdminLink href="/admin">Dashboard</AdminLink>
-          <AdminLink href="/admin/applications">Applications</AdminLink>
-          <AdminLink href="/admin/jobs">Jobs</AdminLink>
-          <AdminLink href="/admin/jobs/new">New job</AdminLink>
-          <p className="mt-4 px-2 pb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Workforce
-          </p>
-          <AdminLink href="/admin/workers">Workers</AdminLink>
-          <AdminLink href="/admin/employers">Employers</AdminLink>
-          <AdminLink href="/admin/placements">Placements</AdminLink>
-          <AdminLink href="/admin/shifts">Shifts</AdminLink>
-          <AdminLink href="/admin/timesheet">Timesheet</AdminLink>
-          <AdminLink href="/admin/invoices">Invoices</AdminLink>
-          <AdminLink href="/admin/payments">Payments</AdminLink>
+    <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6 lg:flex-row lg:gap-10">
+      <aside className="lg:w-60 lg:shrink-0">
+        <nav className="lg:sticky lg:top-24 flex flex-col gap-1 text-sm">
+          <Group label="Recruitment" items={RECRUIT} />
+          <Group label="Workforce" items={WORKFORCE} />
+          <Group label="Money" items={MONEY} />
         </nav>
       </aside>
-      <section className="flex-1">{children}</section>
+      <section className="min-w-0 flex-1">{children}</section>
     </div>
   );
 }
 
-function AdminLink({ href, children }: { href: string; children: ReactNode }) {
+function Group({
+  label,
+  items,
+}: {
+  label: string;
+  items: { href: string; label: string; Icon: React.ComponentType<{ className?: string }> }[];
+}) {
   return (
-    <Link
-      href={href}
-      className="rounded-md px-3 py-2 text-foreground hover:bg-muted"
-    >
-      {children}
-    </Link>
+    <div className="mb-3">
+      <p className="px-3 pb-1 pt-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+        {label}
+      </p>
+      {items.map((it) => (
+        <Link
+          key={it.href}
+          href={it.href}
+          className="flex items-center gap-2.5 rounded-md px-3 py-2 text-foreground/85 hover:bg-muted hover:text-foreground"
+        >
+          <it.Icon className="h-4 w-4 text-muted-foreground" />
+          {it.label}
+        </Link>
+      ))}
+    </div>
   );
 }
