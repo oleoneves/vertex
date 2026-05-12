@@ -13,6 +13,16 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           <AdminLink href="/admin/applications">Applications</AdminLink>
           <AdminLink href="/admin/jobs">Jobs</AdminLink>
           <AdminLink href="/admin/jobs/new">New job</AdminLink>
+          <p className="mt-4 px-2 pb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Workforce
+          </p>
+          <AdminLink href="/admin/workers">Workers</AdminLink>
+          <AdminLink href="/admin/employers">Employers</AdminLink>
+          <AdminLink href="/admin/placements">Placements</AdminLink>
+          <AdminLink href="/admin/shifts">Shifts</AdminLink>
+          <AdminLink href="/admin/timesheet">Timesheet</AdminLink>
+          <AdminLink href="/admin/invoices">Invoices</AdminLink>
+          <AdminLink href="/admin/payments">Payments</AdminLink>
         </nav>
       </aside>
       <section className="flex-1">{children}</section>

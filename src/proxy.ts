@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
-const PROTECTED = ["/admin"];
+const PROTECTED = ["/admin", "/worker"];
 
 export async function proxy(request: NextRequest) {
   const url = request.nextUrl;
@@ -9,7 +9,9 @@ export async function proxy(request: NextRequest) {
     (p) => url.pathname === p || url.pathname.startsWith(p + "/"),
   );
   if (!needsAuth) return NextResponse.next();
-  if (url.pathname === "/admin/login") return NextResponse.next();
+  if (url.pathname === "/admin/login" || url.pathname === "/worker/login") {
+    return NextResponse.next();
+  }
 
   // Skip gating entirely when Supabase isn't configured (dev convenience).
   if (
@@ -43,7 +45,7 @@ export async function proxy(request: NextRequest) {
 
   if (!user) {
     const loginUrl = url.clone();
-    loginUrl.pathname = "/admin/login";
+    loginUrl.pathname = url.pathname.startsWith("/worker") ? "/worker/login" : "/admin/login";
     loginUrl.searchParams.set("next", url.pathname);
     return NextResponse.redirect(loginUrl);
   }
@@ -52,5 +54,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/admin/:path*", "/worker/:path*"],
 };
