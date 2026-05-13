@@ -21,34 +21,36 @@ import { listRecentEvents } from "@/lib/activity";
 import { loadDashboard } from "@/lib/dashboard";
 import { fmtUsd } from "@/lib/format";
 import { Sparkline, CHART_COLORS } from "../_components/charts";
+import { t, type TKey } from "@/lib/i18n";
+import { getLocale } from "@/lib/i18n-server";
 
 type NavItem = {
   href: string;
-  label: string;
+  labelKey: TKey;
   Icon: React.ComponentType<{ className?: string }>;
 };
 
 const RECRUIT: NavItem[] = [
-  { href: "/admin", label: "Dashboard", Icon: LayoutDashboard },
-  { href: "/admin/applications", label: "Applications", Icon: FileText },
-  { href: "/admin/jobs", label: "Jobs", Icon: Briefcase },
+  { href: "/admin", labelKey: "a.nav.dashboard", Icon: LayoutDashboard },
+  { href: "/admin/applications", labelKey: "a.nav.applications", Icon: FileText },
+  { href: "/admin/jobs", labelKey: "a.nav.jobs", Icon: Briefcase },
 ];
 
 const WORKFORCE: NavItem[] = [
-  { href: "/admin/projects", label: "Projects", Icon: ClipboardList },
-  { href: "/admin/workers", label: "Workers", Icon: HardHat },
-  { href: "/admin/employers", label: "Employers", Icon: Building2 },
-  { href: "/admin/placements", label: "Placements", Icon: Link2 },
-  { href: "/admin/shifts", label: "Shifts", Icon: CalendarDays },
-  { href: "/admin/timesheet", label: "Timesheet", Icon: Clock },
-  { href: "/admin/documents", label: "Documents", Icon: ShieldCheck },
+  { href: "/admin/projects", labelKey: "a.nav.projects", Icon: ClipboardList },
+  { href: "/admin/workers", labelKey: "a.nav.workers", Icon: HardHat },
+  { href: "/admin/employers", labelKey: "a.nav.employers", Icon: Building2 },
+  { href: "/admin/placements", labelKey: "a.nav.placements", Icon: Link2 },
+  { href: "/admin/shifts", labelKey: "a.nav.shifts", Icon: CalendarDays },
+  { href: "/admin/timesheet", labelKey: "a.nav.timesheet", Icon: Clock },
+  { href: "/admin/documents", labelKey: "a.nav.documents", Icon: ShieldCheck },
 ];
 
 const MONEY: NavItem[] = [
-  { href: "/admin/invoices", label: "Invoices", Icon: Receipt },
-  { href: "/admin/payroll", label: "Payroll", Icon: DollarSign },
-  { href: "/admin/payments", label: "Payments", Icon: DollarSign },
-  { href: "/admin/reports", label: "Reports", Icon: BarChart3 },
+  { href: "/admin/invoices", labelKey: "a.nav.invoices", Icon: Receipt },
+  { href: "/admin/payroll", labelKey: "a.nav.payroll", Icon: DollarSign },
+  { href: "/admin/payments", labelKey: "a.nav.payments", Icon: DollarSign },
+  { href: "/admin/reports", labelKey: "a.nav.reports", Icon: BarChart3 },
 ];
 
 const ALL_ITEMS: NavItem[] = [...RECRUIT, ...WORKFORCE, ...MONEY];
@@ -58,9 +60,10 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     !process.env.NEXT_PUBLIC_SUPABASE_URL ||
     !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  const [events, dash] = await Promise.all([
+  const [events, dash, locale] = await Promise.all([
     listRecentEvents(12),
     loadDashboard(),
+    getLocale(),
   ]);
   const todaySpark = dash.revenueByDay30.slice(-7).map((d) => d.value);
   const todayRevenue = dash.revenueByDay30.at(-1)?.value ?? 0;
@@ -84,7 +87,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
             className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted"
           >
             <it.Icon className="h-3.5 w-3.5 text-muted-foreground" />
-            {it.label}
+            {t(locale, it.labelKey)}
           </Link>
         ))}
       </nav>
@@ -102,7 +105,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
             <div className="mx-2 mb-3 rounded-lg border border-border bg-accent/5 p-3">
               <div className="flex items-baseline justify-between">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                  Today
+                  {t(locale, "a.sidebar.today")}
                 </p>
                 <p className="font-mono text-xs font-bold tabular-nums">
                   {fmtUsd(todayRevenue, { decimals: 0, compact: true })}
@@ -117,13 +120,13 @@ export default async function AdminLayout({ children }: { children: ReactNode })
                 />
               </div>
               <p className="mt-1 text-[9px] text-muted-foreground">
-                Last 7d revenue
+                {t(locale, "a.sidebar.last_7d_revenue")}
               </p>
             </div>
           )}
-          <Group label="Recruitment" items={RECRUIT} />
-          <Group label="Workforce" items={WORKFORCE} />
-          <Group label="Money" items={MONEY} />
+          <Group label={t(locale, "a.group.recruitment")} items={RECRUIT} locale={locale} />
+          <Group label={t(locale, "a.group.workforce")} items={WORKFORCE} locale={locale} />
+          <Group label={t(locale, "a.group.money")} items={MONEY} locale={locale} />
         </nav>
       </aside>
 
@@ -132,7 +135,15 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   );
 }
 
-function Group({ label, items }: { label: string; items: NavItem[] }) {
+function Group({
+  label,
+  items,
+  locale,
+}: {
+  label: string;
+  items: NavItem[];
+  locale: "en" | "es" | "pt";
+}) {
   return (
     <div className="mb-3">
       <p className="px-3 pb-1 pt-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
@@ -145,7 +156,7 @@ function Group({ label, items }: { label: string; items: NavItem[] }) {
           className="flex items-center gap-2.5 rounded-md px-3 py-2 text-foreground/85 hover:bg-muted hover:text-foreground"
         >
           <it.Icon className="h-4 w-4 text-muted-foreground" />
-          {it.label}
+          {t(locale, it.labelKey)}
         </Link>
       ))}
     </div>

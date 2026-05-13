@@ -2,6 +2,8 @@ import Link from "next/link";
 import { ArrowUp, ArrowDown, Minus } from "lucide-react";
 import { loadDashboard } from "@/lib/dashboard";
 import { fmtUsd, fmtNum, fmtHours, fmtPct } from "@/lib/format";
+import { t } from "@/lib/i18n";
+import { getLocale } from "@/lib/i18n-server";
 import {
   Sparkline,
   AreaChart,
@@ -15,7 +17,7 @@ import {
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboard() {
-  const d = await loadDashboard();
+  const [d, locale] = await Promise.all([loadDashboard(), getLocale()]);
 
   // Derive sparkline series from the new time-series
   const revenueSpark = d.revenueByDay30.map((p) => p.value);
@@ -25,41 +27,45 @@ export default async function AdminDashboard() {
   return (
     <div className="space-y-8">
       <header>
-        <p className="text-xs uppercase tracking-wider text-muted-foreground">Dashboard</p>
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Overview</h1>
+        <p className="text-xs uppercase tracking-wider text-muted-foreground">
+          {t(locale, "a.dash.eyebrow")}
+        </p>
+        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+          {t(locale, "a.dash.title")}
+        </h1>
       </header>
 
       {/* Money row with sparklines */}
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <KpiSpark
-          label="Revenue MTD"
+          label={t(locale, "a.dash.revenue_mtd")}
           value={fmtUsd(d.revenueMtd)}
           delta={pctDelta(d.revenueMtd, d.prevPeriod.revenueMtd)}
-          deltaLabel="vs last month"
+          deltaLabel={t(locale, "a.delta.vs_last_month")}
           spark={revenueSpark}
           color={CHART_COLORS.accent}
           accent
         />
         <KpiSpark
-          label="Margin this week"
+          label={t(locale, "a.dash.margin_week")}
           value={fmtUsd(d.marginThisWeek)}
           delta={pctDelta(d.marginThisWeek, d.prevPeriod.marginThisWeek)}
-          deltaLabel="vs last week"
+          deltaLabel={t(locale, "a.delta.vs_last_week")}
           spark={marginSpark}
           color={CHART_COLORS.green}
         />
         <Kpi
-          label="Outstanding"
+          label={t(locale, "a.dash.outstanding")}
           value={fmtUsd(d.outstanding)}
           delta={pctDelta(d.outstanding, d.prevPeriod.outstanding)}
-          deltaLabel="vs last week"
+          deltaLabel={t(locale, "a.delta.vs_last_week")}
           deltaInverted
         />
         <KpiSpark
-          label="Applications (24h)"
+          label={t(locale, "a.dash.applications_24h")}
           value={`${d.newApplications24h}`}
           delta={pctDelta(d.newApplications24h, d.prevPeriod.applications24h)}
-          deltaLabel="vs prev 24h"
+          deltaLabel={t(locale, "a.delta.vs_prev_24h")}
           spark={appsSpark}
           color={CHART_COLORS.blue}
           link="/admin/applications"
@@ -69,32 +75,32 @@ export default async function AdminDashboard() {
       {/* Ops row */}
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Kpi
-          label="Active workers"
+          label={t(locale, "a.dash.active_workers")}
           value={`${d.activeWorkers}`}
           delta={pctDelta(d.activeWorkers, d.prevPeriod.activeWorkers)}
-          deltaLabel="vs last week"
+          deltaLabel={t(locale, "a.delta.vs_last_week")}
           link="/admin/workers"
         />
         <Kpi
-          label="Active placements"
+          label={t(locale, "a.dash.active_placements")}
           value={`${d.activePlacements}`}
           delta={pctDelta(d.activePlacements, d.prevPeriod.activePlacements)}
-          deltaLabel="vs last week"
+          deltaLabel={t(locale, "a.delta.vs_last_week")}
           link="/admin/placements"
         />
         <Kpi
-          label="Open jobs"
+          label={t(locale, "a.dash.open_jobs")}
           value={`${d.openJobs}`}
           delta={pctDelta(d.openJobs, d.prevPeriod.openJobs)}
-          deltaLabel="vs last week"
+          deltaLabel={t(locale, "a.delta.vs_last_week")}
           link="/admin/jobs"
         />
         <Kpi
-          label="Pending review"
+          label={t(locale, "a.dash.pending_review")}
           value={`${d.pendingTimesheets}`}
-          unit="entries"
+          unit={t(locale, "a.dash.pending_review_unit")}
           delta={pctDelta(d.pendingTimesheets, d.prevPeriod.pendingTimesheets)}
-          deltaLabel="vs last week"
+          deltaLabel={t(locale, "a.delta.vs_last_week")}
           deltaInverted
           link="/admin/timesheet"
         />
@@ -109,7 +115,7 @@ export default async function AdminDashboard() {
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-60" />
                 <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-500" />
               </span>
-              On the clock right now ({d.liveOnTheClock.length})
+              {t(locale, "a.dash.on_clock")} ({d.liveOnTheClock.length})
             </h2>
           </div>
           <ul className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -135,7 +141,7 @@ export default async function AdminDashboard() {
           </ul>
           {d.liveOnTheClock.length > 12 && (
             <p className="mt-3 text-xs text-muted-foreground">
-              + {d.liveOnTheClock.length - 12} more clocked in
+              + {d.liveOnTheClock.length - 12} {t(locale, "a.dash.more_clocked")}
             </p>
           )}
         </section>
@@ -146,12 +152,12 @@ export default async function AdminDashboard() {
         <section className="rounded-xl border border-border bg-background p-5">
           <div className="flex items-baseline justify-between">
             <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-              Revenue · last 30 days + 14-day forecast
+              {t(locale, "a.dash.revenue_30")}
             </h2>
             <span className="text-xs text-muted-foreground">
-              {fmtUsd(d.revenueByDay30.reduce((s, x) => s + x.value, 0))} actual ·{" "}
+              {fmtUsd(d.revenueByDay30.reduce((s, x) => s + x.value, 0))} {t(locale, "a.dash.actual")} ·{" "}
               <span className="text-accent">
-                {fmtUsd(d.revenueForecast14.reduce((s, x) => s + x.value, 0))} projected
+                {fmtUsd(d.revenueForecast14.reduce((s, x) => s + x.value, 0))} {t(locale, "a.dash.projected")}
               </span>
             </span>
           </div>
@@ -173,10 +179,10 @@ export default async function AdminDashboard() {
         <div className="rounded-xl border border-border bg-background p-5 lg:col-span-2">
           <div className="flex items-baseline justify-between">
             <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-              Hours this week
+              {t(locale, "a.dash.hours_week")}
             </h2>
             <span className="text-xs text-muted-foreground">
-              {fmtHours(d.hoursThisWeek, { decimals: 0 })} total
+              {fmtHours(d.hoursThisWeek, { decimals: 0 })} {t(locale, "a.dash.hours_total")}
             </span>
           </div>
           <div className="mt-4 text-foreground">
@@ -191,11 +197,11 @@ export default async function AdminDashboard() {
 
         <div className="rounded-xl border border-border bg-background p-5">
           <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-            Recent activity
+            {t(locale, "a.dash.recent_activity")}
           </h2>
           <ul className="mt-4 space-y-3 text-sm">
             {d.recentActivity.length === 0 && (
-              <li className="text-muted-foreground">No activity yet.</li>
+              <li className="text-muted-foreground">{t(locale, "a.dash.no_activity")}</li>
             )}
             {d.recentActivity.map((a, i) => (
               <li key={i} className="flex items-baseline gap-2">
@@ -225,13 +231,13 @@ export default async function AdminDashboard() {
         <section className="rounded-xl border border-border bg-background p-5">
           <div className="flex items-baseline justify-between">
             <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-              Active projects ({d.activeProjects.length})
+              {t(locale, "a.dash.active_projects")} ({d.activeProjects.length})
             </h2>
             <Link
               href="/admin/projects"
               className="text-xs font-medium text-accent underline-offset-4 hover:underline"
             >
-              All projects →
+              {t(locale, "a.dash.all_projects")} →
             </Link>
           </div>
           <ul className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -247,25 +253,25 @@ export default async function AdminDashboard() {
                       <div className="truncate text-xs text-muted-foreground">{p.employer}</div>
                     </div>
                     <span className="rounded-full bg-accent/15 px-2 py-0.5 text-[10px] font-bold text-accent">
-                      {p.activeWorkers} workers
+                      {p.activeWorkers} {t(locale, "a.dash.workers_count")}
                     </span>
                   </div>
                   <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
                     <div>
                       <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                        Hours
+                        {t(locale, "a.dash.hours")}
                       </div>
                       <div className="font-mono tabular-nums">{fmtNum(p.hours)}</div>
                     </div>
                     <div>
                       <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                        Revenue
+                        {t(locale, "a.dash.revenue")}
                       </div>
                       <div className="font-mono tabular-nums">{fmtUsd(p.revenue)}</div>
                     </div>
                     <div>
                       <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                        Margin
+                        {t(locale, "a.dash.margin")}
                       </div>
                       <div className="font-mono tabular-nums text-accent">{fmtUsd(p.margin)}</div>
                     </div>
@@ -273,8 +279,8 @@ export default async function AdminDashboard() {
                   {p.budgetPct != null && (
                     <div className="mt-3">
                       <div className="flex items-baseline justify-between text-[10px] text-muted-foreground">
-                        <span>{p.budgetPct}% of budget</span>
-                        {p.budgetAmount && <span>{fmtUsd(p.budgetAmount)} cap</span>}
+                        <span>{p.budgetPct}% {t(locale, "a.dash.of_budget")}</span>
+                        {p.budgetAmount && <span>{fmtUsd(p.budgetAmount)} {t(locale, "a.dash.budget_cap")}</span>}
                       </div>
                       <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-muted">
                         <div
@@ -301,7 +307,7 @@ export default async function AdminDashboard() {
       <section className="grid gap-6 lg:grid-cols-3">
         <div className="rounded-xl border border-border bg-background p-5">
           <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-            Top employers (90d revenue)
+            {t(locale, "a.dash.top_employers")}
           </h2>
           <div className="mt-4 text-foreground">
             <HorizontalBarChart
@@ -314,7 +320,7 @@ export default async function AdminDashboard() {
 
         <div className="rounded-xl border border-border bg-background p-5">
           <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-            Top workers (30d hours)
+            {t(locale, "a.dash.top_workers")}
           </h2>
           <div className="mt-4 text-foreground">
             <HorizontalBarChart
@@ -327,23 +333,23 @@ export default async function AdminDashboard() {
 
         <div className="rounded-xl border border-border bg-background p-5">
           <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-            Workforce mix
+            {t(locale, "a.dash.workforce_mix")}
           </h2>
           <div className="mt-4 text-foreground">
             <DonutChart
               data={[
                 {
-                  label: "Active",
+                  label: t(locale, "a.dash.active"),
                   value: d.workersByStatus.active,
                   color: CHART_COLORS.green,
                 },
                 {
-                  label: "Onboarding",
+                  label: t(locale, "a.dash.onboarding"),
                   value: d.workersByStatus.onboarding,
                   color: CHART_COLORS.amber,
                 },
                 {
-                  label: "Inactive",
+                  label: t(locale, "a.dash.inactive"),
                   value: d.workersByStatus.inactive,
                   color: CHART_COLORS.muted,
                 },
