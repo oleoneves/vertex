@@ -446,6 +446,17 @@ export function demoDashboard() {
     applicationsByDay14: applicationsSeriesByDay(14),
     monthlyRevenue: monthlyRevenueSeries(6),
     workersByStatus: { active: 190, onboarding: 10, inactive: 0 },
+    prevPeriod: {
+      // Previous period values for delta calc (mock realistic prior numbers)
+      revenueMtd: 196_000, // current 218,400 → +11.4%
+      marginThisWeek: 5_200 * 9.2, // current 52,000 → +8.7%
+      outstanding: 168_000, // current 152,000 → −9.5%
+      applications24h: 5, // current 7 → +40%
+      activeWorkers: 184, // current 190 → +3.3%
+      activePlacements: 122, // current 130 → +6.6%
+      openJobs: 11, // current 14 → +27%
+      pendingTimesheets: 92, // current 86 → −6.5%
+    },
   };
 }
 

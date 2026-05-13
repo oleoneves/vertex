@@ -1,6 +1,7 @@
 import Link from "next/link";
+import { ArrowUp, ArrowDown, Minus } from "lucide-react";
 import { loadDashboard } from "@/lib/dashboard";
-import { fmtUsd, fmtNum, fmtHours } from "@/lib/format";
+import { fmtUsd, fmtNum, fmtHours, fmtPct } from "@/lib/format";
 import {
   Sparkline,
   AreaChart,
@@ -33,6 +34,8 @@ export default async function AdminDashboard() {
         <KpiSpark
           label="Revenue MTD"
           value={fmtUsd(d.revenueMtd)}
+          delta={pctDelta(d.revenueMtd, d.prevPeriod.revenueMtd)}
+          deltaLabel="vs last month"
           spark={revenueSpark}
           color={CHART_COLORS.accent}
           accent
@@ -40,18 +43,23 @@ export default async function AdminDashboard() {
         <KpiSpark
           label="Margin this week"
           value={fmtUsd(d.marginThisWeek)}
-          hint="bill − pay on logged hours"
+          delta={pctDelta(d.marginThisWeek, d.prevPeriod.marginThisWeek)}
+          deltaLabel="vs last week"
           spark={marginSpark}
           color={CHART_COLORS.green}
         />
         <Kpi
           label="Outstanding"
           value={fmtUsd(d.outstanding)}
-          hint={d.outstanding > 0 ? "invoices sent" : ""}
+          delta={pctDelta(d.outstanding, d.prevPeriod.outstanding)}
+          deltaLabel="vs last week"
+          deltaInverted
         />
         <KpiSpark
           label="Applications (24h)"
           value={`${d.newApplications24h}`}
+          delta={pctDelta(d.newApplications24h, d.prevPeriod.applications24h)}
+          deltaLabel="vs prev 24h"
           spark={appsSpark}
           color={CHART_COLORS.blue}
           link="/admin/applications"
@@ -60,13 +68,34 @@ export default async function AdminDashboard() {
 
       {/* Ops row */}
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Kpi label="Active workers" value={`${d.activeWorkers}`} link="/admin/workers" />
-        <Kpi label="Active placements" value={`${d.activePlacements}`} link="/admin/placements" />
-        <Kpi label="Open jobs" value={`${d.openJobs}`} link="/admin/jobs" />
+        <Kpi
+          label="Active workers"
+          value={`${d.activeWorkers}`}
+          delta={pctDelta(d.activeWorkers, d.prevPeriod.activeWorkers)}
+          deltaLabel="vs last week"
+          link="/admin/workers"
+        />
+        <Kpi
+          label="Active placements"
+          value={`${d.activePlacements}`}
+          delta={pctDelta(d.activePlacements, d.prevPeriod.activePlacements)}
+          deltaLabel="vs last week"
+          link="/admin/placements"
+        />
+        <Kpi
+          label="Open jobs"
+          value={`${d.openJobs}`}
+          delta={pctDelta(d.openJobs, d.prevPeriod.openJobs)}
+          deltaLabel="vs last week"
+          link="/admin/jobs"
+        />
         <Kpi
           label="Pending review"
           value={`${d.pendingTimesheets}`}
           unit="entries"
+          delta={pctDelta(d.pendingTimesheets, d.prevPeriod.pendingTimesheets)}
+          deltaLabel="vs last week"
+          deltaInverted
           link="/admin/timesheet"
         />
       </section>
@@ -335,6 +364,43 @@ export default async function AdminDashboard() {
   );
 }
 
+function pctDelta(current: number, previous: number): number | null {
+  if (previous === 0) return current === 0 ? 0 : null;
+  return ((current - previous) / previous) * 100;
+}
+
+function Delta({
+  pct,
+  label,
+  inverted,
+}: {
+  pct: number | null;
+  label?: string;
+  inverted?: boolean;
+}) {
+  if (pct == null) return null;
+  const isUp = pct > 0;
+  const isZero = Math.abs(pct) < 0.5;
+  // For "inverted" metrics (e.g. Outstanding, Pending review), up is bad.
+  const isGood = isZero ? null : inverted ? !isUp : isUp;
+  const color = isGood == null
+    ? "text-muted-foreground"
+    : isGood
+    ? "text-green-700 dark:text-green-400"
+    : "text-red-700 dark:text-red-400";
+  const Icon = isZero ? Minus : isUp ? ArrowUp : ArrowDown;
+  return (
+    <p className={`mt-2 flex items-center gap-1 text-xs font-medium tabular-nums ${color}`}>
+      <Icon className="h-3 w-3 shrink-0" />
+      <span>
+        {isUp ? "+" : ""}
+        {fmtPct(pct, { decimals: pct < 10 && pct > -10 ? 1 : 0 })}
+      </span>
+      {label && <span className="text-muted-foreground font-normal">· {label}</span>}
+    </p>
+  );
+}
+
 function Kpi({
   label,
   value,
@@ -342,6 +408,9 @@ function Kpi({
   hint,
   accent,
   link,
+  delta,
+  deltaLabel,
+  deltaInverted,
 }: {
   label: string;
   value: string;
@@ -349,6 +418,9 @@ function Kpi({
   hint?: string;
   accent?: boolean;
   link?: string;
+  delta?: number | null;
+  deltaLabel?: string;
+  deltaInverted?: boolean;
 }) {
   const inner = (
     <div
@@ -362,6 +434,9 @@ function Kpi({
         {unit && <span className="ml-1 text-sm font-medium text-muted-foreground">{unit}</span>}
       </p>
       {hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}
+      {delta !== undefined && (
+        <Delta pct={delta} label={deltaLabel} inverted={deltaInverted} />
+      )}
     </div>
   );
   return link ? <Link href={link}>{inner}</Link> : inner;
@@ -375,6 +450,9 @@ function KpiSpark({
   color,
   accent,
   link,
+  delta,
+  deltaLabel,
+  deltaInverted,
 }: {
   label: string;
   value: string;
@@ -383,6 +461,9 @@ function KpiSpark({
   color: string;
   accent?: boolean;
   link?: string;
+  delta?: number | null;
+  deltaLabel?: string;
+  deltaInverted?: boolean;
 }) {
   const inner = (
     <div
@@ -393,8 +474,11 @@ function KpiSpark({
       <p className="text-xs uppercase tracking-wider text-muted-foreground">{label}</p>
       <p className="mt-2 text-2xl font-extrabold tracking-tight tabular-nums">{value}</p>
       {hint && <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>}
+      {delta !== undefined && (
+        <Delta pct={delta} label={deltaLabel} inverted={deltaInverted} />
+      )}
       {spark.length > 0 && (
-        <div className="mt-3 -mx-1">
+        <div className="mt-3 -mx-1 text-foreground">
           <Sparkline data={spark} stroke={color} fill={color} height={28} />
         </div>
       )}

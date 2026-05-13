@@ -36,6 +36,17 @@ export type DashboardData = {
   applicationsByDay14: { date: string; label: string; value: number }[];
   monthlyRevenue: { month: string; label: string; revenue: number; cost: number; margin: number }[];
   workersByStatus: { active: number; onboarding: number; inactive: number };
+  // Period-over-period deltas (previous period absolute values, for delta calc)
+  prevPeriod: {
+    revenueMtd: number;
+    marginThisWeek: number;
+    outstanding: number;
+    applications24h: number;
+    activeWorkers: number;
+    activePlacements: number;
+    openJobs: number;
+    pendingTimesheets: number;
+  };
 };
 
 export const EMPTY_DASHBOARD: DashboardData = {
@@ -61,6 +72,16 @@ export const EMPTY_DASHBOARD: DashboardData = {
   applicationsByDay14: [],
   monthlyRevenue: [],
   workersByStatus: { active: 0, onboarding: 0, inactive: 0 },
+  prevPeriod: {
+    revenueMtd: 0,
+    marginThisWeek: 0,
+    outstanding: 0,
+    applications24h: 0,
+    activeWorkers: 0,
+    activePlacements: 0,
+    openJobs: 0,
+    pendingTimesheets: 0,
+  },
 };
 
 function dayBuckets() {
@@ -378,5 +399,15 @@ export async function loadDashboard(): Promise<DashboardData> {
     applicationsByDay14: [],
     monthlyRevenue: [],
     workersByStatus: { active: activeWorkersCount.count ?? 0, onboarding: 0, inactive: 0 },
+    prevPeriod: {
+      revenueMtd: 0,
+      marginThisWeek: 0,
+      outstanding: 0,
+      applications24h: 0,
+      activeWorkers: 0,
+      activePlacements: 0,
+      openJobs: 0,
+      pendingTimesheets: 0,
+    },
   };
 }
