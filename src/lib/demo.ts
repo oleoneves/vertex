@@ -49,9 +49,22 @@ const ID = {
     hilton: "emp-hilton",
     clearwave: "emp-clearwave",
     westlake: "emp-westlake",
+    restoration: "emp-restoration",
   },
   project: "proj-sunbelt",
+  projectRestoration: "proj-restoration",
 };
+
+const RESTORATION_ROLES = [
+  "Water Extraction Tech",
+  "Mold Remediation Tech",
+  "Structural Drying Tech",
+  "Content Cleaning",
+  "Demolition Crew",
+  "Carpet & Floor Tech",
+  "Board-Up Crew",
+  "Restoration Helper",
+];
 
 // ============== Time helpers ==============
 function isoNow(offsetMs: number = 0): string {
@@ -141,10 +154,21 @@ export function demoEmployers(): Employer[] {
       notes: null,
       created_at: isoDaysAgo(40),
     },
+    {
+      id: ID.emp.restoration,
+      name: "Restoration Pro USA",
+      contact_name: "Daniela Cardoso",
+      billing_email: "ap@restorationprousa.example",
+      billing_address: "2400 Tampa Bay Blvd\nTampa, FL 33606",
+      bill_rate_multiplier: 1.67,
+      payment_terms_days: 15,
+      notes: "Disaster restoration franchise — 24/7 emergency response.",
+      created_at: isoDaysAgo(30),
+    },
   ];
 }
 
-// ============== Project ==============
+// ============== Projects ==============
 export function demoProjects(): (Project & { employer: { name: string } })[] {
   return [
     {
@@ -161,6 +185,21 @@ export function demoProjects(): (Project & { employer: { name: string } })[] {
       notes: "100-headcount refinery expansion. Mon-Sun 7am-3pm shifts.",
       created_at: isoDaysAgo(31),
       employer: { name: "Sunbelt Industrial Group" },
+    },
+    {
+      id: ID.projectRestoration,
+      employer_id: ID.emp.restoration,
+      name: "Hurricane Recovery — Tampa Bay",
+      slug: "hurricane-recovery-tampa-bay",
+      location: "Tampa Bay region · multi-site",
+      start_date: dateAddDays(new Date(), -15),
+      end_date: dateAddDays(new Date(), 45),
+      budget_hours: 30000,
+      budget_amount: 750000,
+      status: "active",
+      notes: "Emergency restoration following hurricane impact. 24/7 response, 7-day-a-week ops.",
+      created_at: isoDaysAgo(15),
+      employer: { name: "Restoration Pro USA" },
     },
   ];
 }
@@ -241,6 +280,25 @@ export function demoPlacements(): Placement[] {
       status: "active",
       notes: null,
       created_at: isoDaysAgo(50),
+    });
+  }
+  // 50 restoration crew @ Restoration Pro project (workers 131..180)
+  for (let i = 0; i < 50; i++) {
+    const wn = 131 + i;
+    out.push({
+      id: `placement-r${i}`,
+      worker_id: `worker-${String(wn).padStart(3, "0")}`,
+      employer_id: ID.emp.restoration,
+      project_id: ID.projectRestoration,
+      job_id: null,
+      role_title: RESTORATION_ROLES[i % RESTORATION_ROLES.length],
+      pay_rate: 15,
+      bill_rate: 25,
+      start_date: dateAddDays(new Date(), -15),
+      end_date: null,
+      status: "active",
+      notes: "Hurricane Recovery · Tampa Bay",
+      created_at: isoDaysAgo(15),
     });
   }
   return out;
@@ -332,10 +390,22 @@ export function demoDashboard() {
         budgetAmount: 500000,
         budgetPct: Math.min(100, Math.round((600000 / 500000) * 100)),
       },
+      {
+        id: ID.projectRestoration,
+        name: "Hurricane Recovery — Tampa Bay",
+        employer: "Restoration Pro USA",
+        activeWorkers: 50,
+        hours: 6000,
+        revenue: 150000,
+        margin: 60000,
+        budgetAmount: 750000,
+        budgetPct: Math.round((150000 / 750000) * 100),
+      },
     ],
     hoursByDay,
     topEmployers: [
       { name: "Sunbelt Industrial Group", revenue: 600000 },
+      { name: "Restoration Pro USA", revenue: 150000 },
       { name: "Hilton Orlando", revenue: 56000 },
       { name: "ClearWave Facility Services", revenue: 42000 },
       { name: "Westlake Builders", revenue: 22000 },
@@ -383,63 +453,82 @@ function recentActivitySample() {
 
 // ============== Project detail ==============
 export function demoProjectDetail(id: string) {
-  if (id !== ID.project) return null;
-  const project = demoProjects()[0];
+  const isSunbelt = id === ID.project;
+  const isRestoration = id === ID.projectRestoration;
+  if (!isSunbelt && !isRestoration) return null;
+
+  const projects = demoProjects();
+  const project = isSunbelt ? projects[0] : projects[1];
+  const employers = demoEmployers();
+  const employer = isSunbelt
+    ? employers[0]
+    : employers.find((e) => e.id === ID.emp.restoration)!;
+
+  const projectId = isSunbelt ? ID.project : ID.projectRestoration;
+  const roles = isSunbelt ? PROJECT_ROLES : RESTORATION_ROLES;
+  const workerCount = isSunbelt ? 100 : 50;
+  const dailyHours = workerCount * 8;
+  const totalHours = isSunbelt ? 24000 : 6000;
+  const cost = totalHours * 15;
+  const revenue = totalHours * 25;
+
   const placements = demoPlacements()
-    .filter((p) => p.project_id === ID.project)
+    .filter((p) => p.project_id === projectId)
     .map((p) => ({
       ...p,
       worker: demoWorkers().find((w) => w.id === p.worker_id) ?? null,
     }));
 
-  // 14-day chart: 100 workers × 8h × 7 weekdays/2 = approx; let's just do flat 800/day for last 14
   const days = Array.from({ length: 14 }).map((_, i) => {
     const d = new Date();
     d.setDate(d.getDate() - (13 - i));
     return {
       day: d.toISOString().slice(0, 10),
       label: d.toLocaleDateString(undefined, { month: "short", day: "numeric" }),
-      hours: 800, // 100 workers × 8 hours
+      hours: dailyHours,
     };
   });
 
-  // Role rollup
-  const roleRows = PROJECT_ROLES.map((role, i) => {
-    const count = i === 0 || i === 7 ? 13 : 12; // ~100 split across 8 roles
-    return {
-      role,
-      hours: count * 8 * 30,
-      headcount: count,
-    };
-  }).sort((a, b) => b.hours - a.hours);
+  const headcountPerRole = Math.floor(workerCount / roles.length);
+  const remainder = workerCount % roles.length;
+  const roleRows = roles
+    .map((role, i) => {
+      const count = i < remainder ? headcountPerRole + 1 : headcountPerRole;
+      return {
+        role,
+        hours: count * 8 * (isSunbelt ? 30 : 15),
+        headcount: count,
+      };
+    })
+    .sort((a, b) => b.hours - a.hours);
 
-  // Recent entries
   const recentEntries = Array.from({ length: 10 }).map((_, i) => {
-    const w = demoWorkers()[i + 4];
+    const baseWorkerIdx = isSunbelt ? i + 4 : i + 134;
+    const w = demoWorkers()[baseWorkerIdx % 200];
     return {
-      id: `re-${i}`,
+      id: `re-${projectId}-${i}`,
       hours_worked: 8,
       pay_rate_at_entry: 15,
       bill_rate_at_entry: 25,
       clock_in_at: new Date(Date.now() - (i + 1) * 12 * 3600 * 1000).toISOString(),
       clock_out_at: new Date(Date.now() - (i + 1) * 4 * 3600 * 1000).toISOString(),
       approved: i > 2,
-      placement: { project_id: ID.project, role_title: PROJECT_ROLES[i % PROJECT_ROLES.length] },
+      placement: { project_id: projectId, role_title: roles[i % roles.length] },
       worker: { full_name: w.full_name },
     };
   });
 
   return {
-    project: { ...project, employer: demoEmployers()[0] },
+    project: { ...project, employer },
     placements,
-    activeWorkers: 100,
-    totalWorkers: 100,
+    activeWorkers: workerCount,
+    totalWorkers: workerCount,
     totals: {
-      hours: 24000,
-      cost: 360000,
-      revenue: 600000,
-      margin: 240000,
-      pendingHours: 0,
+      hours: totalHours,
+      cost,
+      revenue,
+      margin: revenue - cost,
+      pendingHours: isSunbelt ? 0 : 320,
     },
     days,
     roleRows,
