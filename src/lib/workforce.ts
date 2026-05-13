@@ -8,8 +8,11 @@ import {
   demoUpcomingShifts,
   demoTimeEntries,
   demoInvoices,
+  demoInvoiceDetail,
+  demoInvoicePayments,
   demoProjects,
 } from "./demo";
+import type { Payment } from "@/types/db";
 import type {
   Worker,
   Employer,
@@ -179,6 +182,9 @@ export type InvoiceDetail = Invoice & {
 };
 
 export async function getInvoiceDetail(id: string): Promise<InvoiceDetail | null> {
+  if (isDemoMode()) {
+    return (demoInvoiceDetail(id) as unknown as InvoiceDetail) ?? null;
+  }
   if (!supabaseReady()) return null;
   const supabase = await getSupabaseServer();
   const { data } = await supabase
@@ -189,6 +195,19 @@ export async function getInvoiceDetail(id: string): Promise<InvoiceDetail | null
     .eq("id", id)
     .maybeSingle();
   return (data as unknown as InvoiceDetail) ?? null;
+}
+
+export async function listInvoicePayments(invoiceId: string): Promise<Payment[]> {
+  if (isDemoMode()) return demoInvoicePayments(invoiceId);
+  if (!supabaseReady()) return [];
+  const supabase = await getSupabaseServer();
+  const { data } = await supabase
+    .from("payments")
+    .select("*")
+    .eq("invoice_id", invoiceId)
+    .eq("direction", "in")
+    .order("occurred_at", { ascending: false });
+  return (data as Payment[]) ?? [];
 }
 
 // Worker portal helpers

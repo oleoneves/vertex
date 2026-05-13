@@ -617,6 +617,80 @@ export function demoInvoices(): (Invoice & { employer: { name: string; billing_e
   ];
 }
 
+// ============== Invoice detail (lines + employer) ==============
+export type DemoInvoiceDetail = Invoice & {
+  employer: {
+    name: string;
+    billing_email: string | null;
+    billing_address: string | null;
+    contact_name: string | null;
+    payment_terms_days: number;
+  } | null;
+  lines: (InvoiceLineItem & { worker: { full_name: string } | null })[];
+};
+
+export function demoInvoiceDetail(id: string): DemoInvoiceDetail | null {
+  const inv = demoInvoices().find((i) => i.id === id);
+  if (!inv) return null;
+  const employer = demoEmployers().find((e) => e.id === inv.employer_id);
+
+  const billRate = inv.employer_id === ID.emp.clearwave ? 26 : 25;
+  const workers = demoWorkers();
+
+  // Pick a worker pool relevant to this employer's placements
+  const placements = demoPlacements().filter((p) => p.employer_id === inv.employer_id);
+  const employerWorkerIds = new Set(placements.map((p) => p.worker_id));
+  const pool = workers.filter((w) => employerWorkerIds.has(w.id));
+  const eligible = pool.length > 0 ? pool : workers.slice(0, 30);
+
+  const subtotal = Number(inv.subtotal);
+  const targetHours = Math.round((subtotal / billRate) * 100) / 100;
+
+  // Cap line count at 50; clamp at the eligible pool size; floor at 8
+  const lineCount = Math.min(50, Math.max(8, eligible.length));
+  const perLine = Math.floor((targetHours / lineCount) * 100) / 100;
+
+  const lines: (InvoiceLineItem & { worker: { full_name: string } | null })[] = [];
+  let allocatedHours = 0;
+  for (let i = 0; i < lineCount; i++) {
+    const isLast = i === lineCount - 1;
+    const hours = isLast
+      ? Math.round((targetHours - allocatedHours) * 100) / 100
+      : perLine;
+    allocatedHours = Math.round((allocatedHours + hours) * 100) / 100;
+    const w = eligible[i % eligible.length];
+    lines.push({
+      id: `${inv.id}-line-${i}`,
+      invoice_id: inv.id,
+      worker_id: w.id,
+      placement_id: null,
+      description: `Labor services · ${inv.period_start} → ${inv.period_end}`,
+      hours,
+      rate: billRate,
+      amount: Math.round(hours * billRate * 100) / 100,
+      worker: { full_name: w.full_name },
+    });
+  }
+
+  return {
+    ...inv,
+    employer: employer
+      ? {
+          name: employer.name,
+          billing_email: employer.billing_email,
+          billing_address: employer.billing_address,
+          contact_name: employer.contact_name,
+          payment_terms_days: employer.payment_terms_days,
+        }
+      : null,
+    lines,
+  };
+}
+
+export function demoInvoicePayments(invoiceId: string): Payment[] {
+  return demoPayments().filter((p) => p.invoice_id === invoiceId);
+}
+
 // ============== Time entries (recent for timesheet view) ==============
 export function demoTimeEntries(opts: { limit?: number } = {}): (TimeEntry & {
   worker: { full_name: string; employee_code: string | null } | null;
