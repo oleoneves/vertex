@@ -169,12 +169,19 @@ export default async function InvoiceDetailPage({
             <ExternalLink className="h-3.5 w-3.5" /> Print view
           </Link>
           <a
+            href={`/api/invoices/${inv.id}/pdf?download=1`}
+            className="inline-flex items-center gap-1 rounded-md bg-foreground px-3 py-1.5 text-sm font-bold text-background hover:opacity-90"
+            download={`${inv.invoice_number}.pdf`}
+          >
+            <Download className="h-3.5 w-3.5" /> Download PDF
+          </a>
+          <a
             href={`/api/invoices/${inv.id}/pdf`}
             target="_blank"
             rel="noopener"
             className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-3 py-1.5 text-sm font-medium hover:bg-muted"
           >
-            <Download className="h-3.5 w-3.5" /> PDF
+            Preview
           </a>
           <SendInvoiceButton
             invoiceId={inv.id}

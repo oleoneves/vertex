@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Receipt } from "lucide-react";
+import { Download, Receipt } from "lucide-react";
 import { getCurrentEmployer, listEmployerInvoices } from "@/lib/employer";
 
 export const dynamic = "force-dynamic";
@@ -29,16 +29,16 @@ export default async function EmployerInvoices() {
         <ul className="mt-6 space-y-2">
           {invoices.map((i) => (
             <li key={i.id}>
-              <Link
-                href={`/employer/invoices/${i.id}`}
-                className="flex items-center justify-between gap-3 rounded-xl border border-border bg-background p-4 transition hover:border-foreground/30"
-              >
-                <div>
+              <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-background p-4 transition hover:border-foreground/30">
+                <Link
+                  href={`/employer/invoices/${i.id}`}
+                  className="min-w-0 flex-1"
+                >
                   <div className="font-mono text-sm font-medium">{i.invoice_number}</div>
                   <div className="text-xs text-muted-foreground">
                     {i.period_start} → {i.period_end}
                   </div>
-                </div>
+                </Link>
                 <div className="text-right">
                   <div className="text-lg font-extrabold tabular-nums">
                     ${Number(i.total).toFixed(2)}
@@ -59,7 +59,15 @@ export default async function EmployerInvoices() {
                     )}
                   </div>
                 </div>
-              </Link>
+                <a
+                  href={`/api/invoices/${i.id}/pdf?download=1`}
+                  download={`${i.invoice_number}.pdf`}
+                  title="Download PDF"
+                  className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border text-muted-foreground hover:bg-muted hover:text-foreground"
+                >
+                  <Download className="h-4 w-4" />
+                </a>
+              </div>
             </li>
           ))}
         </ul>

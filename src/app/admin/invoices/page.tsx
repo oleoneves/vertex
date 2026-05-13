@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Receipt } from "lucide-react";
+import { Download, Receipt } from "lucide-react";
 import { listInvoices } from "@/lib/workforce";
 import { PageHeader } from "../_components/page-header";
 import { EmptyState } from "../_components/empty-state";
@@ -123,12 +123,22 @@ export default async function InvoicesPage({
                 />
               </Td>
               <Td>
-                <Link
-                  className="text-xs text-accent underline-offset-4 hover:underline"
-                  href={`/admin/invoices/${i.id}`}
-                >
-                  View →
-                </Link>
+                <div className="flex items-center justify-end gap-3">
+                  <a
+                    href={`/api/invoices/${i.id}/pdf?download=1`}
+                    download={`${i.invoice_number}.pdf`}
+                    title="Download PDF"
+                    className="inline-flex items-center gap-1 rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+                  >
+                    <Download className="h-3.5 w-3.5" />
+                  </a>
+                  <Link
+                    className="text-xs text-accent underline-offset-4 hover:underline"
+                    href={`/admin/invoices/${i.id}`}
+                  >
+                    View →
+                  </Link>
+                </div>
               </Td>
             </Tr>
           ))}

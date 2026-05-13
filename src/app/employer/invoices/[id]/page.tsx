@@ -31,9 +31,8 @@ export default async function EmployerInvoiceDetail({
           <ArrowLeft className="h-3.5 w-3.5" /> Invoices
         </Link>
         <a
-          href={`/api/invoices/${inv.id}/pdf`}
-          target="_blank"
-          rel="noopener"
+          href={`/api/invoices/${inv.id}/pdf?download=1`}
+          download={`${inv.invoice_number}.pdf`}
           className="inline-flex items-center gap-1 rounded-md bg-foreground px-3 py-1.5 text-sm font-bold text-background hover:opacity-90"
         >
           <Download className="h-3.5 w-3.5" /> Download PDF
