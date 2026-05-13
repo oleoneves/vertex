@@ -576,6 +576,107 @@ export function DonutChart({
 }
 
 // ============================================================
+// <Heatmap>
+// 2D grid (days × hours, or any rows × cols) with cell intensity.
+// ============================================================
+export function Heatmap({
+  data,
+  rowLabels,
+  colLabels,
+  color = ACCENT,
+  cellSize = 18,
+  valueFormatter,
+}: {
+  // 2D matrix indexed [row][col]
+  data: number[][];
+  rowLabels: string[];
+  colLabels: string[];
+  color?: string;
+  cellSize?: number;
+  valueFormatter?: (n: number) => string;
+}) {
+  if (data.length === 0) return <EmptyChart height={160} />;
+
+  const max = Math.max(1, ...data.flat());
+  const rowLabelW = 36;
+  const colLabelH = 18;
+  const gap = 2;
+  const innerW = colLabels.length * (cellSize + gap);
+  const innerH = rowLabels.length * (cellSize + gap);
+  const width = rowLabelW + innerW + 8;
+  const height = colLabelH + innerH + 4;
+
+  return (
+    <svg
+      viewBox={`0 0 ${width} ${height}`}
+      width="100%"
+      preserveAspectRatio="xMinYMid meet"
+      style={{ maxHeight: height + 4 }}
+      role="img"
+    >
+      {/* Col labels (every 3rd) */}
+      {colLabels.map((c, i) =>
+        i % 3 === 0 ? (
+          <text
+            key={i}
+            x={rowLabelW + i * (cellSize + gap) + cellSize / 2}
+            y={colLabelH - 6}
+            fontSize="9"
+            textAnchor="middle"
+            fill="currentColor"
+            fillOpacity={0.5}
+          >
+            {c}
+          </text>
+        ) : null,
+      )}
+
+      {/* Row labels */}
+      {rowLabels.map((r, i) => (
+        <text
+          key={i}
+          x={rowLabelW - 6}
+          y={colLabelH + i * (cellSize + gap) + cellSize / 2 + 3}
+          fontSize="10"
+          textAnchor="end"
+          fill="currentColor"
+          fillOpacity={0.6}
+        >
+          {r}
+        </text>
+      ))}
+
+      {/* Cells */}
+      {data.map((row, ri) =>
+        row.map((v, ci) => {
+          const intensity = v / max;
+          const opacity = v > 0 ? Math.max(0.08, intensity) : 0.04;
+          const x = rowLabelW + ci * (cellSize + gap);
+          const y = colLabelH + ri * (cellSize + gap);
+          return (
+            <rect
+              key={`${ri}-${ci}`}
+              x={x}
+              y={y}
+              width={cellSize}
+              height={cellSize}
+              rx={2}
+              fill={v > 0 ? color : "currentColor"}
+              fillOpacity={opacity}
+            >
+              <title>
+                {rowLabels[ri]} · {colLabels[ci]}:{" "}
+                {valueFormatter ? valueFormatter(v) : v}
+              </title>
+            </rect>
+          );
+        }),
+      )}
+    </svg>
+  );
+}
+
+// ============================================================
 // Helpers
 // ============================================================
 function EmptyChart({ height, children }: { height: number; children?: ReactNode }) {

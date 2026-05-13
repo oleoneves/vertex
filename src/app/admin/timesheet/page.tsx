@@ -6,6 +6,8 @@ import { PageHeader } from "../_components/page-header";
 import { EmptyState } from "../_components/empty-state";
 import { DataTable, Th, Tr, Td, StatusPill } from "../_components/data-table";
 import { FilterBar } from "../_components/filter-bar";
+import { fmtHours, fmtNum } from "@/lib/format";
+import { Heatmap, CHART_COLORS } from "../../_components/charts";
 
 export const dynamic = "force-dynamic";
 
@@ -49,6 +51,22 @@ export default async function TimesheetPage({
   const pending = entries.filter((e) => !e.approved && e.clock_out_at).length;
   const approvable = filtered.filter((e) => !e.approved && e.clock_out_at);
 
+  // Build the heatmap: 7 rows (Mon-Sun) × 24 cols (0-23 hour)
+  // Bucket each entry's hours into its (day-of-week, clock-in hour) cell.
+  const heatmap: number[][] = Array.from({ length: 7 }, () => Array(24).fill(0));
+  for (const e of entries) {
+    if (!e.clock_in_at || e.hours_worked == null) continue;
+    const t = new Date(e.clock_in_at);
+    const dow = (t.getDay() + 6) % 7; // Mon=0..Sun=6
+    const h = t.getHours();
+    heatmap[dow][h] += Number(e.hours_worked) || 0;
+  }
+  const heatmapTotal = heatmap.flat().reduce((s, v) => s + v, 0);
+
+  const COL_LABELS = Array.from({ length: 24 }, (_, i) =>
+    i === 0 ? "12a" : i < 12 ? `${i}a` : i === 12 ? "12p" : `${i - 12}p`,
+  );
+
   return (
     <div>
       <PageHeader
@@ -77,6 +95,30 @@ export default async function TimesheetPage({
           },
         ]}
       />
+
+      {/* Activity heatmap */}
+      {heatmapTotal > 0 && (
+        <section className="mb-6 rounded-xl border border-border bg-background p-5">
+          <div className="flex items-baseline justify-between">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              Clock-in activity · day × hour
+            </h2>
+            <span className="text-xs text-muted-foreground">
+              {fmtHours(heatmapTotal, { decimals: 0 })} logged across {fmtNum(entries.length)} entries
+            </span>
+          </div>
+          <div className="mt-4 text-foreground overflow-x-auto">
+            <Heatmap
+              data={heatmap}
+              rowLabels={["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]}
+              colLabels={COL_LABELS}
+              color={CHART_COLORS.accent}
+              valueFormatter={(n) => fmtHours(n, { decimals: 1 })}
+              cellSize={18}
+            />
+          </div>
+        </section>
+      )}
 
       {filtered.length === 0 ? (
         <EmptyState
