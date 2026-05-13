@@ -5,6 +5,7 @@ import { EmptyState } from "../_components/empty-state";
 import { DataTable, Th, Tr, Td } from "../_components/data-table";
 import { payAllUnpaid, payWorker } from "./actions";
 
+import { fmtUsd, fmtNum, fmtHours } from "@/lib/format";
 export const dynamic = "force-dynamic";
 
 export default async function PayrollPage({
@@ -30,7 +31,7 @@ export default async function PayrollPage({
               type="submit"
               className="inline-flex h-9 items-center rounded-md bg-accent px-3 text-sm font-bold text-accent-foreground hover:opacity-90"
             >
-              Pay all unpaid (${data.totals.unpaidPay.toFixed(0)})
+              Pay all unpaid ({fmtUsd(data.totals.unpaidPay)})
             </button>
           </form>
         )}
@@ -70,11 +71,11 @@ export default async function PayrollPage({
       {/* Totals */}
       <section className="mb-6 grid gap-3 sm:grid-cols-4">
         <Kpi label="Workers" value={String(data.rows.length)} />
-        <Kpi label="Total hours" value={data.totals.hours.toFixed(1)} unit="hrs" />
-        <Kpi label="Gross payroll" value={`$${data.totals.grossPay.toFixed(0)}`} />
+        <Kpi label="Total hours" value={fmtNum(data.totals.hours, { decimals: 1 })} unit="hrs" />
+        <Kpi label="Gross payroll" value={fmtUsd(data.totals.grossPay)} />
         <Kpi
           label="Unpaid"
-          value={`$${data.totals.unpaidPay.toFixed(0)}`}
+          value={fmtUsd(data.totals.unpaidPay)}
           accent
           subValue={`${data.totals.unpaidCount} workers`}
         />
@@ -110,14 +111,14 @@ export default async function PayrollPage({
               <Td className="text-xs uppercase tracking-wider text-muted-foreground">
                 {r.paymentMethod}
               </Td>
-              <Td className="text-right font-mono tabular-nums">{r.hours.toFixed(2)}</Td>
+              <Td className="text-right font-mono tabular-nums">{fmtNum(r.hours, { decimals: 2 })}</Td>
               <Td className="text-right text-xs text-muted-foreground">
                 {r.rateBreakdown.length === 1
                   ? `$${r.rateBreakdown[0].rate.toFixed(2)}`
                   : r.rateBreakdown.map((b) => `$${b.rate}`).join(", ")}
               </Td>
               <Td className="text-right font-mono tabular-nums font-medium">
-                ${r.grossPay.toFixed(2)}
+                {fmtUsd(r.grossPay, { decimals: 2 })}
               </Td>
               <Td>
                 {r.alreadyPaid ? (

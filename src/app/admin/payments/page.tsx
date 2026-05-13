@@ -4,6 +4,7 @@ import { PageHeader } from "../_components/page-header";
 import { EmptyState } from "../_components/empty-state";
 import { DataTable, Th, Tr, Td } from "../_components/data-table";
 
+import { fmtUsd, fmtNum, fmtHours } from "@/lib/format";
 export const dynamic = "force-dynamic";
 
 type Row = {
@@ -105,7 +106,7 @@ export default async function PaymentsPage() {
               </Td>
               <Td className="text-xs text-muted-foreground">{p.reference ?? "—"}</Td>
               <Td className="text-right font-mono tabular-nums font-medium">
-                ${Number(p.amount).toFixed(2)}
+                {fmtUsd(p.amount, { decimals: 2 })}
               </Td>
             </Tr>
           ))}
@@ -138,7 +139,7 @@ function SummaryCard({
           positive ? "text-green-700 dark:text-green-400" : ""
         }`}
       >
-        ${value.toFixed(0)}
+        {fmtUsd(value)}
       </p>
     </div>
   );

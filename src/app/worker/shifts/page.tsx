@@ -6,6 +6,7 @@ import { t } from "@/lib/i18n";
 import { getLocale } from "@/lib/i18n-server";
 import type { Shift } from "@/types/db";
 
+import { fmtNum } from "@/lib/format";
 export const dynamic = "force-dynamic";
 
 type Row = Shift & {
@@ -96,7 +97,7 @@ export default async function WorkerShiftsPage() {
                             {end.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
                           </div>
                           <span className="text-xs uppercase tracking-wider text-muted-foreground">
-                            {hrs.toFixed(1)}h · {s.status.replace("_", " ")}
+                            {fmtNum(hrs, { decimals: 1 })}h · {s.status.replace("_", " ")}
                           </span>
                         </div>
                         <div className="mt-1 text-sm text-muted-foreground">

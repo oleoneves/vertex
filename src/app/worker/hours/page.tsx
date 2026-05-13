@@ -5,6 +5,7 @@ import { getSupabaseServer } from "@/lib/supabase/server";
 import { t } from "@/lib/i18n";
 import { getLocale } from "@/lib/i18n-server";
 
+import { fmtNum } from "@/lib/format";
 export const dynamic = "force-dynamic";
 
 type Row = {
@@ -126,7 +127,7 @@ function SummaryCard({
     >
       <p className="text-xs uppercase tracking-wider text-muted-foreground">{label}</p>
       <p className="mt-2 text-3xl font-extrabold tracking-tight tabular-nums">
-        {value.toFixed(2)}
+        {fmtNum(value, { decimals: 2 })}
         <span className="ml-1 text-sm font-medium text-muted-foreground">hrs</span>
       </p>
     </div>

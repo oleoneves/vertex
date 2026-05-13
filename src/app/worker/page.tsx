@@ -8,6 +8,7 @@ import { getLocale } from "@/lib/i18n-server";
 import { clockIn, clockOut } from "./actions";
 import { ClockForm } from "./clock-form";
 
+import { fmtNum } from "@/lib/format";
 export const dynamic = "force-dynamic";
 
 export default async function WorkerDashboard() {
@@ -59,7 +60,7 @@ export default async function WorkerDashboard() {
         <StatCard
           icon={<Clock className="h-4 w-4" />}
           label={t(locale, "w.today.hours_week")}
-          value={week.hours.toFixed(2)}
+          value={fmtNum(week.hours, { decimals: 2 })}
           unit="hrs"
         />
         <StatCard

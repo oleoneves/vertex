@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { TrendingUp, Clock, Receipt, AlertCircle } from "lucide-react";
 import { getCurrentEmployer, getEmployerDashboard } from "@/lib/employer";
+import { fmtUsd, fmtHours, fmtNum } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -29,14 +30,14 @@ export default async function EmployerOverview() {
         <Kpi
           icon={<Clock className="h-4 w-4" />}
           label="Hours (last 7d)"
-          value={d.hoursWeek.toFixed(1)}
+          value={fmtNum(d.hoursWeek, { decimals: 1 })}
           unit="hrs"
           link="/employer/hours"
         />
         <Kpi
           icon={<Receipt className="h-4 w-4" />}
           label="Outstanding"
-          value={`$${d.outstanding.toFixed(0)}`}
+          value={fmtUsd(d.outstanding)}
           accent
           link="/employer/invoices"
         />
@@ -78,7 +79,7 @@ export default async function EmployerOverview() {
                 </div>
                 <div className="text-right">
                   <div className="font-mono tabular-nums font-semibold">
-                    {e.hours_worked != null ? `${Number(e.hours_worked).toFixed(2)}h` : "open"}
+                    {e.hours_worked != null ? fmtHours(e.hours_worked) : "open"}
                   </div>
                   <div className="text-[10px] uppercase tracking-wider">
                     {e.approved ? (

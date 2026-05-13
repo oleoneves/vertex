@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { Clock } from "lucide-react";
 import { getCurrentEmployer, listEmployerHours } from "@/lib/employer";
 
+import { fmtUsd, fmtNum, fmtHours } from "@/lib/format";
 export const dynamic = "force-dynamic";
 
 export default async function EmployerHours() {
@@ -24,8 +25,8 @@ export default async function EmployerHours() {
       <h1 className="text-xl font-extrabold tracking-tight sm:text-2xl">Hours (last 30 days)</h1>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-3">
-        <Summary label="Total hours" value={totalHours.toFixed(1)} unit="hrs" />
-        <Summary label="Billable (gross)" value={`$${totalBilled.toFixed(0)}`} accent />
+        <Summary label="Total hours" value={fmtNum(totalHours, { decimals: 1 })} unit="hrs" />
+        <Summary label="Billable (gross)" value={fmtUsd(totalBilled)} accent />
         <Summary label="Entries" value={String(entries.length)} />
       </div>
 
@@ -70,10 +71,10 @@ export default async function EmployerHours() {
                       {e.placement?.role_title ?? "—"}
                     </td>
                     <td className="px-3 py-3 text-right font-mono tabular-nums">
-                      {hrs.toFixed(2)}
+                      {fmtNum(hrs, { decimals: 2 })}
                     </td>
                     <td className="px-3 py-3 text-right font-mono tabular-nums">
-                      ${bill.toFixed(2)}
+                      {fmtUsd(bill, { decimals: 2 })}
                     </td>
                     <td className="px-3 py-3">
                       {e.approved ? (

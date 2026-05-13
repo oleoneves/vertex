@@ -8,6 +8,7 @@ import { PageHeader } from "../../_components/page-header";
 import { StatusPill } from "../../_components/data-table";
 import { cancelShift } from "../../_actions";
 
+import { fmtNum } from "@/lib/format";
 export const dynamic = "force-dynamic";
 
 async function updateShift(formData: FormData) {
@@ -134,11 +135,11 @@ export default async function ShiftDetail({
         <Kpi
           label="Scheduled"
           value={`${start.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}–${end.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}`}
-          subValue={`${hours.toFixed(1)} hrs`}
+          subValue={`${fmtNum(hours, { decimals: 1 })} hrs`}
         />
         <Kpi
           label="Logged"
-          value={`${totalLogged.toFixed(2)} hrs`}
+          value={`${fmtNum(totalLogged, { decimals: 2 })} hrs`}
           subValue={
             entries.length === 0
               ? "no entries"

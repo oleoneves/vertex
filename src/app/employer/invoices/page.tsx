@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Download, Receipt } from "lucide-react";
 import { getCurrentEmployer, listEmployerInvoices } from "@/lib/employer";
+import { fmtUsd } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -41,7 +42,7 @@ export default async function EmployerInvoices() {
                 </Link>
                 <div className="text-right">
                   <div className="text-lg font-extrabold tabular-nums">
-                    ${Number(i.total).toFixed(2)}
+                    {fmtUsd(i.total, { decimals: 2 })}
                   </div>
                   <div className="mt-0.5 text-[10px] uppercase tracking-wider">
                     {i.status === "paid" ? (

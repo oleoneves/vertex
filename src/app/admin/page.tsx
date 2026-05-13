@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { loadDashboard } from "@/lib/dashboard";
+import { fmtUsd, fmtNum, fmtHours } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -18,17 +19,17 @@ export default async function AdminDashboard() {
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Kpi
           label="Revenue MTD"
-          value={`$${d.revenueMtd.toFixed(0)}`}
+          value={fmtUsd(d.revenueMtd)}
           accent
         />
         <Kpi
           label="Margin this week"
-          value={`$${d.marginThisWeek.toFixed(0)}`}
+          value={fmtUsd(d.marginThisWeek)}
           hint="bill − pay on logged hours"
         />
         <Kpi
           label="Outstanding"
-          value={`$${d.outstanding.toFixed(0)}`}
+          value={fmtUsd(d.outstanding)}
           hint={d.outstanding > 0 ? "invoices sent" : ""}
         />
         <Kpi
@@ -181,26 +182,26 @@ export default async function AdminDashboard() {
                       <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
                         Hours
                       </div>
-                      <div className="font-mono tabular-nums">{p.hours.toFixed(0)}</div>
+                      <div className="font-mono tabular-nums">{fmtNum(p.hours)}</div>
                     </div>
                     <div>
                       <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
                         Revenue
                       </div>
-                      <div className="font-mono tabular-nums">${p.revenue}</div>
+                      <div className="font-mono tabular-nums">{fmtUsd(p.revenue)}</div>
                     </div>
                     <div>
                       <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
                         Margin
                       </div>
-                      <div className="font-mono tabular-nums text-accent">${p.margin}</div>
+                      <div className="font-mono tabular-nums text-accent">{fmtUsd(p.margin)}</div>
                     </div>
                   </div>
                   {p.budgetPct != null && (
                     <div className="mt-3">
                       <div className="flex items-baseline justify-between text-[10px] text-muted-foreground">
                         <span>{p.budgetPct}% of budget</span>
-                        {p.budgetAmount && <span>${p.budgetAmount.toFixed(0)} cap</span>}
+                        {p.budgetAmount && <span>{fmtUsd(p.budgetAmount)} cap</span>}
                       </div>
                       <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-muted">
                         <div
@@ -227,11 +228,11 @@ export default async function AdminDashboard() {
       <section className="grid gap-6 lg:grid-cols-2">
         <RankCard
           title="Top employers (90d revenue)"
-          rows={d.topEmployers.map((e) => ({ label: e.name, value: `$${e.revenue.toFixed(0)}` }))}
+          rows={d.topEmployers.map((e) => ({ label: e.name, value: fmtUsd(e.revenue) }))}
         />
         <RankCard
           title="Top workers (30d hours)"
-          rows={d.topWorkers.map((w) => ({ label: w.name, value: `${w.hours} hrs` }))}
+          rows={d.topWorkers.map((w) => ({ label: w.name, value: fmtHours(w.hours, { decimals: 0 }) }))}
         />
       </section>
 

@@ -3,6 +3,7 @@
 import { useState, useTransition, type ReactNode } from "react";
 import { MapPin, Loader2 } from "lucide-react";
 
+import { fmtNum } from "@/lib/format";
 type ServerAction = (formData: FormData) => Promise<void>;
 
 export function ClockForm({
@@ -38,7 +39,7 @@ export function ClockForm({
       if (pos) {
         fd.set(
           "location",
-          `${pos.coords.latitude.toFixed(5)},${pos.coords.longitude.toFixed(5)}`,
+          `${fmtNum(pos.coords.latitude, { decimals: 5 })},${fmtNum(pos.coords.longitude, { decimals: 5 })}`,
         );
         setGeoStatus("captured");
       } else {

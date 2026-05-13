@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 
+import { fmtNum } from "@/lib/format";
 type Placement = {
   id: string;
   worker: string;
@@ -255,7 +256,7 @@ export function BulkScheduleForm({
                     </div>
                   </div>
                   <span className="text-xs font-mono text-muted-foreground">
-                    ${p.payRate.toFixed(0)}/${p.billRate.toFixed(0)}
+                    ${fmtNum(p.payRate, { decimals: 0 })}/${fmtNum(p.billRate, { decimals: 0 })}
                   </span>
                 </li>
               ))}

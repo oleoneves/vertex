@@ -4,6 +4,7 @@ import { Download, Receipt } from "lucide-react";
 import { getCurrentWorker } from "@/lib/workforce";
 import { listWorkerPaystubs } from "@/lib/paystub";
 
+import { fmtUsd, fmtNum, fmtHours } from "@/lib/format";
 export const dynamic = "force-dynamic";
 
 export default async function WorkerPaystubsPage() {
@@ -23,8 +24,8 @@ export default async function WorkerPaystubsPage() {
 
       {stubs.length > 0 && (
         <section className="mt-4 grid gap-3 sm:grid-cols-2">
-          <Summary label="Last 26 weeks · gross" value={`$${ytdGross.toFixed(0)}`} />
-          <Summary label="Last 26 weeks · hours" value={ytdHours.toFixed(1)} unit="hrs" />
+          <Summary label="Last 26 weeks · gross" value={fmtUsd(ytdGross)} />
+          <Summary label="Last 26 weeks · hours" value={fmtNum(ytdHours, { decimals: 1 })} unit="hrs" />
         </section>
       )}
 
@@ -59,7 +60,7 @@ export default async function WorkerPaystubsPage() {
                   })}
                 </div>
                 <div className="mt-0.5 text-xs text-muted-foreground">
-                  {s.hours.toFixed(2)} hrs ·{" "}
+                  {fmtNum(s.hours, { decimals: 2 })} hrs ·{" "}
                   {s.paidAt ? (
                     <span className="text-green-700 dark:text-green-400">
                       paid {new Date(s.paidAt).toLocaleDateString()}
@@ -71,7 +72,7 @@ export default async function WorkerPaystubsPage() {
               </div>
               <div className="flex items-center gap-3">
                 <span className="font-mono tabular-nums text-lg font-extrabold">
-                  ${s.gross.toFixed(2)}
+                  {fmtUsd(s.gross, { decimals: 2 })}
                 </span>
                 <Link
                   href={`/api/paystubs/${s.periodStart}/pdf`}

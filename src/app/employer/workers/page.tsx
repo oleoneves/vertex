@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { HardHat } from "lucide-react";
 import { getCurrentEmployer, listEmployerWorkers } from "@/lib/employer";
 
+import { fmtUsd, fmtNum, fmtHours } from "@/lib/format";
 export const dynamic = "force-dynamic";
 
 function initials(name: string) {
@@ -62,7 +63,7 @@ export default async function EmployerWorkers() {
               <div className="mt-3 flex items-baseline justify-between border-t border-border/60 pt-3 text-sm">
                 <span className="text-muted-foreground">Bill rate</span>
                 <span className="font-mono font-medium tabular-nums">
-                  ${Number(w.placement.bill_rate).toFixed(2)}
+                  {fmtUsd(w.placement.bill_rate, { decimals: 2 })}
                   <span className="text-xs text-muted-foreground">/hr</span>
                 </span>
               </div>

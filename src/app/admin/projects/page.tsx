@@ -5,6 +5,7 @@ import { PageHeader } from "../_components/page-header";
 import { EmptyState } from "../_components/empty-state";
 import { StatusPill } from "../_components/data-table";
 
+import { fmtUsd, fmtNum, fmtHours } from "@/lib/format";
 export const dynamic = "force-dynamic";
 
 export default async function ProjectsPage() {
@@ -69,7 +70,7 @@ export default async function ProjectsPage() {
                   <div>
                     <div className="text-[10px] uppercase tracking-wider">Budget</div>
                     <div className="font-mono text-foreground">
-                      {p.budget_amount ? `$${Number(p.budget_amount).toFixed(0)}` : "—"}
+                      {p.budget_amount ? fmtUsd(Number(p.budget_amount)) : "—"}
                     </div>
                   </div>
                 </div>

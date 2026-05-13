@@ -6,6 +6,7 @@ import type { Employer, Placement, Invoice, Payment } from "@/types/db";
 import { PageHeader } from "../../_components/page-header";
 import { StatusPill } from "../../_components/data-table";
 
+import { fmtUsd, fmtNum, fmtHours } from "@/lib/format";
 export const dynamic = "force-dynamic";
 
 export default async function EmployerDetail({
@@ -119,21 +120,21 @@ export default async function EmployerDetail({
       {/* KPIs */}
       <section className="grid gap-3 sm:grid-cols-4">
         <Kpi label="Active placements" value={String(active)} />
-        <Kpi label="Total hours" value={totals.hours.toFixed(0)} unit="hrs" />
-        <Kpi label="Revenue (all time)" value={`$${totals.revenue.toFixed(0)}`} accent />
-        <Kpi label="Margin (all time)" value={`$${margin.toFixed(0)}`} />
+        <Kpi label="Total hours" value={fmtNum(totals.hours, { decimals: 0 })} unit="hrs" />
+        <Kpi label="Revenue (all time)" value={fmtUsd(totals.revenue)} accent />
+        <Kpi label="Margin (all time)" value={fmtUsd(margin)} />
       </section>
 
       <section className="mt-3 grid gap-3 sm:grid-cols-2">
         <div className="rounded-lg border border-border bg-background p-4">
           <p className="text-xs uppercase tracking-wider text-muted-foreground">Paid invoices</p>
           <p className="mt-1 text-2xl font-extrabold tabular-nums text-green-700 dark:text-green-400">
-            ${paid.toFixed(0)}
+            {fmtUsd(paid)}
           </p>
         </div>
         <div className="rounded-lg border border-border bg-accent/10 p-4">
           <p className="text-xs uppercase tracking-wider text-muted-foreground">Outstanding</p>
-          <p className="mt-1 text-2xl font-extrabold tabular-nums">${outstanding.toFixed(0)}</p>
+          <p className="mt-1 text-2xl font-extrabold tabular-nums">{fmtUsd(outstanding)}</p>
         </div>
       </section>
 
@@ -196,7 +197,7 @@ export default async function EmployerDetail({
                     </div>
                     <div className="text-right">
                       <div className="font-mono text-xs tabular-nums">
-                        ${Number(p.pay_rate).toFixed(0)} / ${Number(p.bill_rate).toFixed(0)}
+                        {fmtUsd(p.pay_rate)} / {fmtUsd(p.bill_rate)}
                       </div>
                       <StatusPill
                         status={p.status}
@@ -242,7 +243,7 @@ export default async function EmployerDetail({
                       </div>
                       <div className="text-right">
                         <div className="font-mono tabular-nums font-medium">
-                          ${Number(i.total).toFixed(0)}
+                          {fmtUsd(i.total)}
                         </div>
                         <StatusPill
                           status={i.status}
@@ -286,7 +287,7 @@ export default async function EmployerDetail({
                       </div>
                     </div>
                     <span className="font-mono tabular-nums font-medium">
-                      ${Number(p.amount).toFixed(2)}
+                      {fmtUsd(p.amount, { decimals: 2 })}
                     </span>
                   </li>
                 ))}

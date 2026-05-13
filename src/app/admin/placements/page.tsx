@@ -5,6 +5,7 @@ import { EmptyState } from "../_components/empty-state";
 import { DataTable, Th, Tr, Td, StatusPill } from "../_components/data-table";
 import { endPlacement } from "../_actions";
 
+import { fmtUsd, fmtNum, fmtHours } from "@/lib/format";
 export const dynamic = "force-dynamic";
 
 export default async function PlacementsPage() {
@@ -46,13 +47,13 @@ export default async function PlacementsPage() {
                 <Td>{p.employer?.name ?? "—"}</Td>
                 <Td className="text-muted-foreground">{p.role_title}</Td>
                 <Td className="tabular-nums">
-                  ${Number(p.pay_rate).toFixed(2)}{" "}
+                  {fmtUsd(p.pay_rate, { decimals: 2 })}{" "}
                   <span className="text-muted-foreground">
-                    / ${Number(p.bill_rate).toFixed(2)}
+                    / {fmtUsd(p.bill_rate, { decimals: 2 })}
                   </span>
                 </Td>
                 <Td className="text-right font-mono tabular-nums font-semibold text-accent">
-                  +${margin.toFixed(2)}/hr
+                  +{fmtUsd(margin, { decimals: 2 })}/hr
                 </Td>
                 <Td className="text-xs text-muted-foreground">
                   {p.start_date} → {p.end_date ?? "ongoing"}

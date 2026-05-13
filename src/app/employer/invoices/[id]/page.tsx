@@ -4,6 +4,7 @@ import { ArrowLeft, Download } from "lucide-react";
 import { getCurrentEmployer } from "@/lib/employer";
 import { getInvoiceDetail } from "@/lib/workforce";
 import { brand } from "@/lib/brand";
+import { fmtUsd } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -98,10 +99,10 @@ export default async function EmployerInvoiceDetail({
             {inv.lines.map((l) => (
               <tr key={l.id} className="border-b border-border/60">
                 <td className="py-3">{l.description}</td>
-                <td className="py-3 text-right font-mono">{Number(l.hours).toFixed(2)}</td>
-                <td className="py-3 text-right font-mono">${Number(l.rate).toFixed(2)}</td>
+                <td className="py-3 text-right font-mono">{Number(l.hours).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td className="py-3 text-right font-mono">{fmtUsd(l.rate, { decimals: 2 })}</td>
                 <td className="py-3 text-right font-mono font-medium">
-                  ${Number(l.amount).toFixed(2)}
+                  {fmtUsd(l.amount, { decimals: 2 })}
                 </td>
               </tr>
             ))}
@@ -111,20 +112,20 @@ export default async function EmployerInvoiceDetail({
               <td colSpan={3} className="pt-4 text-right text-sm text-muted-foreground">
                 Subtotal
               </td>
-              <td className="pt-4 text-right font-mono">${Number(inv.subtotal).toFixed(2)}</td>
+              <td className="pt-4 text-right font-mono">{fmtUsd(inv.subtotal, { decimals: 2 })}</td>
             </tr>
             <tr>
               <td colSpan={3} className="text-right text-sm text-muted-foreground">
                 Tax
               </td>
-              <td className="text-right font-mono">${Number(inv.tax).toFixed(2)}</td>
+              <td className="text-right font-mono">{fmtUsd(inv.tax, { decimals: 2 })}</td>
             </tr>
             <tr>
               <td colSpan={3} className="pt-2 text-right text-base font-bold">
                 Total due
               </td>
               <td className="pt-2 text-right font-mono text-xl font-extrabold">
-                ${Number(inv.total).toFixed(2)}
+                {fmtUsd(inv.total, { decimals: 2 })}
               </td>
             </tr>
           </tfoot>

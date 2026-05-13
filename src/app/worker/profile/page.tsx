@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { getCurrentWorker } from "@/lib/workforce";
 import { getSupabaseServer } from "@/lib/supabase/server";
 
+import { fmtUsd, fmtNum, fmtHours } from "@/lib/format";
 export const dynamic = "force-dynamic";
 
 async function updateProfile(formData: FormData) {
@@ -38,7 +39,7 @@ export default async function WorkerProfilePage() {
           <Field label="Name" value={worker.full_name} />
           <Field label="Employee code" value={worker.employee_code ?? "—"} mono />
           <Field label="Status" value={worker.status} capitalize />
-          <Field label="Default rate" value={worker.default_pay_rate ? `$${Number(worker.default_pay_rate).toFixed(2)}/hr` : "—"} />
+          <Field label="Default rate" value={worker.default_pay_rate ? `${fmtUsd(worker.default_pay_rate, { decimals: 2 })}/hr` : "—"} />
         </dl>
         <p className="mt-3 text-xs text-muted-foreground">
           To change your name or code, contact Vertex.

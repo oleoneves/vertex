@@ -7,6 +7,7 @@ import { EmptyState } from "../_components/empty-state";
 import { DataTable, Th, Tr, Td, StatusPill } from "../_components/data-table";
 import { FilterBar } from "../_components/filter-bar";
 
+import { fmtUsd, fmtNum, fmtHours } from "@/lib/format";
 export const dynamic = "force-dynamic";
 
 function initials(name: string) {
@@ -114,7 +115,7 @@ export default async function WorkersPage({
                 />
               </Td>
               <Td className="tabular-nums">
-                {w.default_pay_rate ? `$${Number(w.default_pay_rate).toFixed(2)}/hr` : "—"}
+                {w.default_pay_rate ? `${fmtUsd(w.default_pay_rate, { decimals: 2 })}/hr` : "—"}
               </Td>
               <Td className="text-xs text-muted-foreground">{w.email ?? w.phone ?? "—"}</Td>
             </Tr>

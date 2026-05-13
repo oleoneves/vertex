@@ -5,6 +5,7 @@ import { PageHeader } from "../_components/page-header";
 import { EmptyState } from "../_components/empty-state";
 import { DataTable, Th, Tr, Td, StatusPill } from "../_components/data-table";
 import { FilterBar } from "../_components/filter-bar";
+import { fmtUsd } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -48,13 +49,13 @@ export default async function InvoicesPage({
               Paid (all time)
             </p>
             <p className="mt-1 text-2xl font-extrabold tabular-nums">
-              ${totals.paid.toFixed(0)}
+              {fmtUsd(totals.paid)}
             </p>
           </div>
           <div className="rounded-lg border border-border bg-accent/10 p-4">
             <p className="text-xs uppercase tracking-wider text-muted-foreground">Outstanding</p>
             <p className="mt-1 text-2xl font-extrabold tabular-nums">
-              ${totals.outstanding.toFixed(0)}
+              {fmtUsd(totals.outstanding)}
             </p>
           </div>
         </div>
@@ -104,7 +105,7 @@ export default async function InvoicesPage({
                 {i.period_start} → {i.period_end}
               </Td>
               <Td className="text-right font-mono tabular-nums">
-                ${Number(i.total).toFixed(2)}
+                {fmtUsd(i.total, { decimals: 2 })}
               </Td>
               <Td>
                 <StatusPill

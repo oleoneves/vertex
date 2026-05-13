@@ -5,6 +5,7 @@ import { getSupabaseServer } from "@/lib/supabase/server";
 import type { Worker, Placement, TimeEntry, WorkerDocument, DocumentType } from "@/types/db";
 import { DOCUMENT_LABELS } from "@/lib/documents";
 import { PageHeader } from "../../_components/page-header";
+import { fmtUsd, fmtNum, fmtHours } from "@/lib/format";
 import {
   FormSection,
   FormGrid,
@@ -147,11 +148,11 @@ export default async function WorkerDetail({
             </h2>
             <div className="mt-3 grid grid-cols-2 gap-3">
               <div>
-                <p className="text-2xl font-extrabold tabular-nums">{monthHours.toFixed(1)}</p>
+                <p className="text-2xl font-extrabold tabular-nums">{fmtNum(monthHours, { decimals: 1 })}</p>
                 <p className="text-xs text-muted-foreground">hours worked</p>
               </div>
               <div>
-                <p className="text-2xl font-extrabold tabular-nums">${monthPay.toFixed(0)}</p>
+                <p className="text-2xl font-extrabold tabular-nums">{fmtUsd(monthPay)}</p>
                 <p className="text-xs text-muted-foreground">pay earned</p>
               </div>
             </div>
@@ -271,8 +272,8 @@ export default async function WorkerDetail({
                           {p.start_date} → {p.end_date ?? "ongoing"}
                         </span>
                         <span className="font-mono">
-                          ${Number(p.pay_rate).toFixed(2)} → ${Number(p.bill_rate).toFixed(2)}{" "}
-                          <span className="text-accent">+${margin.toFixed(2)}/hr</span>
+                          {fmtUsd(p.pay_rate, { decimals: 2 })} → {fmtUsd(p.bill_rate, { decimals: 2 })}{" "}
+                          <span className="text-accent">+{fmtUsd(margin, { decimals: 2 })}/hr</span>
                         </span>
                       </div>
                     </li>
@@ -302,7 +303,7 @@ export default async function WorkerDetail({
                       </div>
                     </div>
                     <div className="font-mono tabular-nums">
-                      {e.hours_worked != null ? `${Number(e.hours_worked).toFixed(2)}h` : "—"}
+                      {e.hours_worked != null ? `{fmtUsd(e.hours_worked, { decimals: 2 })}h` : "—"}
                     </div>
                     {e.approved ? (
                       <StatusPill status="approved" variant="green" />

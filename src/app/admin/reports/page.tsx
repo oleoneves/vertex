@@ -1,6 +1,7 @@
 import { Download, TrendingUp } from "lucide-react";
 import { loadReports } from "@/lib/reports";
 import { PageHeader } from "../_components/page-header";
+import { fmtUsd, fmtNum } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -43,14 +44,18 @@ export default async function ReportsPage() {
 
       {/* Totals */}
       <section className="grid gap-4 sm:grid-cols-4">
-        <Kpi label="Hours" value={r.totals.hours.toFixed(1)} unit="hrs" />
-        <Kpi label="Revenue" value={`$${r.totals.revenue.toFixed(0)}`} />
-        <Kpi label="Worker pay" value={`$${r.totals.cost.toFixed(0)}`} />
+        <Kpi label="Hours" value={fmtNum(r.totals.hours, { decimals: 1 })} unit="hrs" />
+        <Kpi label="Revenue" value={fmtUsd(r.totals.revenue)} />
+        <Kpi label="Worker pay" value={fmtUsd(r.totals.cost)} />
         <Kpi
           label="Gross margin"
-          value={`$${r.totals.margin.toFixed(0)}`}
+          value={fmtUsd(r.totals.margin)}
           accent
-          hint={marginDelta !== 0 ? `${marginDelta >= 0 ? "+" : ""}${marginDelta.toFixed(0)} vs last month` : undefined}
+          hint={
+            marginDelta !== 0
+              ? `${marginDelta >= 0 ? "+" : "−"}${fmtUsd(Math.abs(marginDelta))} vs last month`
+              : undefined
+          }
         />
       </section>
 
@@ -67,11 +72,11 @@ export default async function ReportsPage() {
                 <div
                   className="w-full rounded-t bg-accent transition-all"
                   style={{ height: `${heightPct}%`, minHeight: m.margin > 0 ? "6px" : 0 }}
-                  title={`$${m.margin.toFixed(0)}`}
+                  title={fmtUsd(m.margin)}
                 />
                 <div className="mt-2 text-xs text-muted-foreground">{monthLabel(m.month)}</div>
                 <div className="text-[10px] font-mono text-muted-foreground">
-                  ${Math.round(m.margin)}
+                  {fmtUsd(m.margin)}
                 </div>
               </div>
             );
@@ -101,13 +106,13 @@ export default async function ReportsPage() {
               {r.byEmployer.map((e) => (
                 <tr key={e.employer}>
                   <td className="py-2 font-medium">{e.employer}</td>
-                  <td className="py-2 text-right font-mono tabular-nums">{e.hours.toFixed(1)}</td>
-                  <td className="py-2 text-right font-mono tabular-nums">${e.revenue.toFixed(0)}</td>
+                  <td className="py-2 text-right font-mono tabular-nums">{fmtNum(e.hours, { decimals: 1 })}</td>
+                  <td className="py-2 text-right font-mono tabular-nums">{fmtUsd(e.revenue)}</td>
                   <td className="py-2 text-right font-mono tabular-nums text-muted-foreground">
-                    ${e.cost.toFixed(0)}
+                    {fmtUsd(e.cost)}
                   </td>
                   <td className="py-2 text-right font-mono tabular-nums font-semibold text-accent">
-                    ${e.margin.toFixed(0)}
+                    {fmtUsd(e.margin)}
                   </td>
                 </tr>
               ))}
@@ -136,8 +141,8 @@ export default async function ReportsPage() {
               {r.byWorker.map((w) => (
                 <tr key={w.worker}>
                   <td className="py-2 font-medium">{w.worker}</td>
-                  <td className="py-2 text-right font-mono tabular-nums">{w.hours.toFixed(1)}</td>
-                  <td className="py-2 text-right font-mono tabular-nums">${w.pay.toFixed(0)}</td>
+                  <td className="py-2 text-right font-mono tabular-nums">{fmtNum(w.hours, { decimals: 1 })}</td>
+                  <td className="py-2 text-right font-mono tabular-nums">{fmtUsd(w.pay)}</td>
                 </tr>
               ))}
             </tbody>

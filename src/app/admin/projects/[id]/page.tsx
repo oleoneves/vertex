@@ -4,6 +4,7 @@ import { ArrowLeft, MapPin, Calendar } from "lucide-react";
 import { getProjectDetail } from "@/lib/projects";
 import { PageHeader } from "../../_components/page-header";
 import { StatusPill } from "../../_components/data-table";
+import { fmtUsd, fmtNum, fmtHours } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -94,9 +95,9 @@ export default async function ProjectDashboard({
       {/* KPI row */}
       <section className="grid gap-3 sm:grid-cols-4">
         <Kpi label="Active workers" value={String(activeWorkers)} subValue={`${totalWorkers} placed total`} />
-        <Kpi label="Approved hours" value={totals.hours.toFixed(0)} unit="hrs" subValue={totals.pendingHours > 0 ? `+${totals.pendingHours.toFixed(0)} pending` : undefined} />
-        <Kpi label="Revenue" value={`$${totals.revenue.toFixed(0)}`} accent />
-        <Kpi label="Margin" value={`$${totals.margin.toFixed(0)}`} subValue={`${totals.revenue > 0 ? Math.round((totals.margin / totals.revenue) * 100) : 0}% of revenue`} />
+        <Kpi label="Approved hours" value={fmtNum(totals.hours)} unit="hrs" subValue={totals.pendingHours > 0 ? `+${fmtNum(totals.pendingHours)} pending` : undefined} />
+        <Kpi label="Revenue" value={fmtUsd(totals.revenue)} accent />
+        <Kpi label="Margin" value={fmtUsd(totals.margin)} subValue={`${totals.revenue > 0 ? Math.round((totals.margin / totals.revenue) * 100) : 0}% of revenue`} />
       </section>
 
       {/* Budgets */}
@@ -137,7 +138,7 @@ export default async function ProjectDashboard({
                 <div
                   className="w-full rounded-t bg-accent"
                   style={{ height: `${pct}%`, minHeight: d.hours > 0 ? "4px" : 0 }}
-                  title={`${d.label}: ${d.hours.toFixed(1)}h`}
+                  title={`${d.label}: ${fmtHours(d.hours, { decimals: 1 })}`}
                 />
                 <div className="mt-1 text-[9px] text-muted-foreground rotate-45 origin-left whitespace-nowrap pl-2">
                   {d.label}
@@ -170,7 +171,7 @@ export default async function ProjectDashboard({
                   <tr key={r.role}>
                     <td className="py-2">{r.role}</td>
                     <td className="py-2 text-right font-mono tabular-nums">{r.headcount}</td>
-                    <td className="py-2 text-right font-mono tabular-nums">{r.hours.toFixed(0)}</td>
+                    <td className="py-2 text-right font-mono tabular-nums">{fmtNum(r.hours)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -195,7 +196,7 @@ export default async function ProjectDashboard({
                     </div>
                   </div>
                   <span className="font-mono tabular-nums text-xs">
-                    {e.hours_worked != null ? `${Number(e.hours_worked).toFixed(2)}h` : "open"}
+                    {e.hours_worked != null ? fmtHours(e.hours_worked) : "open"}
                   </span>
                   {e.approved ? (
                     <StatusPill status="approved" variant="green" />
@@ -302,8 +303,7 @@ function Budget({
   prefix?: boolean;
 }) {
   const over = used > cap;
-  const display = (n: number) =>
-    prefix ? `$${n.toFixed(0)}` : `${n.toFixed(0)}${unit ? unit : ""}`;
+  const display = (n: number) => (prefix ? fmtUsd(n) : `${fmtNum(n)}${unit ? unit : ""}`);
   return (
     <div className="rounded-xl border border-border bg-background p-5">
       <div className="flex items-baseline justify-between">
