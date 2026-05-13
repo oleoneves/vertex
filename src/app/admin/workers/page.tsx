@@ -10,6 +10,8 @@ import { FilterBar } from "../_components/filter-bar";
 import { HorizontalBarChart, USTileMap, CHART_COLORS } from "../../_components/charts";
 import { StarRating } from "../_components/star-rating";
 import { FavoriteToggle } from "../_components/favorite-toggle";
+import { TierBadge } from "../_components/tier-badge";
+import { reliabilityFromWorker } from "@/lib/reliability";
 
 import { fmtUsd, fmtNum } from "@/lib/format";
 import { t } from "@/lib/i18n";
@@ -30,11 +32,15 @@ async function load(filters: {
   status?: string;
   q?: string;
   favorite?: string;
+  tier?: string;
 }): Promise<Worker[]> {
   if (isDemoMode()) {
     let workers = demoWorkers();
     if (filters.status) workers = workers.filter((w) => w.status === filters.status);
     if (filters.favorite === "1") workers = workers.filter((w) => w.is_favorite);
+    if (filters.tier) {
+      workers = workers.filter((w) => reliabilityFromWorker(w).tier === filters.tier);
+    }
     if (filters.q) {
       const q = filters.q.toLowerCase();
       workers = workers.filter(
@@ -68,7 +74,7 @@ async function load(filters: {
 export default async function WorkersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; q?: string; favorite?: string }>;
+  searchParams: Promise<{ status?: string; q?: string; favorite?: string; tier?: string }>;
 }) {
   const sp = await searchParams;
   const [workers, locale] = await Promise.all([load(sp), getLocale()]);
@@ -138,6 +144,17 @@ export default async function WorkersPage({
             value: sp.favorite,
             options: [{ value: "1", label: t(locale, "a.filter.favorites_only") }],
           },
+          {
+            name: "tier",
+            label: t(locale, "a.tier.tier"),
+            value: sp.tier,
+            options: [
+              { value: "elite", label: t(locale, "a.tier.elite") },
+              { value: "pro", label: t(locale, "a.tier.pro") },
+              { value: "standard", label: t(locale, "a.tier.standard") },
+              { value: "new", label: t(locale, "a.tier.new") },
+            ],
+          },
         ]}
       />
       {workers.length === 0 ? (
@@ -181,12 +198,22 @@ export default async function WorkersPage({
                 </Link>
               </Td>
               <Td>
-                <StarRating value={w.rating} count={w.ratings_count} size="xs" />
-                {w.no_show_count > 0 && (
-                  <div className="mt-0.5 text-[10px] text-red-600 dark:text-red-400">
-                    {w.no_show_count} no-show{w.no_show_count !== 1 ? "s" : ""}
-                  </div>
-                )}
+                {(() => {
+                  const rel = reliabilityFromWorker(w);
+                  return (
+                    <div className="flex flex-col gap-1">
+                      <StarRating value={w.rating} count={w.ratings_count} size="xs" />
+                      <div className="flex items-center gap-1">
+                        <TierBadge tier={rel.tier} score={rel.score} size="xs" />
+                        {w.no_show_count > 0 && (
+                          <span className="text-[10px] text-red-600 dark:text-red-400">
+                            {w.no_show_count} no-show{w.no_show_count !== 1 ? "s" : ""}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
               </Td>
               <Td>
                 <StatusPill

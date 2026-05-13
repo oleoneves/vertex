@@ -16,6 +16,9 @@ import {
 } from "../../_components/form";
 import { StatusPill } from "../../_components/data-table";
 import { updateWorker, setWorkerStatus, resendWorkerInvite } from "../../_actions";
+import { TierBadge } from "../../_components/tier-badge";
+import { StarRating } from "../../_components/star-rating";
+import { reliabilityFromWorker } from "@/lib/reliability";
 import { t } from "@/lib/i18n";
 import { getLocale } from "@/lib/i18n-server";
 
@@ -109,6 +112,13 @@ export default async function WorkerDetail({
               : "muted"
           }
         />
+        {(() => {
+          const rel = reliabilityFromWorker(worker);
+          return <TierBadge tier={rel.tier} score={rel.score} size="sm" showScore />;
+        })()}
+        {worker.rating != null && (
+          <StarRating value={worker.rating} count={worker.ratings_count} size="sm" />
+        )}
         {worker.email && !worker.user_id && (
           <form action={resendWorkerInvite} className="inline">
             <input type="hidden" name="id" value={worker.id} />
