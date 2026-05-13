@@ -630,6 +630,43 @@ const dict = {
   "a.live.total_clocked": { en: "Clocked in now", es: "Trabajando ahora", pt: "No turno agora" },
   "a.live.starting_4h": { en: "Starting in 4h", es: "Comienza en 4h", pt: "Começa em 4h" },
   "a.live.done_today":  { en: "Done today",   es: "Hechos hoy",   pt: "Feitos hoje" },
+
+  // Reliability tiers
+  "a.tier.elite":    { en: "Elite",    es: "Elite",    pt: "Elite" },
+  "a.tier.pro":      { en: "Pro",      es: "Pro",      pt: "Pro" },
+  "a.tier.standard": { en: "Standard", es: "Estándar", pt: "Padrão" },
+  "a.tier.new":      { en: "New",      es: "Nuevo",    pt: "Novo" },
+  "a.tier.score":    { en: "Reliability score", es: "Puntaje de confiabilidad", pt: "Pontuação de confiabilidade" },
+  "a.tier.tier":     { en: "Tier",     es: "Nivel",    pt: "Nível" },
+  "a.tier.filter_label": { en: "Tier", es: "Nivel", pt: "Nível" },
+
+  // Kiosk clock-in/out
+  "k.title":        { en: "Clock in / out",    es: "Entrada / Salida",    pt: "Entrada / Saída" },
+  "k.subtitle":     {
+    en: "Tap your name to clock in or out.",
+    es: "Toca tu nombre para entrar o salir.",
+    pt: "Toque no seu nome para bater o ponto.",
+  },
+  "k.search":       { en: "Search by name or code…", es: "Busca por nombre o código…", pt: "Buscar por nome ou código…" },
+  "k.enter_pin":    { en: "Enter your 4-digit PIN", es: "Ingresa tu PIN de 4 dígitos", pt: "Digite seu PIN de 4 dígitos" },
+  "k.wrong_pin":    { en: "Wrong PIN. Try again.", es: "PIN incorrecto. Intenta de nuevo.", pt: "PIN incorreto. Tente de novo." },
+  "k.cancel":       { en: "Cancel",              es: "Cancelar",              pt: "Cancelar" },
+  "k.confirm":      { en: "Confirm",             es: "Confirmar",             pt: "Confirmar" },
+  "k.clock_in":     { en: "Clock in",            es: "Entrar",                pt: "Entrar" },
+  "k.clock_out":    { en: "Clock out",           es: "Salir",                 pt: "Sair" },
+  "k.on_clock":     { en: "You're on the clock", es: "Estás trabajando",      pt: "Você está no turno" },
+  "k.since":        { en: "Since",               es: "Desde",                 pt: "Desde" },
+  "k.pick_placement": { en: "Choose where you're working", es: "Elige dónde trabajas", pt: "Escolha onde você está trabalhando" },
+  "k.no_placements": {
+    en: "No active placements. Contact your dispatcher.",
+    es: "Sin asignaciones activas. Contacta a tu coordinador.",
+    pt: "Sem alocações ativas. Fale com seu coordenador.",
+  },
+  "k.success_in":   { en: "Clocked in",          es: "Entraste",              pt: "Entrou" },
+  "k.success_out":  { en: "Clocked out",         es: "Saliste",               pt: "Saiu" },
+  "k.welcome":      { en: "Welcome back,",       es: "Bienvenido,",           pt: "Bem-vindo,"},
+  "k.break_minutes": { en: "Break minutes (optional)", es: "Minutos de descanso (opcional)", pt: "Minutos de pausa (opcional)" },
+  "k.demo_pin_hint": { en: "Demo PINs are the last 4 digits of the worker code.", es: "Los PIN de demo son los últimos 4 dígitos del código.", pt: "PINs de demo são os últimos 4 dígitos do código." },
 } as const;
 
 export type TKey = keyof typeof dict;

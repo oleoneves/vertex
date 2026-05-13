@@ -29,7 +29,7 @@ export async function SiteFooter() {
   const locale = await getLocale();
   const year = new Date().getFullYear();
   return (
-    <footer className="border-t border-border bg-muted/30">
+    <footer data-site-chrome="true" className="border-t border-border bg-muted/30">
       <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           {/* Brand */}

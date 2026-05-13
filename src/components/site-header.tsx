@@ -16,7 +16,7 @@ export async function SiteHeader({ theme }: { theme: Theme }) {
     { href: "/contact", label: t(locale, "nav.contact") },
   ];
   return (
-    <header className="sticky top-0 z-30 border-b border-border bg-background/85 backdrop-blur">
+    <header data-site-chrome="true" className="sticky top-0 z-30 border-b border-border bg-background/85 backdrop-blur">
       <div
         className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-2 px-4 sm:px-6"
         style={{ paddingTop: "env(safe-area-inset-top, 0)" }}

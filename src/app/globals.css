@@ -102,3 +102,8 @@ nav::-webkit-scrollbar { display: none; }
     page-break-inside: avoid;
   }
 }
+
+/* Kiosk mode: hide site header/footer on /clock so the device behaves like a dedicated terminal. */
+body:has(.kiosk-shell) [data-site-chrome="true"] {
+  display: none !important;
+}
