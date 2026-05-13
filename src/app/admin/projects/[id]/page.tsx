@@ -5,6 +5,7 @@ import { getProjectDetail } from "@/lib/projects";
 import { PageHeader } from "../../_components/page-header";
 import { StatusPill } from "../../_components/data-table";
 import { fmtUsd, fmtNum, fmtHours } from "@/lib/format";
+import { AreaChart, BarChart, HorizontalBarChart, CHART_COLORS } from "../../../_components/charts";
 
 export const dynamic = "force-dynamic";
 
@@ -35,8 +36,6 @@ export default async function ProjectDashboard({
   const budgetAmountPct = project.budget_amount
     ? Math.min(100, Math.round((totals.revenue / Number(project.budget_amount)) * 100))
     : null;
-
-  const maxDay = Math.max(1, ...days.map((d) => d.hours));
 
   return (
     <div>
@@ -125,28 +124,65 @@ export default async function ProjectDashboard({
         </section>
       )}
 
-      {/* Hours chart (last 14 days) */}
-      <section className="mt-8 rounded-xl border border-border bg-background p-5">
-        <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-          Hours · last 14 days
-        </h2>
-        <div className="mt-5 grid grid-cols-14 items-end gap-1 h-32" style={{ gridTemplateColumns: "repeat(14, minmax(0, 1fr))" }}>
-          {days.map((d) => {
-            const pct = Math.round((d.hours / maxDay) * 100);
-            return (
-              <div key={d.day} className="flex h-full flex-col items-center justify-end">
-                <div
-                  className="w-full rounded-t bg-accent"
-                  style={{ height: `${pct}%`, minHeight: d.hours > 0 ? "4px" : 0 }}
-                  title={`${d.label}: ${fmtHours(d.hours, { decimals: 1 })}`}
-                />
-                <div className="mt-1 text-[9px] text-muted-foreground rotate-45 origin-left whitespace-nowrap pl-2">
-                  {d.label}
-                </div>
-              </div>
-            );
-          })}
+      {/* Hours trend + burn-down */}
+      <section className="mt-8 grid gap-6 lg:grid-cols-2">
+        <div className="rounded-xl border border-border bg-background p-5">
+          <div className="flex items-baseline justify-between">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              Hours · last 14 days
+            </h2>
+            <span className="text-xs text-muted-foreground">
+              {fmtHours(days.reduce((s, d) => s + d.hours, 0), { decimals: 0 })} total
+            </span>
+          </div>
+          <div className="mt-4 text-foreground">
+            <AreaChart
+              data={days.map((d) => ({ label: d.label, value: d.hours }))}
+              height={200}
+              yFormatter={(n) => fmtNum(n)}
+              color={CHART_COLORS.accent}
+              xLabels={7}
+            />
+          </div>
         </div>
+
+        {project.budget_amount && (
+          <div className="rounded-xl border border-border bg-background p-5">
+            <div className="flex items-baseline justify-between">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Budget burn (cumulative)
+              </h2>
+              <span className="text-xs text-muted-foreground">
+                {budgetAmountPct ?? 0}% used
+              </span>
+            </div>
+            <div className="mt-4 text-foreground">
+              <AreaChart
+                data={(() => {
+                  // Cumulative revenue derived from daily hours × bill rate ($25)
+                  let cum = 0;
+                  return days.map((d) => {
+                    cum += d.hours * 25;
+                    return {
+                      label: d.label,
+                      value: Math.min(cum, Number(project.budget_amount) || 0),
+                    };
+                  });
+                })()}
+                height={200}
+                yFormatter={(n) => fmtUsd(n, { decimals: 0, compact: true })}
+                color={
+                  (budgetAmountPct ?? 0) > 90
+                    ? CHART_COLORS.red
+                    : (budgetAmountPct ?? 0) > 75
+                    ? CHART_COLORS.amber
+                    : CHART_COLORS.green
+                }
+                xLabels={7}
+              />
+            </div>
+          </div>
+        )}
       </section>
 
       {/* Role breakdown + recent activity */}
@@ -158,24 +194,17 @@ export default async function ProjectDashboard({
           {roleRows.length === 0 ? (
             <p className="mt-4 text-sm text-muted-foreground">No approved hours yet.</p>
           ) : (
-            <table className="mt-4 w-full text-sm">
-              <thead className="text-left text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                <tr>
-                  <th className="pb-2">Role</th>
-                  <th className="pb-2 text-right">Headcount</th>
-                  <th className="pb-2 text-right">Hours</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/60">
-                {roleRows.map((r) => (
-                  <tr key={r.role}>
-                    <td className="py-2">{r.role}</td>
-                    <td className="py-2 text-right font-mono tabular-nums">{r.headcount}</td>
-                    <td className="py-2 text-right font-mono tabular-nums">{fmtNum(r.hours)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="mt-4 text-foreground">
+              <HorizontalBarChart
+                data={roleRows.map((r) => ({
+                  label: r.role,
+                  value: r.hours,
+                  sub: `${r.headcount} workers`,
+                }))}
+                formatter={(n) => fmtHours(n, { decimals: 0 })}
+                color={CHART_COLORS.accent}
+              />
+            </div>
           )}
         </div>
 

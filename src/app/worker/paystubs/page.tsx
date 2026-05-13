@@ -3,8 +3,9 @@ import Link from "next/link";
 import { Download, Receipt } from "lucide-react";
 import { getCurrentWorker } from "@/lib/workforce";
 import { listWorkerPaystubs } from "@/lib/paystub";
+import { AreaChart, CHART_COLORS } from "../../_components/charts";
 
-import { fmtUsd, fmtNum, fmtHours } from "@/lib/format";
+import { fmtUsd, fmtNum } from "@/lib/format";
 export const dynamic = "force-dynamic";
 
 export default async function WorkerPaystubsPage() {
@@ -23,10 +24,35 @@ export default async function WorkerPaystubsPage() {
       </p>
 
       {stubs.length > 0 && (
-        <section className="mt-4 grid gap-3 sm:grid-cols-2">
-          <Summary label="Last 26 weeks · gross" value={fmtUsd(ytdGross)} />
-          <Summary label="Last 26 weeks · hours" value={fmtNum(ytdHours, { decimals: 1 })} unit="hrs" />
-        </section>
+        <>
+          <section className="mt-4 grid gap-3 sm:grid-cols-2">
+            <Summary label="Last 26 weeks · gross" value={fmtUsd(ytdGross)} />
+            <Summary label="Last 26 weeks · hours" value={fmtNum(ytdHours, { decimals: 1 })} unit="hrs" />
+          </section>
+
+          <section className="mt-6 rounded-xl border border-border bg-background p-5">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              Weekly gross earnings
+            </h2>
+            <div className="mt-4 text-foreground">
+              <AreaChart
+                data={[...stubs]
+                  .reverse()
+                  .map((s) => ({
+                    label: new Date(s.periodStart).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                    }),
+                    value: s.gross,
+                  }))}
+                height={180}
+                yFormatter={(n) => fmtUsd(n, { decimals: 0, compact: true })}
+                color={CHART_COLORS.green}
+                xLabels={Math.min(8, stubs.length)}
+              />
+            </div>
+          </section>
+        </>
       )}
 
       {stubs.length === 0 ? (
