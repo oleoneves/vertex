@@ -6,6 +6,8 @@ import { EmptyState } from "../_components/empty-state";
 import { DataTable, Th, Tr, Td, StatusPill } from "../_components/data-table";
 import { cancelShift } from "../_actions";
 
+import { t } from "@/lib/i18n";
+import { getLocale } from "@/lib/i18n-server";
 export const dynamic = "force-dynamic";
 
 export default async function ShiftsPage({
@@ -13,13 +15,14 @@ export default async function ShiftsPage({
 }: {
   searchParams: Promise<{ bulk?: string }>;
 }) {
+  const locale = await getLocale();
   const sp = await searchParams;
   const shifts = await listShifts({ upcoming: true });
   return (
     <div>
       <PageHeader
-        title="Upcoming shifts"
-        subtitle="Scheduled within the next several days."
+        title={t(locale, "a.shifts.title")}
+        subtitle={t(locale, "a.shifts.subtitle")}
         count={shifts.length}
         action={{ href: "/admin/shifts/new", label: "Schedule shift" }}
       >

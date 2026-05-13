@@ -7,6 +7,8 @@ import { EmptyState } from "../_components/empty-state";
 import { DataTable, Th, Tr, Td } from "../_components/data-table";
 import { FilterBar } from "../_components/filter-bar";
 
+import { t } from "@/lib/i18n";
+import { getLocale } from "@/lib/i18n-server";
 export const dynamic = "force-dynamic";
 
 async function load(filters: { q?: string }): Promise<Employer[]> {
@@ -33,13 +35,14 @@ export default async function EmployersPage({
 }: {
   searchParams: Promise<{ q?: string }>;
 }) {
+  const locale = await getLocale();
   const sp = await searchParams;
   const employers = await load(sp);
   return (
     <div>
       <PageHeader
-        title="Employers"
-        subtitle="Companies Vertex bills for placements."
+        title={t(locale, "a.employers.title")}
+        subtitle={t(locale, "a.employers.subtitle")}
         count={employers.length}
         action={{ href: "/admin/employers/new", label: "New employer" }}
       />

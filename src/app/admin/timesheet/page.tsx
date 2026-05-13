@@ -9,6 +9,8 @@ import { FilterBar } from "../_components/filter-bar";
 import { fmtHours, fmtNum } from "@/lib/format";
 import { Heatmap, CHART_COLORS } from "../../_components/charts";
 
+import { t } from "@/lib/i18n";
+import { getLocale } from "@/lib/i18n-server";
 export const dynamic = "force-dynamic";
 
 async function bulkApprove(formData: FormData) {
@@ -35,6 +37,7 @@ export default async function TimesheetPage({
 }: {
   searchParams: Promise<{ status?: string; from?: string; to?: string }>;
 }) {
+  const locale = await getLocale();
   const sp = await searchParams;
   const filterArgs: { unapprovedOnly?: boolean; from?: string; to?: string } = {};
   if (sp.status === "pending") filterArgs.unapprovedOnly = true;
@@ -70,8 +73,8 @@ export default async function TimesheetPage({
   return (
     <div>
       <PageHeader
-        title="Timesheet"
-        subtitle="Review and approve clock entries before invoicing."
+        title={t(locale, "a.timesheet.title")}
+        subtitle={t(locale, "a.timesheet.subtitle")}
         count={filtered.length}
       >
         {pending > 0 && (

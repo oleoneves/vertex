@@ -12,6 +12,8 @@ import { StarRating } from "../_components/star-rating";
 import { FavoriteToggle } from "../_components/favorite-toggle";
 
 import { fmtUsd, fmtNum } from "@/lib/format";
+import { t } from "@/lib/i18n";
+import { getLocale } from "@/lib/i18n-server";
 export const dynamic = "force-dynamic";
 
 function initials(name: string) {
@@ -69,26 +71,26 @@ export default async function WorkersPage({
   searchParams: Promise<{ status?: string; q?: string; favorite?: string }>;
 }) {
   const sp = await searchParams;
-  const workers = await load(sp);
+  const [workers, locale] = await Promise.all([load(sp), getLocale()]);
   const byState = isDemoMode() ? demoWorkersByState() : [];
 
   return (
     <div>
       <PageHeader
-        title="Workers"
-        subtitle="Hired labors actively on the platform."
+        title={t(locale, "a.workers.title")}
+        subtitle={t(locale, "a.workers.subtitle")}
         count={workers.length}
-        action={{ href: "/admin/workers/new", label: "New worker" }}
+        action={{ href: "/admin/workers/new", label: t(locale, "a.workers.new") }}
       />
 
       {byState.length > 0 && (
         <section className="mb-6 rounded-xl border border-border bg-background p-5">
           <div className="flex items-baseline justify-between">
             <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Workforce by state
+              {t(locale, "a.workers.by_state")}
             </h2>
             <span className="text-xs text-muted-foreground">
-              {byState.length} states · {fmtNum(byState.reduce((s, x) => s + x.count, 0))} workers
+              {byState.length} {t(locale, "a.workers.states_count")} · {fmtNum(byState.reduce((s, x) => s + x.count, 0))} {t(locale, "a.dash.workers_count")}
             </span>
           </div>
           <div className="mt-4 grid gap-6 lg:grid-cols-[2fr,1fr]">
@@ -96,12 +98,12 @@ export default async function WorkersPage({
               <USTileMap
                 data={Object.fromEntries(byState.map((s) => [s.state, s.count]))}
                 color={CHART_COLORS.accent}
-                formatter={(n) => `${fmtNum(n)} workers`}
+                formatter={(n) => `${fmtNum(n)} ${t(locale, "a.dash.workers_count")}`}
               />
             </div>
             <div className="text-foreground">
               <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                Top states
+                {t(locale, "a.workers.top_states")}
               </p>
               <HorizontalBarChart
                 data={byState.slice(0, 8).map((s) => ({

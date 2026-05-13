@@ -365,6 +365,92 @@ const dict = {
   "a.status.void":       { en: "Void",       es: "Anulado",    pt: "Anulado" },
   "a.status.completed":  { en: "Completed",  es: "Completado", pt: "Concluído" },
   "a.status.scheduled":  { en: "Scheduled",  es: "Programado", pt: "Agendado" },
+
+  // Page headers per admin route
+  "a.workers.title":      { en: "Workers",      es: "Trabajadores", pt: "Colaboradores" },
+  "a.workers.subtitle":   {
+    en: "Hired labors actively on the platform.",
+    es: "Personal contratado activamente en la plataforma.",
+    pt: "Colaboradores ativos na plataforma.",
+  },
+  "a.workers.new":        { en: "New worker",   es: "Nuevo trabajador", pt: "Novo colaborador" },
+  "a.workers.by_state":   { en: "Workforce by state", es: "Personal por estado", pt: "Equipe por estado" },
+  "a.workers.top_states": { en: "Top states",   es: "Top estados",  pt: "Top estados" },
+  "a.workers.states_count": {
+    en: "states",
+    es: "estados",
+    pt: "estados",
+  },
+
+  "a.invoices.title":     { en: "Invoices",     es: "Facturas",     pt: "Faturas" },
+  "a.invoices.subtitle":  { en: "Billing to employers.", es: "Facturación a empleadores.", pt: "Faturas para as empresas." },
+  "a.invoices.generate":  { en: "Generate",     es: "Generar",      pt: "Gerar" },
+  "a.invoices.paid_all":  { en: "Paid (all time)", es: "Pagado (total)", pt: "Pago (total)" },
+  "a.invoices.outstanding": { en: "Outstanding", es: "Pendiente",    pt: "A receber" },
+
+  "a.applications.title": { en: "Applications", es: "Candidaturas", pt: "Candidaturas" },
+  "a.applications.subtitle": {
+    en: "Candidates who applied via the public site.",
+    es: "Candidatos que aplicaron por el sitio público.",
+    pt: "Candidatos que aplicaram pelo site público.",
+  },
+  "a.applications.funnel": { en: "Recruiting funnel", es: "Embudo de reclutamiento", pt: "Funil de recrutamento" },
+  "a.applications.by_status": { en: "By status", es: "Por estado", pt: "Por status" },
+  "a.applications.hire_rate": { en: "Hire rate", es: "Tasa de contratación", pt: "Taxa de contratação" },
+  "a.applications.applied": { en: "Applied",  es: "Aplicado", pt: "Aplicado" },
+  "a.applications.reviewing": { en: "Reviewing", es: "Revisando", pt: "Em análise" },
+  "a.applications.accepted": { en: "Accepted", es: "Aceptado", pt: "Aceito" },
+  "a.applications.rejected": { en: "Rejected", es: "Rechazado", pt: "Rejeitado" },
+  "a.applications.new":     { en: "New",      es: "Nuevo",     pt: "Novo" },
+
+  "a.reports.title":      { en: "Reports",      es: "Reportes",     pt: "Relatórios" },
+  "a.reports.subtitle":   {
+    en: "P&L summary, last 6 months. All figures based on approved hours.",
+    es: "Resumen P&L, últimos 6 meses. Basado en horas aprobadas.",
+    pt: "Resumo de P&L, últimos 6 meses. Baseado em horas aprovadas.",
+  },
+  "a.reports.timesheet_csv": { en: "Timesheet CSV", es: "Horas CSV", pt: "Folha CSV" },
+  "a.reports.invoices_csv":  { en: "Invoices CSV", es: "Facturas CSV", pt: "Faturas CSV" },
+
+  "a.projects.title":     { en: "Projects",     es: "Proyectos",    pt: "Projetos" },
+  "a.projects.subtitle":  { en: "Active engagements with employers.", es: "Compromisos activos con empleadores.", pt: "Compromissos ativos com empresas." },
+  "a.projects.new":       { en: "New project",  es: "Nuevo proyecto", pt: "Novo projeto" },
+
+  "a.timesheet.title":    { en: "Timesheet",    es: "Horas",        pt: "Folha de horas" },
+  "a.timesheet.subtitle": { en: "Review and approve clock entries before invoicing.", es: "Revisa y aprueba entradas antes de facturar.", pt: "Revise e aprove entradas antes de faturar." },
+  "a.timesheet.pending":  { en: "pending",      es: "pendientes",   pt: "pendentes" },
+  "a.timesheet.heatmap":  { en: "Clock-in activity · day × hour", es: "Actividad de entrada · día × hora", pt: "Atividade de entrada · dia × hora" },
+
+  "a.employers.title":    { en: "Employers",    es: "Empleadores",  pt: "Empresas" },
+  "a.employers.subtitle": { en: "Clients the workforce is placed with.", es: "Clientes donde el personal está asignado.", pt: "Clientes onde os colaboradores estão alocados." },
+  "a.employers.new":      { en: "New employer", es: "Nuevo empleador", pt: "Nova empresa" },
+
+  "a.placements.title":   { en: "Placements",   es: "Asignaciones", pt: "Alocações" },
+  "a.placements.subtitle": { en: "Worker-to-employer assignments.", es: "Asignaciones trabajador-empleador.", pt: "Vínculos colaborador-empresa." },
+  "a.placements.new":     { en: "New placement", es: "Nueva asignación", pt: "Nova alocação" },
+
+  "a.shifts.title":       { en: "Shifts",       es: "Turnos",       pt: "Turnos" },
+  "a.shifts.subtitle":    { en: "Scheduled shifts across all placements.", es: "Turnos programados en todas las asignaciones.", pt: "Turnos agendados em todas as alocações." },
+  "a.shifts.new":         { en: "Schedule shift", es: "Programar turno", pt: "Agendar turno" },
+  "a.shifts.bulk":        { en: "Bulk schedule", es: "Programación masiva", pt: "Agendar em lote" },
+
+  "a.payroll.title":      { en: "Payroll",      es: "Nómina",       pt: "Folha" },
+  "a.payroll.subtitle":   { en: "Pay your workers for approved hours.", es: "Paga a tus trabajadores por horas aprobadas.", pt: "Pague os colaboradores pelas horas aprovadas." },
+  "a.payroll.run":        { en: "Run payroll",  es: "Ejecutar nómina", pt: "Rodar folha" },
+
+  "a.payments.title":     { en: "Payments",     es: "Pagos",        pt: "Pagamentos" },
+  "a.payments.subtitle":  { en: "Inbound and outbound money movements.", es: "Pagos entrantes y salientes.", pt: "Movimentos de entrada e saída." },
+
+  "a.documents.title":    { en: "Documents",    es: "Documentos",   pt: "Documentos" },
+  "a.documents.subtitle": { en: "Review I-9, W-9 and OSHA submissions.", es: "Revisa envíos de I-9, W-9 y OSHA.", pt: "Revise envios de I-9, W-9 e OSHA." },
+
+  "a.jobs.title":         { en: "Jobs",         es: "Vacantes",     pt: "Vagas" },
+  "a.jobs.subtitle":      { en: "Open roles published to the public site.", es: "Vacantes abiertas en el sitio público.", pt: "Vagas abertas no site público." },
+  "a.jobs.new":           { en: "New job",      es: "Nueva vacante", pt: "Nova vaga" },
+
+  // Common table / empty state
+  "a.table.no_match":     { en: "No results match", es: "Sin resultados", pt: "Sem resultados" },
+  "a.table.adjust_filter": { en: "Adjust the filter or wait for new submissions.", es: "Ajusta el filtro o espera nuevos envíos.", pt: "Ajuste o filtro ou aguarde novos envios." },
 } as const;
 
 export type TKey = keyof typeof dict;

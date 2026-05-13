@@ -6,15 +6,18 @@ import { EmptyState } from "../_components/empty-state";
 import { StatusPill } from "../_components/data-table";
 
 import { fmtUsd, fmtNum, fmtHours } from "@/lib/format";
+import { t } from "@/lib/i18n";
+import { getLocale } from "@/lib/i18n-server";
 export const dynamic = "force-dynamic";
 
 export default async function ProjectsPage() {
+  const locale = await getLocale();
   const projects = await listProjects();
   return (
     <div>
       <PageHeader
-        title="Projects"
-        subtitle="Discrete engagements with an employer (e.g. a refinery expansion, hotel renovation)."
+        title={t(locale, "a.projects.title")}
+        subtitle={t(locale, "a.projects.subtitle")}
         count={projects.length}
         action={{ href: "/admin/projects/new", label: "New project" }}
       />

@@ -4,6 +4,8 @@ import { loadReports } from "@/lib/reports";
 import { loadDashboard } from "@/lib/dashboard";
 import { PageHeader } from "../_components/page-header";
 import { fmtUsd, fmtNum } from "@/lib/format";
+import { t } from "@/lib/i18n";
+import { getLocale } from "@/lib/i18n-server";
 import {
   AreaChart,
   StackedBarChart,
@@ -25,6 +27,7 @@ function monthLabel(key: string): string {
 }
 
 export default async function ReportsPage() {
+  const locale = await getLocale();
   const [r, dash] = await Promise.all([
     loadReports({ months: 6 }),
     loadDashboard(),
@@ -48,8 +51,8 @@ export default async function ReportsPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Reports"
-        subtitle="P&L summary, last 6 months. All figures based on approved hours."
+        title={t(locale, "a.reports.title")}
+        subtitle={t(locale, "a.reports.subtitle")}
       >
         <a
           href="/api/admin/export?type=timesheet"

@@ -5,6 +5,8 @@ import { EmptyState } from "../_components/empty-state";
 import { DataTable, Th, Tr, Td } from "../_components/data-table";
 
 import { fmtUsd, fmtNum, fmtHours } from "@/lib/format";
+import { t } from "@/lib/i18n";
+import { getLocale } from "@/lib/i18n-server";
 export const dynamic = "force-dynamic";
 
 type Row = {
@@ -36,6 +38,7 @@ async function load(): Promise<Row[]> {
 }
 
 export default async function PaymentsPage() {
+  const locale = await getLocale();
   const payments = await load();
   const net = payments.reduce(
     (acc, p) => {
@@ -50,8 +53,8 @@ export default async function PaymentsPage() {
   return (
     <div>
       <PageHeader
-        title="Payments"
-        subtitle="Money in (from employers) and money out (to workers)."
+        title={t(locale, "a.payments.title")}
+        subtitle={t(locale, "a.payments.subtitle")}
         count={payments.length}
       />
 

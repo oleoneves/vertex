@@ -6,15 +6,18 @@ import { DataTable, Th, Tr, Td, StatusPill } from "../_components/data-table";
 import { endPlacement } from "../_actions";
 
 import { fmtUsd, fmtNum, fmtHours } from "@/lib/format";
+import { t } from "@/lib/i18n";
+import { getLocale } from "@/lib/i18n-server";
 export const dynamic = "force-dynamic";
 
 export default async function PlacementsPage() {
+  const locale = await getLocale();
   const placements = await listPlacements();
   return (
     <div>
       <PageHeader
-        title="Placements"
-        subtitle="Workers assigned to employers."
+        title={t(locale, "a.placements.title")}
+        subtitle={t(locale, "a.placements.subtitle")}
         count={placements.length}
         action={{ href: "/admin/placements/new", label: "New placement" }}
       />

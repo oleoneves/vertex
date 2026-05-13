@@ -7,15 +7,18 @@ import { PageHeader } from "../_components/page-header";
 import { EmptyState } from "../_components/empty-state";
 import { setJobActive } from "../_actions";
 
+import { t } from "@/lib/i18n";
+import { getLocale } from "@/lib/i18n-server";
 export const dynamic = "force-dynamic";
 
 export default async function AdminJobsPage() {
+  const locale = await getLocale();
   const jobs = await listJobs();
   return (
     <div>
       <PageHeader
-        title="Jobs"
-        subtitle="Public job listings."
+        title={t(locale, "a.jobs.title")}
+        subtitle={t(locale, "a.jobs.subtitle")}
         count={jobs.length}
         action={{ href: "/admin/jobs/new", label: "New job" }}
       />

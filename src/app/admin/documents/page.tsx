@@ -8,6 +8,8 @@ import { EmptyState } from "../_components/empty-state";
 import { FilterBar } from "../_components/filter-bar";
 import { reviewDocument } from "../_actions";
 
+import { t } from "@/lib/i18n";
+import { getLocale } from "@/lib/i18n-server";
 export const dynamic = "force-dynamic";
 
 type Row = WorkerDocument & {
@@ -52,14 +54,15 @@ export default async function DocumentsPage({
 }: {
   searchParams: Promise<{ status?: string; type?: string }>;
 }) {
+  const locale = await getLocale();
   const sp = await searchParams;
   const docs = await load(sp);
   const pending = docs.filter((d) => d.status === "pending").length;
   return (
     <div>
       <PageHeader
-        title="Documents"
-        subtitle="Worker uploaded compliance documents."
+        title={t(locale, "a.documents.title")}
+        subtitle={t(locale, "a.documents.subtitle")}
         count={docs.length}
       >
         {pending > 0 && (

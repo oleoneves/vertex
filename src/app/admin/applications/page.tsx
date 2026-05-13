@@ -9,6 +9,8 @@ import { hireApplicant, rejectApplicant, reopenApplicant } from "../_actions";
 import { FunnelChart, CHART_COLORS } from "../../_components/charts";
 import { fmtNum } from "@/lib/format";
 
+import { t } from "@/lib/i18n";
+import { getLocale } from "@/lib/i18n-server";
 export const dynamic = "force-dynamic";
 
 type Row = {
@@ -27,6 +29,7 @@ export default async function ApplicationsPage({
 }: {
   searchParams: Promise<{ status?: string; q?: string }>;
 }) {
+  const locale = await getLocale();
   const sp = await searchParams;
   const apps = await load(sp);
   // Unfiltered view for the funnel (always pulls the full set)
@@ -46,8 +49,8 @@ export default async function ApplicationsPage({
   return (
     <div>
       <PageHeader
-        title="Applications"
-        subtitle="Candidates who applied via the public site."
+        title={t(locale, "a.applications.title")}
+        subtitle={t(locale, "a.applications.subtitle")}
         count={apps.length}
       />
 

@@ -7,6 +7,8 @@ import { DataTable, Th, Tr, Td, StatusPill } from "../_components/data-table";
 import { FilterBar } from "../_components/filter-bar";
 import { fmtUsd } from "@/lib/format";
 
+import { t } from "@/lib/i18n";
+import { getLocale } from "@/lib/i18n-server";
 export const dynamic = "force-dynamic";
 
 export default async function InvoicesPage({
@@ -14,6 +16,7 @@ export default async function InvoicesPage({
 }: {
   searchParams: Promise<{ status?: string }>;
 }) {
+  const locale = await getLocale();
   const sp = await searchParams;
   const all = await listInvoices();
   const invoices = sp.status ? all.filter((i) => i.status === sp.status) : all;
@@ -29,8 +32,8 @@ export default async function InvoicesPage({
   return (
     <div>
       <PageHeader
-        title="Invoices"
-        subtitle="Billing to employers."
+        title={t(locale, "a.invoices.title")}
+        subtitle={t(locale, "a.invoices.subtitle")}
         count={invoices.length}
         action={{ href: "/admin/invoices/new", label: "Generate" }}
       >

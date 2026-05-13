@@ -6,6 +6,8 @@ import { DataTable, Th, Tr, Td } from "../_components/data-table";
 import { payAllUnpaid, payWorker } from "./actions";
 
 import { fmtUsd, fmtNum, fmtHours } from "@/lib/format";
+import { t } from "@/lib/i18n";
+import { getLocale } from "@/lib/i18n-server";
 export const dynamic = "force-dynamic";
 
 export default async function PayrollPage({
@@ -13,13 +15,14 @@ export default async function PayrollPage({
 }: {
   searchParams: Promise<{ period_start?: string; period_end?: string }>;
 }) {
+  const locale = await getLocale();
   const sp = await searchParams;
   const data = await loadPayroll({ periodStart: sp.period_start, periodEnd: sp.period_end });
 
   return (
     <div>
       <PageHeader
-        title="Payroll"
+        title={t(locale, "a.payroll.title")}
         subtitle={`Pay period: ${data.periodStart} → ${data.periodEnd}`}
         count={data.rows.length}
       >
