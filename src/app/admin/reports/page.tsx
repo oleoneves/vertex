@@ -1,4 +1,5 @@
 import { Download, TrendingUp } from "lucide-react";
+import { PrintButton } from "./print-button";
 import { loadReports } from "@/lib/reports";
 import { loadDashboard } from "@/lib/dashboard";
 import { PageHeader } from "../_components/page-header";
@@ -62,6 +63,7 @@ export default async function ReportsPage() {
         >
           <Download className="h-3.5 w-3.5" /> Invoices CSV
         </a>
+        <PrintButton />
       </PageHeader>
 
       {/* Totals */}

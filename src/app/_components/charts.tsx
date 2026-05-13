@@ -969,6 +969,122 @@ export function FunnelChart({
 }
 
 // ============================================================
+// <USTileMap>
+// Tile-grid cartogram of US states: 50 equal-size squares in approximate
+// geographic positions. Each cell shaded by `data[stateCode]` intensity.
+// Style inspired by NPR / Vox state cartograms.
+// ============================================================
+const US_TILE_GRID: Record<string, [number, number]> = {
+  ME: [11, 0],
+  VT: [10, 1], NH: [11, 1],
+  MA: [11, 2], CT: [10, 3], RI: [11, 3],
+  NY: [9, 1], PA: [9, 2], NJ: [10, 2],
+  MD: [9, 3], DE: [9, 4],
+  VA: [8, 2], WV: [7, 3], OH: [8, 1],
+  NC: [7, 4], SC: [8, 3], GA: [8, 4], FL: [9, 5],
+  KY: [6, 3], TN: [6, 4], AL: [7, 5], MS: [6, 5], LA: [5, 5],
+  MN: [5, 1], IA: [5, 2], MO: [5, 3], AR: [5, 4],
+  WI: [6, 1], IL: [6, 2], MI: [7, 1], IN: [7, 2],
+  ND: [4, 1], SD: [4, 2], NE: [4, 3], KS: [4, 4], OK: [4, 5], TX: [4, 6],
+  MT: [3, 1], WY: [3, 2], CO: [3, 3], NM: [3, 4],
+  ID: [2, 2], NV: [2, 3], UT: [2, 4], AZ: [2, 5],
+  WA: [1, 1], OR: [1, 2], CA: [1, 3],
+  AK: [0, 6], HI: [1, 6],
+};
+
+export function USTileMap({
+  data,
+  color = ACCENT,
+  formatter,
+  cellSize = 38,
+  showAllStates = true,
+}: {
+  data: Record<string, number>;
+  color?: string;
+  formatter?: (n: number) => string;
+  cellSize?: number;
+  showAllStates?: boolean;
+}) {
+  const max = Math.max(1, ...Object.values(data));
+  const cols = 12;
+  const rows = 7;
+  const gap = 3;
+  const padding = 6;
+  const width = cols * (cellSize + gap) + padding * 2;
+  const height = rows * (cellSize + gap) + padding * 2;
+
+  const entries = showAllStates
+    ? Object.entries(US_TILE_GRID)
+    : Object.entries(US_TILE_GRID).filter(([code]) => (data[code] ?? 0) > 0);
+
+  return (
+    <svg
+      viewBox={`0 0 ${width} ${height}`}
+      width="100%"
+      style={{ maxHeight: height + 4 }}
+      preserveAspectRatio="xMidYMid meet"
+      role="img"
+    >
+      {entries.map(([code, [col, row]]) => {
+        const v = data[code] ?? 0;
+        const intensity = v / max;
+        const fillOpacity = v > 0 ? Math.max(0.18, intensity) : 0.06;
+        const x = padding + col * (cellSize + gap);
+        const y = padding + row * (cellSize + gap);
+        const textColor = intensity > 0.55 ? "#0A0A0A" : "currentColor";
+        return (
+          <g key={code}>
+            <rect
+              x={x}
+              y={y}
+              width={cellSize}
+              height={cellSize}
+              rx={4}
+              fill={v > 0 ? color : "currentColor"}
+              fillOpacity={fillOpacity}
+              stroke="currentColor"
+              strokeOpacity={0.12}
+              strokeWidth={0.5}
+            >
+              <title>
+                {code}: {formatter ? formatter(v) : v}
+              </title>
+            </rect>
+            <text
+              x={x + cellSize / 2}
+              y={y + cellSize / 2 - 3}
+              fontSize="10"
+              fontWeight="700"
+              textAnchor="middle"
+              dominantBaseline="middle"
+              fill={textColor}
+              fillOpacity={v > 0 ? 0.9 : 0.5}
+              style={{ pointerEvents: "none" }}
+            >
+              {code}
+            </text>
+            {v > 0 && (
+              <text
+                x={x + cellSize / 2}
+                y={y + cellSize / 2 + 9}
+                fontSize="8"
+                textAnchor="middle"
+                dominantBaseline="middle"
+                fill={textColor}
+                fillOpacity={0.7}
+                style={{ pointerEvents: "none" }}
+              >
+                {v}
+              </text>
+            )}
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+// ============================================================
 // <Heatmap>
 // 2D grid (days × hours, or any rows × cols) with cell intensity.
 // ============================================================

@@ -7,7 +7,7 @@ import { PageHeader } from "../_components/page-header";
 import { EmptyState } from "../_components/empty-state";
 import { DataTable, Th, Tr, Td, StatusPill } from "../_components/data-table";
 import { FilterBar } from "../_components/filter-bar";
-import { HorizontalBarChart, CHART_COLORS } from "../../_components/charts";
+import { HorizontalBarChart, USTileMap, CHART_COLORS } from "../../_components/charts";
 
 import { fmtUsd, fmtNum } from "@/lib/format";
 export const dynamic = "force-dynamic";
@@ -83,16 +83,28 @@ export default async function WorkersPage({
               {byState.length} states · {fmtNum(byState.reduce((s, x) => s + x.count, 0))} workers
             </span>
           </div>
-          <div className="mt-4 text-foreground">
-            <HorizontalBarChart
-              data={byState.slice(0, 10).map((s) => ({
-                label: s.state,
-                value: s.count,
-              }))}
-              formatter={(n) => fmtNum(n)}
-              color={CHART_COLORS.accent}
-              labelWidth={48}
-            />
+          <div className="mt-4 grid gap-6 lg:grid-cols-[2fr,1fr]">
+            <div className="text-foreground">
+              <USTileMap
+                data={Object.fromEntries(byState.map((s) => [s.state, s.count]))}
+                color={CHART_COLORS.accent}
+                formatter={(n) => `${fmtNum(n)} workers`}
+              />
+            </div>
+            <div className="text-foreground">
+              <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                Top states
+              </p>
+              <HorizontalBarChart
+                data={byState.slice(0, 8).map((s) => ({
+                  label: s.state,
+                  value: s.count,
+                }))}
+                formatter={(n) => fmtNum(n)}
+                color={CHART_COLORS.accent}
+                labelWidth={36}
+              />
+            </div>
           </div>
         </section>
       )}
