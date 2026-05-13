@@ -5,7 +5,16 @@ import { getProjectDetail } from "@/lib/projects";
 import { PageHeader } from "../../_components/page-header";
 import { StatusPill } from "../../_components/data-table";
 import { fmtUsd, fmtNum, fmtHours } from "@/lib/format";
-import { AreaChart, BarChart, HorizontalBarChart, CHART_COLORS } from "../../../_components/charts";
+import { AreaChart, HorizontalBarChart, DonutChart, CHART_COLORS } from "../../../_components/charts";
+
+const ROLE_COLORS = [
+  CHART_COLORS.accent,
+  CHART_COLORS.green,
+  CHART_COLORS.blue,
+  CHART_COLORS.amber,
+  CHART_COLORS.red,
+  CHART_COLORS.slate,
+];
 
 export const dynamic = "force-dynamic";
 
@@ -188,13 +197,22 @@ export default async function ProjectDashboard({
       {/* Role breakdown + recent activity */}
       <section className="mt-6 grid gap-6 lg:grid-cols-2">
         <div className="rounded-xl border border-border bg-background p-5">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-            Hours by role
-          </h2>
+          <div className="flex items-baseline justify-between">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              Hours by role
+            </h2>
+          </div>
           {roleRows.length === 0 ? (
             <p className="mt-4 text-sm text-muted-foreground">No approved hours yet.</p>
           ) : (
-            <div className="mt-4 text-foreground">
+            <div className="mt-4 space-y-5 text-foreground">
+              <DonutChart
+                data={roleRows.slice(0, 6).map((r, i) => ({
+                  label: r.role,
+                  value: Math.round(r.hours),
+                  color: ROLE_COLORS[i % ROLE_COLORS.length],
+                }))}
+              />
               <HorizontalBarChart
                 data={roleRows.map((r) => ({
                   label: r.role,

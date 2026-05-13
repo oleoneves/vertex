@@ -16,6 +16,11 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { CommandPalette } from "./_components/command-palette";
+import { NotificationsBell } from "./_components/notifications-bell";
+import { listRecentEvents } from "@/lib/activity";
+import { loadDashboard } from "@/lib/dashboard";
+import { fmtUsd } from "@/lib/format";
+import { Sparkline, CHART_COLORS } from "../_components/charts";
 
 type NavItem = {
   href: string;
@@ -48,10 +53,17 @@ const MONEY: NavItem[] = [
 
 const ALL_ITEMS: NavItem[] = [...RECRUIT, ...WORKFORCE, ...MONEY];
 
-export default function AdminLayout({ children }: { children: ReactNode }) {
+export default async function AdminLayout({ children }: { children: ReactNode }) {
   const demoMode =
     !process.env.NEXT_PUBLIC_SUPABASE_URL ||
     !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  const [events, dash] = await Promise.all([
+    listRecentEvents(12),
+    loadDashboard(),
+  ]);
+  const todaySpark = dash.revenueByDay30.slice(-7).map((d) => d.value);
+  const todayRevenue = dash.revenueByDay30.at(-1)?.value ?? 0;
   return (
     <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-8 lg:flex lg:gap-10">
       {demoMode && (
@@ -80,9 +92,35 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       {/* Desktop: grouped sidebar */}
       <aside className="hidden lg:block lg:w-60 lg:shrink-0">
         <nav className="sticky top-24 flex flex-col gap-1 text-sm">
-          <div className="px-2 pb-3">
-            <CommandPalette />
+          <div className="flex items-center gap-2 px-2 pb-3">
+            <div className="flex-1">
+              <CommandPalette />
+            </div>
+            <NotificationsBell events={events} />
           </div>
+          {todaySpark.length > 1 && (
+            <div className="mx-2 mb-3 rounded-lg border border-border bg-accent/5 p-3">
+              <div className="flex items-baseline justify-between">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Today
+                </p>
+                <p className="font-mono text-xs font-bold tabular-nums">
+                  {fmtUsd(todayRevenue, { decimals: 0, compact: true })}
+                </p>
+              </div>
+              <div className="mt-1.5 text-foreground">
+                <Sparkline
+                  data={todaySpark}
+                  stroke={CHART_COLORS.accent}
+                  fill={CHART_COLORS.accent}
+                  height={26}
+                />
+              </div>
+              <p className="mt-1 text-[9px] text-muted-foreground">
+                Last 7d revenue
+              </p>
+            </div>
+          )}
           <Group label="Recruitment" items={RECRUIT} />
           <Group label="Workforce" items={WORKFORCE} />
           <Group label="Money" items={MONEY} />

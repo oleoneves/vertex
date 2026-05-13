@@ -793,6 +793,69 @@ export function demoInvoicePayments(invoiceId: string): Payment[] {
   return demoPayments().filter((p) => p.invoice_id === invoiceId);
 }
 
+// ============== Applications ==============
+export function demoApplications(): Array<{
+  id: string;
+  status: "new" | "reviewing" | "accepted" | "rejected";
+  ai_score: number | null;
+  ai_summary: string | null;
+  experience_summary: string | null;
+  created_at: string;
+  candidate: { full_name: string; email: string } | null;
+  job: { title: string; slug: string } | null;
+}> {
+  const jobs = [
+    { title: "General Laborer", slug: "general-laborer" },
+    { title: "Welder Helper", slug: "welder-helper" },
+    { title: "Pipefitter Helper", slug: "pipefitter-helper" },
+    { title: "Painter", slug: "painter" },
+    { title: "Housekeeper", slug: "housekeeper" },
+    { title: "Construction Laborer", slug: "construction-laborer" },
+    { title: "Scaffolder", slug: "scaffolder" },
+    { title: "Night Janitor", slug: "night-janitor" },
+  ];
+  const summaries = [
+    "5 years industrial maintenance, OSHA-10",
+    "Recent grad, construction experience",
+    "8 years welding, structural steel",
+    "Hotel housekeeping 3 years",
+    "First-time applicant, eager to learn",
+    "Painter w/ commercial experience",
+    "Hospitality cleaning + OSHA-10",
+    "Industrial scaffolding 6 years",
+  ];
+  const workers = demoWorkers();
+  // ~40 applications across statuses, weighted toward "new" and "reviewing"
+  const statuses: Array<"new" | "reviewing" | "accepted" | "rejected"> = [
+    "new", "new", "new", "new", "new", "new", "new", "new", "new", "new", "new", "new", "new", "new", "new",
+    "reviewing", "reviewing", "reviewing", "reviewing", "reviewing", "reviewing", "reviewing", "reviewing", "reviewing",
+    "reviewing", "reviewing", "reviewing",
+    "accepted", "accepted", "accepted", "accepted", "accepted", "accepted",
+    "rejected", "rejected", "rejected", "rejected",
+  ];
+
+  return statuses.map((status, i) => {
+    const w = workers[(i * 17) % workers.length];
+    const job = jobs[i % jobs.length];
+    const summary = summaries[i % summaries.length];
+    const score = status === "accepted" ? 75 + (i % 25) : status === "rejected" ? 20 + (i % 30) : 40 + ((i * 7) % 50);
+    const hoursAgo = (i + 1) * 3.5;
+    return {
+      id: `app-${i + 1}`,
+      status,
+      ai_score: score,
+      ai_summary: `${summary}. Match: ${score}/100.`,
+      experience_summary: summary,
+      created_at: new Date(Date.now() - hoursAgo * 3600 * 1000).toISOString(),
+      candidate: {
+        full_name: w.full_name,
+        email: `${w.full_name.toLowerCase().replace(/\s+/g, ".")}.${i}@example.com`,
+      },
+      job,
+    };
+  });
+}
+
 // ============== Time entries (recent for timesheet view) ==============
 export function demoTimeEntries(opts: { limit?: number } = {}): (TimeEntry & {
   worker: { full_name: string; employee_code: string | null } | null;

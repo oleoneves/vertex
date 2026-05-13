@@ -576,6 +576,186 @@ export function DonutChart({
 }
 
 // ============================================================
+// <MultiLineChart>
+// Multiple series sharing the same X axis.
+// ============================================================
+export function MultiLineChart({
+  data, // common X labels
+  series, // { name, color, values } where values aligns with data
+  height = 220,
+  yFormatter,
+  xLabels,
+}: {
+  data: string[];
+  series: { name: string; color: string; values: number[] }[];
+  height?: number;
+  yFormatter?: (n: number) => string;
+  xLabels?: number;
+}) {
+  const width = 600;
+  const padding = { top: 16, right: 16, bottom: 28, left: 64 };
+  const innerW = width - padding.left - padding.right;
+  const innerH = height - padding.top - padding.bottom;
+
+  if (data.length === 0 || series.length === 0) return <EmptyChart height={height} />;
+
+  const allValues = series.flatMap((s) => s.values);
+  const min = 0;
+  const max = Math.max(1, ...allValues);
+  const range = max - min || 1;
+  const stepX = data.length > 1 ? innerW / (data.length - 1) : innerW;
+
+  const yTicks = [0, 0.25, 0.5, 0.75, 1].map((t) => ({
+    y: padding.top + innerH - t * innerH,
+    value: min + t * range,
+  }));
+
+  const labelCount = xLabels ?? Math.min(8, data.length);
+  const xLabelIdxs =
+    labelCount >= data.length
+      ? data.map((_, i) => i)
+      : Array.from({ length: labelCount }, (_, i) =>
+          Math.round((i * (data.length - 1)) / (labelCount - 1)),
+        );
+
+  return (
+    <svg
+      viewBox={`0 0 ${width} ${height}`}
+      width="100%"
+      preserveAspectRatio="none"
+      style={{ maxHeight: height }}
+      role="img"
+    >
+      {yTicks.map((t, i) => (
+        <line
+          key={i}
+          x1={padding.left}
+          x2={width - padding.right}
+          y1={t.y}
+          y2={t.y}
+          stroke="currentColor"
+          strokeOpacity={0.08}
+        />
+      ))}
+      {yTicks.map((t, i) => (
+        <text
+          key={i}
+          x={padding.left - 8}
+          y={t.y + 3}
+          fontSize="10"
+          textAnchor="end"
+          fill="currentColor"
+          fillOpacity={0.5}
+        >
+          {yFormatter ? yFormatter(t.value) : Math.round(t.value)}
+        </text>
+      ))}
+
+      {series.map((s, si) => {
+        const points = s.values.map((v, i) => ({
+          x: padding.left + i * stepX,
+          y: padding.top + innerH - ((v - min) / range) * innerH,
+        }));
+        const path = points
+          .map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`)
+          .join(" ");
+        return (
+          <g key={si}>
+            <path
+              d={path}
+              fill="none"
+              stroke={s.color}
+              strokeWidth={2}
+              strokeLinejoin="round"
+              strokeLinecap="round"
+            />
+            {points.map((p, i) => (
+              <g key={i}>
+                <circle cx={p.x} cy={p.y} r={2} fill={s.color} />
+                <circle cx={p.x} cy={p.y} r={8} fill="transparent">
+                  <title>
+                    {data[i]} · {s.name}:{" "}
+                    {yFormatter ? yFormatter(s.values[i]) : s.values[i]}
+                  </title>
+                </circle>
+              </g>
+            ))}
+          </g>
+        );
+      })}
+
+      {xLabelIdxs.map((i) => (
+        <text
+          key={i}
+          x={padding.left + i * stepX}
+          y={height - 8}
+          fontSize="10"
+          textAnchor="middle"
+          fill="currentColor"
+          fillOpacity={0.5}
+        >
+          {data[i]}
+        </text>
+      ))}
+    </svg>
+  );
+}
+
+// ============================================================
+// <FunnelChart>
+// Sequential stages with descending widths.
+// ============================================================
+export function FunnelChart({
+  data,
+  formatter,
+}: {
+  data: { label: string; value: number; color: string }[];
+  formatter?: (n: number) => string;
+}) {
+  if (data.length === 0) return <EmptyChart height={140} />;
+  const max = Math.max(1, ...data.map((d) => d.value));
+  const totalEntries = data[0]?.value ?? 0;
+
+  return (
+    <ul className="space-y-1.5">
+      {data.map((d, i) => {
+        const pct = Math.round((d.value / max) * 100);
+        const conversionPct =
+          totalEntries > 0 ? Math.round((d.value / totalEntries) * 100) : 0;
+        return (
+          <li key={i} className="flex items-center gap-3 text-sm">
+            <span
+              className="shrink-0 font-medium"
+              style={{ minWidth: 100, maxWidth: 100 }}
+              title={d.label}
+            >
+              {d.label}
+            </span>
+            <div className="relative flex-1">
+              <div
+                className="h-7 rounded-md transition-all flex items-center px-3"
+                style={{
+                  width: `${Math.max(pct, 4)}%`,
+                  backgroundColor: d.color,
+                  minWidth: "fit-content",
+                }}
+              >
+                <span className="text-xs font-bold text-black/80 whitespace-nowrap">
+                  {formatter ? formatter(d.value) : d.value}
+                </span>
+              </div>
+            </div>
+            <span className="w-12 shrink-0 text-right text-xs font-mono tabular-nums text-muted-foreground">
+              {i === 0 ? "—" : `${conversionPct}%`}
+            </span>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+// ============================================================
 // <Heatmap>
 // 2D grid (days × hours, or any rows × cols) with cell intensity.
 // ============================================================

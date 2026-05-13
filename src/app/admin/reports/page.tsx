@@ -7,6 +7,7 @@ import {
   AreaChart,
   StackedBarChart,
   HorizontalBarChart,
+  MultiLineChart,
   CHART_COLORS,
 } from "../../_components/charts";
 
@@ -123,6 +124,32 @@ export default async function ReportsPage() {
             height={200}
             yFormatter={(n) => fmtUsd(n, { decimals: 0, compact: true })}
             color={CHART_COLORS.accent}
+          />
+        </div>
+      </section>
+
+      {/* Multi-line revenue vs cost vs margin */}
+      <section className="rounded-xl border border-border bg-background p-5">
+        <div className="flex items-baseline justify-between">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+            P&L · trailing 6 months
+          </h2>
+          <div className="flex items-center gap-4 text-xs">
+            <Legend color={CHART_COLORS.accent} label="Revenue" />
+            <Legend color={CHART_COLORS.slate} label="Worker pay" />
+            <Legend color={CHART_COLORS.green} label="Margin" />
+          </div>
+        </div>
+        <div className="mt-4 text-foreground">
+          <MultiLineChart
+            data={monthly.map((m) => m.label)}
+            series={[
+              { name: "Revenue", color: CHART_COLORS.accent, values: monthly.map((m) => m.revenue) },
+              { name: "Worker pay", color: CHART_COLORS.slate, values: monthly.map((m) => m.cost) },
+              { name: "Margin", color: CHART_COLORS.green, values: monthly.map((m) => m.margin) },
+            ]}
+            height={240}
+            yFormatter={(n) => fmtUsd(n, { decimals: 0, compact: true })}
           />
         </div>
       </section>
