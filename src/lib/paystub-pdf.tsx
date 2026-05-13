@@ -11,7 +11,7 @@ import type { Worker } from "@/types/db";
 import { brand } from "./brand";
 
 const styles = StyleSheet.create({
-  page: { padding: 48, fontFamily: "Helvetica", fontSize: 10, color: "#0A0A0A" },
+  page: { padding: 48, fontFamily: "Helvetica", fontSize: 10, color: "#1F2A3D" },
   row: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
   headerRow: { paddingBottom: 18, borderBottomWidth: 1, borderBottomColor: "#E5E5E5" },
   brandRow: { flexDirection: "row", alignItems: "center", gap: 8 },
@@ -21,7 +21,7 @@ const styles = StyleSheet.create({
   value: { fontFamily: "Helvetica-Bold", fontSize: 12, marginTop: 3 },
   bigNumber: { fontFamily: "Helvetica-Bold", fontSize: 30, marginTop: 4 },
   twoCol: { flexDirection: "row", justifyContent: "space-between", marginTop: 28, paddingBottom: 18, borderBottomWidth: 1, borderBottomColor: "#E5E5E5" },
-  tableHeader: { flexDirection: "row", paddingTop: 24, paddingBottom: 6, borderBottomWidth: 1, borderBottomColor: "#0A0A0A" },
+  tableHeader: { flexDirection: "row", paddingTop: 24, paddingBottom: 6, borderBottomWidth: 1, borderBottomColor: "#1F2A3D" },
   tableHeaderCell: { fontFamily: "Helvetica-Bold", fontSize: 9, textTransform: "uppercase", letterSpacing: 1, color: "#666" },
   tableRow: { flexDirection: "row", paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: "#EEE" },
   cellLeft: { flex: 3, textAlign: "left" },
@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
   totalsValue: { width: 90, textAlign: "right", fontSize: 10 },
   grandTotalLabel: { width: 130, textAlign: "right", fontFamily: "Helvetica-Bold", fontSize: 13, marginTop: 8 },
   grandTotalValue: { width: 90, textAlign: "right", fontFamily: "Helvetica-Bold", fontSize: 16, marginTop: 8 },
-  payBlock: { backgroundColor: "#FACC15", color: "#0A0A0A", paddingVertical: 10, paddingHorizontal: 14, marginTop: 14, borderRadius: 6 },
+  payBlock: { backgroundColor: "#EDB23E", color: "#1F2A3D", paddingVertical: 10, paddingHorizontal: 14, marginTop: 14, borderRadius: 6 },
   payTitle: { fontFamily: "Helvetica-Bold", fontSize: 10, letterSpacing: 1, textTransform: "uppercase" },
   footer: { marginTop: 40, paddingTop: 18, borderTopWidth: 1, borderTopColor: "#E5E5E5", fontSize: 9, color: "#666", lineHeight: 1.5 },
 });
@@ -56,8 +56,11 @@ export function PaystubPDF({ data }: { data: PaystubData }) {
         <View style={[styles.row, styles.headerRow]}>
           <View>
             <View style={styles.brandRow}>
-              <Svg width={18} height={28} viewBox="0 0 40 48">
-                <Path d="M2 4 L20 44 L38 4 L30 4 L20 26 L10 4 Z" fill="#FACC15" />
+              <Svg width={22} height={22} viewBox="0 0 80 80">
+                <Path d="M51 26 L78 2 L78 27 L49 53 Z" fill="#EDB23E" />
+                <Path d="M2 27 L25 27 L49 78 L25 53 Z" fill="#EDB23E" />
+                <Path d="M2 53 L25 78 L2 78 Z" fill="#EDB23E" />
+                <Path d="M65 78 L78 67 L78 78 Z" fill="#EDB23E" />
               </Svg>
               <Text style={styles.brandText}>VERTEX</Text>
             </View>

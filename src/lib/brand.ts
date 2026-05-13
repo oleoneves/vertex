@@ -1,21 +1,21 @@
 export const brand = {
   name: "Vertex",
-  legalName: "Vertex Labor Service",
+  legalName: "Vertex Restoration",
   tagline: {
-    en: "Real jobs across the United States",
-    es: "Trabajos reales en todo Estados Unidos",
-    pt: "Vagas reais nos Estados Unidos",
+    en: "Disaster restoration & recovery services",
+    es: "Servicios de restauración y recuperación",
+    pt: "Serviços de restauração e recuperação",
   },
   domain: "vertex.work",
   supportEmail: "hello@vertex.work",
   colors: {
-    primary: "#0A0A0A",
-    accent: "#FACC15",
-    accentForeground: "#0A0A0A",
+    primary: "#1F2A3D",        // navy
+    accent: "#EDB23E",         // amber/yellow
+    accentForeground: "#1F2A3D",
   },
   social: {
-    instagram: "vertex.work",
-    linkedin: "vertex-work",
+    instagram: "vertex.restoration",
+    linkedin: "vertex-restoration",
   },
 } as const;
 

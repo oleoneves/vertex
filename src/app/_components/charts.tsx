@@ -3,7 +3,7 @@
 
 import type { ReactNode } from "react";
 
-const ACCENT = "var(--color-accent, #FACC15)";
+const ACCENT = "var(--color-accent, #EDB23E)";
 const ACCENT_DARK = "var(--color-accent-dark, #CA9F0C)";
 
 // ============================================================
@@ -1031,7 +1031,7 @@ export function USTileMap({
         const fillOpacity = v > 0 ? Math.max(0.18, intensity) : 0.06;
         const x = padding + col * (cellSize + gap);
         const y = padding + row * (cellSize + gap);
-        const textColor = intensity > 0.55 ? "#0A0A0A" : "currentColor";
+        const textColor = intensity > 0.55 ? "#1F2A3D" : "currentColor";
         return (
           <g key={code}>
             <rect
@@ -1200,7 +1200,7 @@ function EmptyChart({ height, children }: { height: number; children?: ReactNode
 }
 
 export const CHART_COLORS = {
-  accent: "#FACC15",
+  accent: "#EDB23E",
   accentDark: "#CA9F0C",
   green: "#22C55E",
   greenDark: "#15803D",

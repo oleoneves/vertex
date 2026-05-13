@@ -40,16 +40,16 @@ export function invoiceEmailHtml({
 <meta charset="utf-8" />
 <title>Invoice ${invoiceNumber}</title>
 </head>
-<body style="margin:0;padding:0;background:#fafafa;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif;color:#0a0a0a;">
+<body style="margin:0;padding:0;background:#fafafa;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif;color:#1F2A3D;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#fafafa;padding:32px 16px;">
     <tr><td align="center">
       <table role="presentation" width="100%" style="max-width:560px;background:#ffffff;border-radius:14px;border:1px solid #e5e5e5;overflow:hidden;" cellpadding="0" cellspacing="0">
         <tr>
-          <td style="padding:24px 28px;background:#0a0a0a;color:#fff;">
+          <td style="padding:24px 28px;background:#1F2A3D;color:#fff;">
             <table cellpadding="0" cellspacing="0">
               <tr>
                 <td style="padding-right:8px;">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="22" viewBox="0 0 40 48"><path d="M2 4 L20 44 L38 4 L30 4 L20 26 L10 4 Z" fill="#FACC15"/></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 80 80"><path d="M51 26 L78 2 L78 27 L49 53 Z" fill="#EDB23E"/><path d="M2 27 L25 27 L49 78 L25 53 Z" fill="#EDB23E"/><path d="M2 53 L25 78 L2 78 Z" fill="#EDB23E"/><path d="M65 78 L78 67 L78 78 Z" fill="#EDB23E"/></svg>
                 </td>
                 <td style="font-weight:900;font-size:18px;letter-spacing:2px;">VERTEX</td>
               </tr>
@@ -58,10 +58,10 @@ export function invoiceEmailHtml({
         </tr>
         <tr>
           <td style="padding:32px 28px;">
-            <p style="margin:0 0 6px;font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:1.5px;color:#facc15;">New invoice</p>
+            <p style="margin:0 0 6px;font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:1.5px;color:#EDB23E;">New invoice</p>
             <h1 style="margin:0 0 18px;font-size:24px;line-height:1.3;">Hi ${escapeHtml(employerName)},</h1>
             <p style="margin:0 0 16px;color:#444;line-height:1.6;">
-              Attached is invoice <strong>${escapeHtml(invoiceNumber)}</strong> for labor services
+              Attached is invoice <strong>${escapeHtml(invoiceNumber)}</strong> for restoration services
               from ${escapeHtml(periodStart)} through ${escapeHtml(periodEnd)}.
             </p>
 
@@ -82,7 +82,7 @@ export function invoiceEmailHtml({
 
             ${
               viewUrl
-                ? `<p style="margin:0 0 20px;"><a href="${escapeHtml(viewUrl)}" style="display:inline-block;background:#facc15;color:#0a0a0a;text-decoration:none;font-weight:900;padding:13px 24px;border-radius:8px;">View invoice online →</a></p>`
+                ? `<p style="margin:0 0 20px;"><a href="${escapeHtml(viewUrl)}" style="display:inline-block;background:#EDB23E;color:#1F2A3D;text-decoration:none;font-weight:900;padding:13px 24px;border-radius:8px;">View invoice online →</a></p>`
                 : ""
             }
 
@@ -92,7 +92,7 @@ export function invoiceEmailHtml({
             </p>
             <p style="margin:0;color:#444;line-height:1.6;">
               Questions? Reply to this email or write to
-              <a href="mailto:${escapeHtml(brand.supportEmail)}" style="color:#0a0a0a;">${escapeHtml(brand.supportEmail)}</a>.
+              <a href="mailto:${escapeHtml(brand.supportEmail)}" style="color:#1F2A3D;">${escapeHtml(brand.supportEmail)}</a>.
             </p>
           </td>
         </tr>

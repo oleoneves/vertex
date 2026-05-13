@@ -14,14 +14,14 @@ import { brand } from "./brand";
 Font.registerHyphenationCallback((word) => [word]);
 
 const COLORS = {
-  black: "#0A0A0A",
-  ink: "#1A1A1A",
-  muted: "#5C5C5C",
-  faint: "#8A8A8A",
+  black: "#1F2A3D",         // Vertex navy (was pure black)
+  ink: "#1F2A3D",
+  muted: "#5C6470",
+  faint: "#8A8F99",
   line: "#E5E5E5",
   zebra: "#FAFAFA",
-  yellow: "#FACC15",
-  yellowDark: "#CA9F0C",
+  yellow: "#EDB23E",        // Vertex amber (was #FACC15)
+  yellowDark: "#CA9518",
   white: "#FFFFFF",
 };
 
@@ -348,8 +348,15 @@ const styles = StyleSheet.create({
 
 function VertexMark({ size = 28 }: { size?: number }) {
   return (
-    <Svg width={size} height={size} viewBox="0 0 40 40">
-      <Path d="M3 4 L20 38 L37 4 L29 4 L20 22 L11 4 Z" fill={COLORS.yellow} />
+    <Svg width={size} height={size} viewBox="0 0 80 80">
+      {/* Top-right diagonal slash */}
+      <Path d="M51 26 L78 2 L78 27 L49 53 Z" fill={COLORS.yellow} />
+      {/* Main blade (upper-left to lower-center) */}
+      <Path d="M2 27 L25 27 L49 78 L25 53 Z" fill={COLORS.yellow} />
+      {/* Bottom-left triangle */}
+      <Path d="M2 53 L25 78 L2 78 Z" fill={COLORS.yellow} />
+      {/* Bottom-right small triangle */}
+      <Path d="M65 78 L78 67 L78 78 Z" fill={COLORS.yellow} />
     </Svg>
   );
 }
@@ -423,7 +430,7 @@ export function InvoicePDF({ data }: { data: InvoicePDFData }) {
               <VertexMark size={30} />
               <Text style={styles.brandText}>VERTEX</Text>
             </View>
-            <Text style={styles.brandTagline}>Labor Service · Workforce Solutions</Text>
+            <Text style={styles.brandTagline}>Restoration · Recovery Services</Text>
           </View>
           <View style={{ alignItems: "flex-end" }}>
             <Text style={styles.invoiceTitle}>INVOICE</Text>

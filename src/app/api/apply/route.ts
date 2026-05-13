@@ -149,18 +149,18 @@ async function sendApplicationConfirmation({
     from: fromAddress(),
     to,
     subject: `We received your application for ${jobName} — ${brand.name}`,
-    html: `<!DOCTYPE html><html><body style="margin:0;padding:0;background:#fafafa;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif;color:#0a0a0a;">
+    html: `<!DOCTYPE html><html><body style="margin:0;padding:0;background:#fafafa;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif;color:#1F2A3D;">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#fafafa;padding:32px 16px;"><tr><td align="center">
 <table width="100%" style="max-width:560px;background:#fff;border-radius:14px;border:1px solid #e5e5e5;overflow:hidden;">
-<tr><td style="padding:24px 28px;background:#0a0a0a;color:#fff;">
-<table><tr><td style="padding-right:8px;"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="22" viewBox="0 0 40 48"><path d="M2 4 L20 44 L38 4 L30 4 L20 26 L10 4 Z" fill="#FACC15"/></svg></td><td style="font-weight:900;font-size:18px;letter-spacing:2px;">VERTEX</td></tr></table>
+<tr><td style="padding:24px 28px;background:#1F2A3D;color:#fff;">
+<table><tr><td style="padding-right:8px;"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 80 80"><path d="M51 26 L78 2 L78 27 L49 53 Z" fill="#EDB23E"/><path d="M2 27 L25 27 L49 78 L25 53 Z" fill="#EDB23E"/><path d="M2 53 L25 78 L2 78 Z" fill="#EDB23E"/><path d="M65 78 L78 67 L78 78 Z" fill="#EDB23E"/></svg></td><td style="font-weight:900;font-size:18px;letter-spacing:2px;">VERTEX</td></tr></table>
 </td></tr>
 <tr><td style="padding:32px 28px;">
-<p style="margin:0 0 6px;font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:1.5px;color:#facc15;">Application received</p>
+<p style="margin:0 0 6px;font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:1.5px;color:#EDB23E;">Application received</p>
 <h1 style="margin:0 0 18px;font-size:24px;">Hi ${escapeHtml(candidateName.split(" ")[0])},</h1>
 <p style="margin:0 0 16px;color:#444;line-height:1.6;">Thanks for applying to <strong>${escapeHtml(jobName)}</strong>${jobLocation ? ` in ${escapeHtml(jobLocation)}` : ""}. We received your application and our team is reviewing it now.</p>
 <p style="margin:0 0 16px;color:#444;line-height:1.6;">If your profile matches what the employer is looking for, we'll reach out by phone or email within <strong>1–3 business days</strong>.</p>
-<p style="margin:0 0 20px;"><a href="${escapeHtml(jobUrl)}" style="display:inline-block;background:#facc15;color:#0a0a0a;text-decoration:none;font-weight:900;padding:13px 24px;border-radius:8px;">View the job →</a></p>
+<p style="margin:0 0 20px;"><a href="${escapeHtml(jobUrl)}" style="display:inline-block;background:#EDB23E;color:#1F2A3D;text-decoration:none;font-weight:900;padding:13px 24px;border-radius:8px;">View the job →</a></p>
 <p style="margin:0;color:#666;font-size:13px;line-height:1.5;">Questions? Just reply to this email or write to ${escapeHtml(brand.supportEmail)}.<br/>Vertex never charges workers — applying is and always will be free.</p>
 </td></tr>
 <tr><td style="padding:18px 28px;border-top:1px solid #e5e5e5;color:#888;font-size:11px;line-height:1.5;">

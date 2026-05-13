@@ -98,7 +98,7 @@ export default async function PrintInvoice({
             box-shadow: 0 2px 12px rgba(0,0,0,0.06);
           }
           .header {
-            background: #0a0a0a;
+            background: #1F2A3D;
             color: #fff;
             padding: 32px 48px;
             display: flex;
@@ -122,7 +122,7 @@ export default async function PrintInvoice({
             font-weight: 900;
             font-size: 32px;
             letter-spacing: 8px;
-            color: #FACC15;
+            color: #EDB23E;
           }
           .invoice-number {
             font-weight: 700;
@@ -141,7 +141,7 @@ export default async function PrintInvoice({
             text-transform: uppercase;
             margin-bottom: 6px;
           }
-          .party-name { font-weight: 700; font-size: 14px; color: #0a0a0a; }
+          .party-name { font-weight: 700; font-size: 14px; color: #1F2A3D; }
           .party-line { color: #1a1a1a; margin-top: 2px; }
           .pill {
             display: inline-block;
@@ -173,11 +173,11 @@ export default async function PrintInvoice({
             font-weight: 700;
             margin-bottom: 4px;
           }
-          .meta-value { font-weight: 700; font-size: 12px; color: #0a0a0a; }
+          .meta-value { font-weight: 700; font-size: 12px; color: #1F2A3D; }
           .meta-value.accent { color: #ca9f0c; }
           .service-banner {
             background: #fafafa;
-            border-left: 3px solid #FACC15;
+            border-left: 3px solid #EDB23E;
             padding: 10px 14px;
             margin-bottom: 16px;
           }
@@ -192,11 +192,11 @@ export default async function PrintInvoice({
             font-weight: 700;
             font-size: 13px;
             margin-top: 2px;
-            color: #0a0a0a;
+            color: #1F2A3D;
           }
           table.lines { width: 100%; border-collapse: collapse; }
           table.lines thead th {
-            background: #0a0a0a;
+            background: #1F2A3D;
             color: #fff;
             text-align: left;
             font-size: 10px;
@@ -211,10 +211,10 @@ export default async function PrintInvoice({
             vertical-align: top;
           }
           table.lines tbody tr:nth-child(even) td { background: #fafafa; }
-          .desc-primary { font-weight: 700; color: #0a0a0a; }
+          .desc-primary { font-weight: 700; color: #1F2A3D; }
           .desc-secondary { font-size: 11px; color: #5c5c5c; margin-top: 1px; }
           .right { text-align: right; }
-          .num-bold { font-weight: 700; color: #0a0a0a; }
+          .num-bold { font-weight: 700; color: #1F2A3D; }
           .totals {
             display: grid;
             grid-template-columns: 1.4fr 1fr;
@@ -222,7 +222,7 @@ export default async function PrintInvoice({
             margin-top: 16px;
           }
           .totals-hint { font-size: 11px; color: #8a8a8a; padding-top: 8px; }
-          .totals-hint strong { color: #0a0a0a; }
+          .totals-hint strong { color: #1F2A3D; }
           .totals-rows .row {
             display: flex;
             justify-content: space-between;
@@ -237,7 +237,7 @@ export default async function PrintInvoice({
             justify-content: space-between;
             align-items: center;
             padding: 12px 14px;
-            background: #0a0a0a;
+            background: #1F2A3D;
             border-radius: 4px;
             margin-top: 6px;
           }
@@ -249,7 +249,7 @@ export default async function PrintInvoice({
             text-transform: uppercase;
           }
           .total-big .val {
-            color: #FACC15;
+            color: #EDB23E;
             font-weight: 900;
             font-size: 22px;
           }
@@ -265,9 +265,9 @@ export default async function PrintInvoice({
             padding: 16px;
           }
           .pay-card.yellow {
-            background: #FACC15;
+            background: #EDB23E;
             border: 0;
-            color: #0a0a0a;
+            color: #1F2A3D;
           }
           .pay-heading {
             font-weight: 700;
@@ -275,7 +275,7 @@ export default async function PrintInvoice({
             letter-spacing: 1.6px;
             text-transform: uppercase;
             margin-bottom: 10px;
-            color: #0a0a0a;
+            color: #1F2A3D;
           }
           .pay-row {
             display: flex;
@@ -284,7 +284,7 @@ export default async function PrintInvoice({
             font-size: 12px;
           }
           .pay-row .lbl { color: #5c5c5c; }
-          .pay-row .val { font-weight: 700; color: #0a0a0a; }
+          .pay-row .val { font-weight: 700; color: #1F2A3D; }
           .pay-note { font-size: 12px; line-height: 1.5; }
           .footer {
             padding: 18px 48px 28px;
@@ -310,7 +310,7 @@ export default async function PrintInvoice({
             z-index: 10;
           }
           .toolbar button, .toolbar a {
-            background: #0a0a0a;
+            background: #1F2A3D;
             color: #fff;
             border: 0;
             padding: 8px 14px;
@@ -320,7 +320,7 @@ export default async function PrintInvoice({
             cursor: pointer;
             text-decoration: none;
           }
-          .toolbar a.secondary { background: #fff; color: #0a0a0a; border: 1px solid #e5e5e5; }
+          .toolbar a.secondary { background: #fff; color: #1F2A3D; border: 1px solid #e5e5e5; }
           @media print {
             body { background: #fff; }
             .sheet { box-shadow: none; margin: 0; max-width: 100%; }
@@ -342,12 +342,15 @@ export default async function PrintInvoice({
           <div className="header">
             <div>
               <div className="brand-row">
-                <svg width="32" height="32" viewBox="0 0 40 40" aria-hidden>
-                  <path d="M3 4 L20 38 L37 4 L29 4 L20 22 L11 4 Z" fill="#FACC15" />
+                <svg width="32" height="32" viewBox="0 0 80 80" aria-hidden>
+                  <path d="M51 26 L78 2 L78 27 L49 53 Z" fill="#EDB23E" />
+                  <path d="M2 27 L25 27 L49 78 L25 53 Z" fill="#EDB23E" />
+                  <path d="M2 53 L25 78 L2 78 Z" fill="#EDB23E" />
+                  <path d="M65 78 L78 67 L78 78 Z" fill="#EDB23E" />
                 </svg>
                 <span className="brand-text">VERTEX</span>
               </div>
-              <div className="brand-tagline">Labor Service · Workforce Solutions</div>
+              <div className="brand-tagline">Restoration · Recovery Services</div>
             </div>
             <div style={{ textAlign: "right" }}>
               <div className="invoice-title">INVOICE</div>

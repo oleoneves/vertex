@@ -1,4 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <rect width="512" height="512" rx="96" fill="#0A0A0A"/>
-  <path d="M88 112 L256 448 L424 112 L344 112 L256 288 L168 112 Z" fill="#FACC15"/>
+  <rect width="512" height="512" rx="96" fill="#1F2A3D"/>
+  <g transform="translate(64, 64) scale(4.8)">
+    <path d="M51 26 L78 2 L78 27 L49 53 Z" fill="#EDB23E"/>
+    <path d="M2 27 L25 27 L49 78 L25 53 Z" fill="#EDB23E"/>
+    <path d="M2 53 L25 78 L2 78 Z" fill="#EDB23E"/>
+    <path d="M65 78 L78 67 L78 78 Z" fill="#EDB23E"/>
+  </g>
 </svg>

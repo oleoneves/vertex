@@ -2,12 +2,12 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #0a0a0a;
+  --foreground: #1F2A3D;
   --muted: #fafafa;
   --muted-foreground: #525252;
   --border: #e5e5e5;
-  --accent: #facc15;
-  --accent-foreground: #0a0a0a;
+  --accent: #EDB23E;
+  --accent-foreground: #1F2A3D;
 }
 
 @theme inline {
@@ -23,18 +23,18 @@
 }
 
 [data-theme="dark"] {
-  --background: #0a0a0a;
+  --background: #1F2A3D;
   --foreground: #fafafa;
   --muted: #171717;
   --muted-foreground: #a3a3a3;
   --border: #262626;
-  --accent: #facc15;
-  --accent-foreground: #0a0a0a;
+  --accent: #EDB23E;
+  --accent-foreground: #1F2A3D;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --background: #0a0a0a;
+    --background: #1F2A3D;
     --foreground: #fafafa;
     --muted: #171717;
     --muted-foreground: #a3a3a3;
@@ -82,7 +82,7 @@ nav::-webkit-scrollbar { display: none; }
 @media print {
   body {
     background: #fff !important;
-    color: #0a0a0a !important;
+    color: #1F2A3D !important;
   }
   aside,
   nav[aria-label="Admin"],
