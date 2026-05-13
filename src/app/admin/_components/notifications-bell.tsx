@@ -21,18 +21,35 @@ const TYPE_META: Record<
   doc: { Icon: FileText, color: "text-amber-700 bg-amber-100 dark:bg-amber-950/40 dark:text-amber-400" },
 };
 
-function relativeTime(iso: string): string {
+export type BellLabels = {
+  title: string;
+  allCaughtUp: string;
+  newLabel: string;
+  noActivity: string;
+  justNow: string;
+  mAgo: string;
+  hAgo: string;
+  dAgo: string;
+};
+
+function relativeTime(iso: string, l: BellLabels): string {
   const diffMs = Date.now() - +new Date(iso);
   const m = Math.floor(diffMs / 60000);
-  if (m < 1) return "just now";
-  if (m < 60) return `${m}m ago`;
+  if (m < 1) return l.justNow;
+  if (m < 60) return `${m}${l.mAgo}`;
   const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
+  if (h < 24) return `${h}${l.hAgo}`;
   const d = Math.floor(h / 24);
-  return `${d}d ago`;
+  return `${d}${l.dAgo}`;
 }
 
-export function NotificationsBell({ events }: { events: ActivityEvent[] }) {
+export function NotificationsBell({
+  events,
+  labels,
+}: {
+  events: ActivityEvent[];
+  labels: BellLabels;
+}) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
 
@@ -78,16 +95,16 @@ export function NotificationsBell({ events }: { events: ActivityEvent[] }) {
         <div className="absolute left-0 z-40 mt-2 w-80 overflow-hidden rounded-xl border border-border bg-background shadow-2xl lg:left-auto lg:right-0">
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
             <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Notifications
+              {labels.title}
             </h3>
             <span className="text-[10px] text-muted-foreground">
-              {unread > 0 ? `${unread} new` : "All caught up"}
+              {unread > 0 ? `${unread} ${labels.newLabel}` : labels.allCaughtUp}
             </span>
           </div>
           <ul className="max-h-96 divide-y divide-border/60 overflow-y-auto">
             {events.length === 0 ? (
               <li className="px-4 py-8 text-center text-sm text-muted-foreground">
-                No activity yet.
+                {labels.noActivity}
               </li>
             ) : (
               events.map((e, i) => {
@@ -108,7 +125,7 @@ export function NotificationsBell({ events }: { events: ActivityEvent[] }) {
                     <div className="min-w-0 flex-1">
                       <p className="line-clamp-2">{e.label}</p>
                       <p className="mt-0.5 text-[10px] text-muted-foreground">
-                        {relativeTime(e.at)}
+                        {relativeTime(e.at, labels)}
                       </p>
                     </div>
                     {isNew && (

@@ -60,10 +60,10 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     !process.env.NEXT_PUBLIC_SUPABASE_URL ||
     !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  const [events, dash, locale] = await Promise.all([
-    listRecentEvents(12),
+  const locale = await getLocale();
+  const [events, dash] = await Promise.all([
+    listRecentEvents(12, locale),
     loadDashboard(),
-    getLocale(),
   ]);
   const todaySpark = dash.revenueByDay30.slice(-7).map((d) => d.value);
   const todayRevenue = dash.revenueByDay30.at(-1)?.value ?? 0;
@@ -99,7 +99,19 @@ export default async function AdminLayout({ children }: { children: ReactNode })
             <div className="flex-1">
               <CommandPalette />
             </div>
-            <NotificationsBell events={events} />
+            <NotificationsBell
+              events={events}
+              labels={{
+                title: t(locale, "a.bell.title"),
+                allCaughtUp: t(locale, "a.bell.all_caught_up"),
+                newLabel: t(locale, "a.bell.new"),
+                noActivity: t(locale, "a.bell.no_activity"),
+                justNow: t(locale, "a.bell.just_now"),
+                mAgo: t(locale, "a.bell.minute_short"),
+                hAgo: t(locale, "a.bell.hour_short"),
+                dAgo: t(locale, "a.bell.day_short"),
+              }}
+            />
           </div>
           {todaySpark.length > 1 && (
             <div className="mx-2 mb-3 rounded-lg border border-border bg-accent/5 p-3">

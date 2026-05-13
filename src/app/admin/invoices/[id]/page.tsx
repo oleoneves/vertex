@@ -213,10 +213,8 @@ export default async function InvoiceDetailPage({
       {/* Status banner */}
       {!emailReady() && (
         <div className="rounded-lg border border-dashed border-border bg-muted/30 p-3 text-xs text-muted-foreground">
-          <strong>Email sending disabled:</strong> set{" "}
-          <code className="font-mono">RESEND_API_KEY</code> (and optionally{" "}
-          <code className="font-mono">INVOICE_FROM_EMAIL</code>) in Vercel env to enable
-          &quot;Send to employer&quot;.
+          <strong>{t(locale, "a.email.disabled")}</strong>{" "}
+          {t(locale, "a.email.set_resend")} &quot;{t(locale, "a.email.send_to_employer")}&quot;.
         </div>
       )}
 

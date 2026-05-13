@@ -41,18 +41,18 @@ export default async function ShiftsPage({
       {shifts.length === 0 ? (
         <EmptyState
           icon={<CalendarDays className="h-5 w-5" />}
-          title="No upcoming shifts"
-          body="Schedule a shift against an active placement."
+          title={t(locale, "a.table.no_match")}
+          body={t(locale, "a.table.adjust_filter")}
         />
       ) : (
         <DataTable
           head={
             <>
-              <Th>When</Th>
-              <Th>Worker</Th>
-              <Th>Employer</Th>
-              <Th>Role</Th>
-              <Th>Status</Th>
+              <Th>{locale === "pt" ? "Quando" : locale === "es" ? "Cuándo" : "When"}</Th>
+              <Th>{t(locale, "a.col.worker")}</Th>
+              <Th>{t(locale, "a.col.employer")}</Th>
+              <Th>{t(locale, "a.col.role")}</Th>
+              <Th>{t(locale, "a.filter.status")}</Th>
               <Th></Th>
             </>
           }

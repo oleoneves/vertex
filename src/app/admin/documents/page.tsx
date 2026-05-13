@@ -67,7 +67,7 @@ export default async function DocumentsPage({
       >
         {pending > 0 && (
           <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
-            {pending} pending review
+            {pending} {locale === "pt" ? "pendentes" : locale === "es" ? "pendientes" : "pending review"}
           </span>
         )}
       </PageHeader>
@@ -76,18 +76,18 @@ export default async function DocumentsPage({
         filters={[
           {
             name: "status",
-            label: "Status",
+            label: t(locale, "a.filter.status"),
             value: sp.status,
             options: [
-              { value: "pending", label: "Pending" },
-              { value: "approved", label: "Approved" },
-              { value: "rejected", label: "Rejected" },
-              { value: "expired", label: "Expired" },
+              { value: "pending", label: t(locale, "a.status.pending") },
+              { value: "approved", label: t(locale, "a.status.approved") },
+              { value: "rejected", label: locale === "pt" ? "Rejeitado" : locale === "es" ? "Rechazado" : "Rejected" },
+              { value: "expired", label: locale === "pt" ? "Expirado" : locale === "es" ? "Expirado" : "Expired" },
             ],
           },
           {
             name: "type",
-            label: "Type",
+            label: locale === "pt" ? "Tipo" : locale === "es" ? "Tipo" : "Type",
             value: sp.type,
             options: Object.entries(DOCUMENT_LABELS).map(([value, label]) => ({
               value,
@@ -100,8 +100,8 @@ export default async function DocumentsPage({
       {docs.length === 0 ? (
         <EmptyState
           icon={<FileWarning className="h-5 w-5" />}
-          title="No documents match"
-          body="Workers upload compliance docs from /worker/documents."
+          title={t(locale, "a.table.no_match")}
+          body={t(locale, "a.table.adjust_filter")}
         />
       ) : (
         <ul className="space-y-3">
@@ -145,7 +145,7 @@ export default async function DocumentsPage({
                       rel="noopener noreferrer"
                       className="rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-muted"
                     >
-                      Open
+                      {locale === "pt" ? "Abrir" : locale === "es" ? "Abrir" : "Open"}
                     </a>
                   )}
                   {d.status === "pending" ? (
@@ -157,7 +157,7 @@ export default async function DocumentsPage({
                           type="submit"
                           className="rounded-md bg-green-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-green-700"
                         >
-                          Approve
+                          {locale === "pt" ? "Aprovar" : locale === "es" ? "Aprobar" : "Approve"}
                         </button>
                       </form>
                       <form action={reviewDocument} className="inline">
@@ -167,7 +167,7 @@ export default async function DocumentsPage({
                           type="submit"
                           className="rounded-md border border-border bg-background px-3 py-1.5 text-xs hover:bg-muted"
                         >
-                          Reject
+                          {locale === "pt" ? "Rejeitar" : locale === "es" ? "Rechazar" : "Reject"}
                         </button>
                       </form>
                     </>

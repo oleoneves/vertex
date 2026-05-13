@@ -573,6 +573,35 @@ const dict = {
   "a.pay.unpaid":          { en: "Unpaid",         es: "Sin pagar",       pt: "Não pago" },
   "a.pay.pay_all":         { en: "Pay all unpaid", es: "Pagar todo pendiente", pt: "Pagar tudo pendente" },
   "a.pay.run_payroll":     { en: "Run payroll",    es: "Ejecutar nómina", pt: "Rodar folha" },
+
+  // Notifications bell
+  "a.bell.title":          { en: "Notifications",  es: "Notificaciones", pt: "Notificações" },
+  "a.bell.all_caught_up":  { en: "All caught up",  es: "Todo al día",    pt: "Tudo em dia" },
+  "a.bell.new":            { en: "new",            es: "nuevos",         pt: "novos" },
+  "a.bell.no_activity":    { en: "No activity yet.", es: "Sin actividad.", pt: "Sem atividade ainda." },
+  "a.bell.just_now":       { en: "just now",       es: "ahora mismo",    pt: "agora mesmo" },
+  "a.bell.minute_short":   { en: "m ago",          es: "m atrás",        pt: "min atrás" },
+  "a.bell.hour_short":     { en: "h ago",          es: "h atrás",        pt: "h atrás" },
+  "a.bell.day_short":      { en: "d ago",          es: "d atrás",        pt: "d atrás" },
+  "a.bell.applied_to":     { en: "applied to",     es: "se postuló a",   pt: "candidatou-se a" },
+  "a.bell.invoice_paid":   { en: "paid",           es: "pagada",         pt: "paga" },
+  "a.bell.invoice_sent":   { en: "sent",           es: "enviada",        pt: "enviada" },
+  "a.bell.clocked_in":     { en: "clocked in",     es: "entró",          pt: "entrou" },
+  "a.bell.clocked_out":    { en: "clocked out",    es: "salió",          pt: "saiu" },
+  "a.bell.uploaded":       { en: "uploaded",       es: "subió",          pt: "enviou" },
+  "a.bell.needs_review":   { en: "needs review",   es: "requiere revisión", pt: "precisa revisão" },
+  "a.bell.someone":        { en: "Someone",        es: "Alguien",        pt: "Alguém" },
+  "a.bell.worker":         { en: "Worker",         es: "Trabajador",     pt: "Colaborador" },
+  "a.bell.a_job":          { en: "a job",          es: "una vacante",    pt: "uma vaga" },
+
+  // Email banner
+  "a.email.disabled":      { en: "Email sending disabled:", es: "Envío de correo desactivado:", pt: "Envio de email desativado:" },
+  "a.email.set_resend":    {
+    en: "set RESEND_API_KEY (and optionally INVOICE_FROM_EMAIL) in Vercel env to enable",
+    es: "configura RESEND_API_KEY (y opcionalmente INVOICE_FROM_EMAIL) en Vercel",
+    pt: "defina RESEND_API_KEY (e opcionalmente INVOICE_FROM_EMAIL) no Vercel",
+  },
+  "a.email.send_to_employer": { en: "Send to employer", es: "Enviar al empleador", pt: "Enviar para empresa" },
 } as const;
 
 export type TKey = keyof typeof dict;

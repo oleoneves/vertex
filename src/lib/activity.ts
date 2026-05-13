@@ -2,6 +2,7 @@ import "server-only";
 import { isDemoMode, demoApplications, demoInvoices, demoTimeEntries, demoAllDocuments } from "./demo";
 import { supabaseReady } from "./workforce";
 import { getSupabaseServer } from "./supabase/server";
+import { t, type Locale } from "./i18n";
 
 export type ActivityEvent = {
   type: "application" | "invoice" | "time" | "doc";
@@ -10,9 +11,12 @@ export type ActivityEvent = {
   at: string;
 };
 
-export async function listRecentEvents(limit = 12): Promise<ActivityEvent[]> {
+export async function listRecentEvents(
+  limit = 12,
+  locale: Locale = "en",
+): Promise<ActivityEvent[]> {
   if (isDemoMode()) {
-    return demoRecentEvents(limit);
+    return demoRecentEvents(limit, locale);
   }
   if (!supabaseReady()) return [];
 
@@ -59,11 +63,13 @@ export async function listRecentEvents(limit = 12): Promise<ActivityEvent[]> {
   }>) ?? []) {
     out.push({
       type: "application",
-      label: `${a.candidate?.full_name ?? "Someone"} applied to ${a.job?.title ?? "a job"}`,
+      label: `${a.candidate?.full_name ?? t(locale, "a.bell.someone")} ${t(locale, "a.bell.applied_to")} ${a.job?.title ?? t(locale, "a.bell.a_job")}`,
       href: `/admin/applications?status=new`,
       at: a.created_at,
     });
   }
+
+  const inv_label = (locale: Locale) => locale === "pt" ? "Fatura" : locale === "es" ? "Factura" : "Invoice";
 
   for (const i of (invRes.data as unknown as Array<{
     id: string;
@@ -77,21 +83,21 @@ export async function listRecentEvents(limit = 12): Promise<ActivityEvent[]> {
     if (i.status === "paid" && i.paid_at) {
       out.push({
         type: "invoice",
-        label: `Invoice ${i.invoice_number} paid — $${Number(i.total).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+        label: `${inv_label(locale)} ${i.invoice_number} ${t(locale, "a.bell.invoice_paid")} — $${Number(i.total).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
         href: `/admin/invoices/${i.id}`,
         at: i.paid_at,
       });
     } else if (i.status === "sent" && i.sent_at) {
       out.push({
         type: "invoice",
-        label: `Invoice ${i.invoice_number} sent — $${Number(i.total).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+        label: `${inv_label(locale)} ${i.invoice_number} ${t(locale, "a.bell.invoice_sent")} — $${Number(i.total).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
         href: `/admin/invoices/${i.id}`,
         at: i.sent_at,
       });
     }
   }
 
-  for (const t of (teRes.data as unknown as Array<{
+  for (const te of (teRes.data as unknown as Array<{
     id: string;
     clock_in_at: string;
     clock_out_at: string | null;
@@ -100,11 +106,11 @@ export async function listRecentEvents(limit = 12): Promise<ActivityEvent[]> {
   }>) ?? []) {
     out.push({
       type: "time",
-      label: t.clock_out_at
-        ? `${t.worker?.full_name ?? "Worker"} clocked out`
-        : `${t.worker?.full_name ?? "Worker"} clocked in`,
+      label: te.clock_out_at
+        ? `${te.worker?.full_name ?? t(locale, "a.bell.worker")} ${t(locale, "a.bell.clocked_out")}`
+        : `${te.worker?.full_name ?? t(locale, "a.bell.worker")} ${t(locale, "a.bell.clocked_in")}`,
       href: `/admin/timesheet`,
-      at: t.clock_out_at ?? t.clock_in_at,
+      at: te.clock_out_at ?? te.clock_in_at,
     });
   }
 
@@ -116,7 +122,7 @@ export async function listRecentEvents(limit = 12): Promise<ActivityEvent[]> {
   }>) ?? []) {
     out.push({
       type: "doc",
-      label: `${d.worker?.full_name ?? "Worker"} uploaded ${d.type.toUpperCase()} — needs review`,
+      label: `${d.worker?.full_name ?? t(locale, "a.bell.worker")} ${t(locale, "a.bell.uploaded")} ${d.type.toUpperCase()} — ${t(locale, "a.bell.needs_review")}`,
       href: `/admin/documents`,
       at: d.uploaded_at,
     });
@@ -126,14 +132,15 @@ export async function listRecentEvents(limit = 12): Promise<ActivityEvent[]> {
   return out.slice(0, limit);
 }
 
-function demoRecentEvents(limit: number): ActivityEvent[] {
+function demoRecentEvents(limit: number, locale: Locale): ActivityEvent[] {
   const out: ActivityEvent[] = [];
+  const invLabel = locale === "pt" ? "Fatura" : locale === "es" ? "Factura" : "Invoice";
 
   // Applications (recent 5)
   for (const a of demoApplications().slice(0, 5)) {
     out.push({
       type: "application",
-      label: `${a.candidate?.full_name ?? "Someone"} applied to ${a.job?.title ?? "a job"}`,
+      label: `${a.candidate?.full_name ?? t(locale, "a.bell.someone")} ${t(locale, "a.bell.applied_to")} ${a.job?.title ?? t(locale, "a.bell.a_job")}`,
       href: `/admin/applications?status=new`,
       at: a.created_at,
     });
@@ -144,14 +151,14 @@ function demoRecentEvents(limit: number): ActivityEvent[] {
     if (i.status === "paid" && i.paid_at) {
       out.push({
         type: "invoice",
-        label: `Invoice ${i.invoice_number} paid — $${Number(i.total).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+        label: `${invLabel} ${i.invoice_number} ${t(locale, "a.bell.invoice_paid")} — $${Number(i.total).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
         href: `/admin/invoices/${i.id}`,
         at: i.paid_at,
       });
     } else if (i.status === "sent" && i.sent_at) {
       out.push({
         type: "invoice",
-        label: `Invoice ${i.invoice_number} sent — $${Number(i.total).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+        label: `${invLabel} ${i.invoice_number} ${t(locale, "a.bell.invoice_sent")} — $${Number(i.total).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
         href: `/admin/invoices/${i.id}`,
         at: i.sent_at,
       });
@@ -159,14 +166,14 @@ function demoRecentEvents(limit: number): ActivityEvent[] {
   }
 
   // Time entries (recent 4)
-  for (const t of demoTimeEntries({ limit: 6 }).slice(0, 4)) {
+  for (const te of demoTimeEntries({ limit: 6 }).slice(0, 4)) {
     out.push({
       type: "time",
-      label: t.clock_out_at
-        ? `${t.worker?.full_name ?? "Worker"} clocked out`
-        : `${t.worker?.full_name ?? "Worker"} clocked in`,
+      label: te.clock_out_at
+        ? `${te.worker?.full_name ?? t(locale, "a.bell.worker")} ${t(locale, "a.bell.clocked_out")}`
+        : `${te.worker?.full_name ?? t(locale, "a.bell.worker")} ${t(locale, "a.bell.clocked_in")}`,
       href: `/admin/timesheet`,
-      at: t.clock_out_at ?? t.clock_in_at,
+      at: te.clock_out_at ?? te.clock_in_at,
     });
   }
 
@@ -174,9 +181,10 @@ function demoRecentEvents(limit: number): ActivityEvent[] {
   for (const d of demoAllDocuments()
     .filter((x) => x.status === "pending")
     .slice(0, 2)) {
+    const worker = (d as { worker?: { full_name?: string } }).worker?.full_name ?? t(locale, "a.bell.worker");
     out.push({
       type: "doc",
-      label: `${(d as { worker?: { full_name?: string } }).worker?.full_name ?? "Worker"} uploaded ${d.type.toUpperCase()} — needs review`,
+      label: `${worker} ${t(locale, "a.bell.uploaded")} ${d.type.toUpperCase()} — ${t(locale, "a.bell.needs_review")}`,
       href: `/admin/documents`,
       at: d.uploaded_at,
     });
