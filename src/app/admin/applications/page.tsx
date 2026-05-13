@@ -59,7 +59,7 @@ export default async function ApplicationsPage({
         <section className="mb-6 grid gap-4 lg:grid-cols-2">
           <div className="rounded-xl border border-border bg-background p-5">
             <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Recruiting funnel
+              {t(locale, "a.applications.funnel")}
             </h2>
             <div className="mt-4 text-foreground">
               <FunnelChart
@@ -70,22 +70,22 @@ export default async function ApplicationsPage({
           </div>
           <div className="rounded-xl border border-border bg-background p-5">
             <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              By status
+              {t(locale, "a.applications.by_status")}
             </h2>
             <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <StatusCount label="New" value={byStatus.new} color="blue" />
-              <StatusCount label="Reviewing" value={byStatus.reviewing} color="amber" />
-              <StatusCount label="Accepted" value={byStatus.accepted} color="green" />
-              <StatusCount label="Rejected" value={byStatus.rejected} color="muted" />
+              <StatusCount label={t(locale, "a.applications.new")} value={byStatus.new} color="blue" />
+              <StatusCount label={t(locale, "a.applications.reviewing")} value={byStatus.reviewing} color="amber" />
+              <StatusCount label={t(locale, "a.applications.accepted")} value={byStatus.accepted} color="green" />
+              <StatusCount label={t(locale, "a.applications.rejected")} value={byStatus.rejected} color="muted" />
             </div>
             <p className="mt-4 text-xs text-muted-foreground">
               {byStatus.accepted > 0 && (
                 <>
-                  Hire rate:{" "}
+                  {t(locale, "a.applications.hire_rate")}:{" "}
                   <strong className="text-foreground">
                     {Math.round((byStatus.accepted / allApps.length) * 100)}%
                   </strong>{" "}
-                  ({byStatus.accepted} of {allApps.length})
+                  ({byStatus.accepted} / {allApps.length})
                 </>
               )}
             </p>
@@ -95,17 +95,17 @@ export default async function ApplicationsPage({
 
       <FilterBar
         searchValue={sp.q}
-        searchPlaceholder="Search candidate name or email…"
+        searchPlaceholder={t(locale, "a.search.placeholder")}
         filters={[
           {
             name: "status",
-            label: "Status",
+            label: t(locale, "a.filter.status"),
             value: sp.status,
             options: [
-              { value: "new", label: "New" },
-              { value: "reviewing", label: "Reviewing" },
-              { value: "accepted", label: "Accepted" },
-              { value: "rejected", label: "Rejected" },
+              { value: "new", label: t(locale, "a.applications.new") },
+              { value: "reviewing", label: t(locale, "a.applications.reviewing") },
+              { value: "accepted", label: t(locale, "a.applications.accepted") },
+              { value: "rejected", label: t(locale, "a.applications.rejected") },
             ],
           },
         ]}
@@ -113,8 +113,8 @@ export default async function ApplicationsPage({
       {apps.length === 0 ? (
         <EmptyState
           icon={<FileText className="h-5 w-5" />}
-          title="No applications match"
-          body="Adjust the filter or wait for new submissions."
+          title={t(locale, "a.table.no_match")}
+          body={t(locale, "a.table.adjust_filter")}
         />
       ) : (
         <DataTable

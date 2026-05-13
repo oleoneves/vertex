@@ -1,8 +1,10 @@
 import { Search } from "lucide-react";
+import { t } from "@/lib/i18n";
+import { getLocale } from "@/lib/i18n-server";
 
 export type FilterOption = { value: string; label: string };
 
-export function FilterBar({
+export async function FilterBar({
   searchValue,
   searchPlaceholder,
   filters = [],
@@ -11,6 +13,7 @@ export function FilterBar({
   searchPlaceholder?: string;
   filters?: { name: string; label: string; options: FilterOption[]; value?: string }[];
 }) {
+  const locale = await getLocale();
   return (
     <form
       method="GET"
@@ -35,7 +38,7 @@ export function FilterBar({
             defaultValue={f.value ?? ""}
             className="h-9 rounded-md border border-border bg-background px-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
           >
-            <option value="">All</option>
+            <option value="">{t(locale, "a.filter.all")}</option>
             {f.options.map((o) => (
               <option key={o.value} value={o.value}>
                 {o.label}
@@ -48,7 +51,7 @@ export function FilterBar({
         type="submit"
         className="h-9 rounded-md bg-foreground px-3 text-sm font-bold text-background hover:opacity-90"
       >
-        Apply
+        {t(locale, "a.act.filter")}
       </button>
     </form>
   );

@@ -71,16 +71,16 @@ export default async function ReportsPage() {
 
       {/* Totals */}
       <section className="grid gap-4 sm:grid-cols-4">
-        <Kpi label="Hours" value={fmtNum(r.totals.hours, { decimals: 1 })} unit="hrs" />
-        <Kpi label="Revenue" value={fmtUsd(r.totals.revenue)} />
-        <Kpi label="Worker pay" value={fmtUsd(r.totals.cost)} />
+        <Kpi label={t(locale, "a.reports.hours")} value={fmtNum(r.totals.hours, { decimals: 1 })} unit="hrs" />
+        <Kpi label={t(locale, "a.reports.revenue")} value={fmtUsd(r.totals.revenue)} />
+        <Kpi label={t(locale, "a.reports.worker_pay")} value={fmtUsd(r.totals.cost)} />
         <Kpi
-          label="Gross margin"
+          label={t(locale, "a.reports.gross_margin")}
           value={fmtUsd(r.totals.margin)}
           accent
           hint={
             marginDelta !== 0
-              ? `${marginDelta >= 0 ? "+" : "−"}${fmtUsd(Math.abs(marginDelta))} vs last month`
+              ? `${marginDelta >= 0 ? "+" : "−"}${fmtUsd(Math.abs(marginDelta))} ${t(locale, "a.reports.vs_last_month")}`
               : undefined
           }
         />
@@ -90,11 +90,11 @@ export default async function ReportsPage() {
       <section className="rounded-xl border border-border bg-background p-5">
         <div className="flex items-baseline justify-between">
           <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-            Revenue · cost · margin (6mo)
+            {t(locale, "a.reports.revenue_cost_margin")}
           </h2>
           <div className="flex items-center gap-4 text-xs">
-            <Legend color={CHART_COLORS.slate} label="Worker pay" />
-            <Legend color={CHART_COLORS.accent} label="Margin" />
+            <Legend color={CHART_COLORS.slate} label={t(locale, "a.reports.worker_pay")} />
+            <Legend color={CHART_COLORS.accent} label={t(locale, "a.reports.margin")} />
           </div>
         </div>
         <div className="mt-6 text-foreground">
@@ -117,10 +117,10 @@ export default async function ReportsPage() {
       <section className="rounded-xl border border-border bg-background p-5">
         <div className="flex items-baseline justify-between">
           <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-            Monthly revenue trend
+            {t(locale, "a.reports.monthly_revenue")}
           </h2>
           <span className="text-xs text-muted-foreground">
-            Total: {fmtUsd(monthly.reduce((s, m) => s + m.revenue, 0))}
+            {t(locale, "a.reports.total")}: {fmtUsd(monthly.reduce((s, m) => s + m.revenue, 0))}
           </span>
         </div>
         <div className="mt-4 text-foreground">
@@ -137,12 +137,12 @@ export default async function ReportsPage() {
       <section className="rounded-xl border border-border bg-background p-5">
         <div className="flex items-baseline justify-between">
           <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-            P&L · trailing 6 months
+            {t(locale, "a.reports.pl_6mo")}
           </h2>
           <div className="flex items-center gap-4 text-xs">
-            <Legend color={CHART_COLORS.accent} label="Revenue" />
-            <Legend color={CHART_COLORS.slate} label="Worker pay" />
-            <Legend color={CHART_COLORS.green} label="Margin" />
+            <Legend color={CHART_COLORS.accent} label={t(locale, "a.reports.revenue")} />
+            <Legend color={CHART_COLORS.slate} label={t(locale, "a.reports.worker_pay")} />
+            <Legend color={CHART_COLORS.green} label={t(locale, "a.reports.margin")} />
           </div>
         </div>
         <div className="mt-4 text-foreground">
@@ -163,7 +163,7 @@ export default async function ReportsPage() {
       <section className="grid gap-6 lg:grid-cols-2">
         <div className="rounded-xl border border-border bg-background p-5">
           <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-            Revenue by employer (6mo)
+            {t(locale, "a.reports.rev_by_employer")}
           </h2>
           <div className="mt-4 text-foreground">
             <HorizontalBarChart
@@ -179,7 +179,7 @@ export default async function ReportsPage() {
 
         <div className="rounded-xl border border-border bg-background p-5">
           <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-            Margin by employer (6mo)
+            {t(locale, "a.reports.margin_by_employer")}
           </h2>
           <div className="mt-4 text-foreground">
             <HorizontalBarChart
@@ -197,19 +197,19 @@ export default async function ReportsPage() {
       {/* By employer table */}
       <section className="rounded-xl border border-border bg-background p-5">
         <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-          By employer · detail
+          {t(locale, "a.reports.by_employer_detail")}
         </h2>
         {r.byEmployer.length === 0 ? (
-          <p className="mt-4 text-sm text-muted-foreground">No approved hours yet.</p>
+          <p className="mt-4 text-sm text-muted-foreground">{t(locale, "a.reports.no_hours")}</p>
         ) : (
           <table className="mt-4 w-full text-sm">
             <thead className="text-left text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
               <tr>
-                <th className="pb-2">Employer</th>
-                <th className="pb-2 text-right">Hours</th>
-                <th className="pb-2 text-right">Revenue</th>
-                <th className="pb-2 text-right">Cost</th>
-                <th className="pb-2 text-right">Margin</th>
+                <th className="pb-2">{t(locale, "a.col.employer")}</th>
+                <th className="pb-2 text-right">{t(locale, "a.col.hours")}</th>
+                <th className="pb-2 text-right">{t(locale, "a.reports.revenue")}</th>
+                <th className="pb-2 text-right">{t(locale, "a.reports.cost")}</th>
+                <th className="pb-2 text-right">{t(locale, "a.reports.margin")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/60">
@@ -234,17 +234,17 @@ export default async function ReportsPage() {
       {/* Top workers */}
       <section className="rounded-xl border border-border bg-background p-5">
         <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-muted-foreground">
-          <TrendingUp className="h-4 w-4" /> Top workers (6mo)
+          <TrendingUp className="h-4 w-4" /> {t(locale, "a.reports.top_workers_6mo")}
         </h2>
         {r.byWorker.length === 0 ? (
-          <p className="mt-4 text-sm text-muted-foreground">No approved hours yet.</p>
+          <p className="mt-4 text-sm text-muted-foreground">{t(locale, "a.reports.no_hours")}</p>
         ) : (
           <table className="mt-4 w-full text-sm">
             <thead className="text-left text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
               <tr>
-                <th className="pb-2">Worker</th>
-                <th className="pb-2 text-right">Hours</th>
-                <th className="pb-2 text-right">Pay earned</th>
+                <th className="pb-2">{t(locale, "a.col.worker")}</th>
+                <th className="pb-2 text-right">{t(locale, "a.col.hours")}</th>
+                <th className="pb-2 text-right">{t(locale, "a.col.pay_earned")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/60">

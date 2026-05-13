@@ -120,42 +120,42 @@ export default async function WorkersPage({
       )}
       <FilterBar
         searchValue={sp.q}
-        searchPlaceholder="Search name, code or email…"
+        searchPlaceholder={t(locale, "a.search.placeholder")}
         filters={[
           {
             name: "status",
-            label: "Status",
+            label: t(locale, "a.filter.status"),
             value: sp.status,
             options: [
-              { value: "active", label: "Active" },
-              { value: "onboarding", label: "Onboarding" },
-              { value: "inactive", label: "Inactive" },
+              { value: "active", label: t(locale, "a.status.active") },
+              { value: "onboarding", label: t(locale, "a.status.onboarding") },
+              { value: "inactive", label: t(locale, "a.status.inactive") },
             ],
           },
           {
             name: "favorite",
-            label: "Favorites",
+            label: t(locale, "a.filter.favorites"),
             value: sp.favorite,
-            options: [{ value: "1", label: "Favorites only" }],
+            options: [{ value: "1", label: t(locale, "a.filter.favorites_only") }],
           },
         ]}
       />
       {workers.length === 0 ? (
         <EmptyState
           icon={<HardHat className="h-5 w-5" />}
-          title="No workers match"
-          body="Adjust filters, or convert applications into workers as you onboard them."
+          title={t(locale, "a.table.no_match")}
+          body={t(locale, "a.table.adjust_filter")}
         />
       ) : (
         <DataTable
           head={
             <>
               <Th className="w-8"></Th>
-              <Th>Name</Th>
-              <Th>Rating</Th>
-              <Th>Status</Th>
-              <Th>Pay rate</Th>
-              <Th>Contact</Th>
+              <Th>{t(locale, "a.col.name")}</Th>
+              <Th>{t(locale, "a.col.rating")}</Th>
+              <Th>{t(locale, "a.filter.status")}</Th>
+              <Th>{t(locale, "a.col.pay_rate")}</Th>
+              <Th>{t(locale, "a.col.contact")}</Th>
             </>
           }
         >

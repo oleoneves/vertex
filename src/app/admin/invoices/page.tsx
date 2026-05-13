@@ -35,7 +35,7 @@ export default async function InvoicesPage({
         title={t(locale, "a.invoices.title")}
         subtitle={t(locale, "a.invoices.subtitle")}
         count={invoices.length}
-        action={{ href: "/admin/invoices/new", label: "Generate" }}
+        action={{ href: "/admin/invoices/new", label: t(locale, "a.invoices.generate") }}
       >
         <a
           href="/api/admin/export?type=invoices"
@@ -49,14 +49,14 @@ export default async function InvoicesPage({
         <div className="mb-6 grid gap-3 sm:grid-cols-2">
           <div className="rounded-lg border border-border bg-background p-4">
             <p className="text-xs uppercase tracking-wider text-muted-foreground">
-              Paid (all time)
+              {t(locale, "a.invoices.paid_all")}
             </p>
             <p className="mt-1 text-2xl font-extrabold tabular-nums">
               {fmtUsd(totals.paid)}
             </p>
           </div>
           <div className="rounded-lg border border-border bg-accent/10 p-4">
-            <p className="text-xs uppercase tracking-wider text-muted-foreground">Outstanding</p>
+            <p className="text-xs uppercase tracking-wider text-muted-foreground">{t(locale, "a.invoices.outstanding")}</p>
             <p className="mt-1 text-2xl font-extrabold tabular-nums">
               {fmtUsd(totals.outstanding)}
             </p>
@@ -68,14 +68,14 @@ export default async function InvoicesPage({
         filters={[
           {
             name: "status",
-            label: "Status",
+            label: t(locale, "a.filter.status"),
             value: sp.status,
             options: [
-              { value: "draft", label: "Draft" },
-              { value: "sent", label: "Sent" },
-              { value: "paid", label: "Paid" },
-              { value: "overdue", label: "Overdue" },
-              { value: "void", label: "Void" },
+              { value: "draft", label: t(locale, "a.status.draft") },
+              { value: "sent", label: t(locale, "a.status.sent") },
+              { value: "paid", label: t(locale, "a.status.paid") },
+              { value: "overdue", label: t(locale, "a.status.overdue") },
+              { value: "void", label: t(locale, "a.status.void") },
             ],
           },
         ]}
@@ -84,18 +84,18 @@ export default async function InvoicesPage({
       {invoices.length === 0 ? (
         <EmptyState
           icon={<Receipt className="h-5 w-5" />}
-          title="No invoices match"
-          body="Generate the first invoice from approved hours in a date range."
+          title={t(locale, "a.table.no_match")}
+          body={t(locale, "a.table.adjust_filter")}
         />
       ) : (
         <DataTable
           head={
             <>
-              <Th>Number</Th>
-              <Th>Employer</Th>
-              <Th>Period</Th>
-              <Th className="text-right">Total</Th>
-              <Th>Status</Th>
+              <Th>{t(locale, "a.col.number")}</Th>
+              <Th>{t(locale, "a.col.employer")}</Th>
+              <Th>{t(locale, "a.col.period")}</Th>
+              <Th className="text-right">{t(locale, "a.col.total")}</Th>
+              <Th>{t(locale, "a.filter.status")}</Th>
               <Th></Th>
             </>
           }

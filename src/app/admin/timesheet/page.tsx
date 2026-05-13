@@ -88,12 +88,12 @@ export default async function TimesheetPage({
         filters={[
           {
             name: "status",
-            label: "Status",
+            label: t(locale, "a.filter.status"),
             value: sp.status,
             options: [
-              { value: "pending", label: "Pending only" },
-              { value: "approved", label: "Approved" },
-              { value: "open", label: "Open (in progress)" },
+              { value: "pending", label: t(locale, "a.filter.pending_only") },
+              { value: "approved", label: t(locale, "a.status.approved") },
+              { value: "open", label: t(locale, "a.filter.open") },
             ],
           },
         ]}
@@ -104,10 +104,10 @@ export default async function TimesheetPage({
         <section className="mb-6 rounded-xl border border-border bg-background p-5">
           <div className="flex items-baseline justify-between">
             <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Clock-in activity · day × hour
+              {t(locale, "a.timesheet.heatmap")}
             </h2>
             <span className="text-xs text-muted-foreground">
-              {fmtHours(heatmapTotal, { decimals: 0 })} logged across {fmtNum(entries.length)} entries
+              {fmtHours(heatmapTotal, { decimals: 0 })} · {fmtNum(entries.length)}
             </span>
           </div>
           <div className="mt-4 text-foreground overflow-x-auto">
@@ -126,8 +126,8 @@ export default async function TimesheetPage({
       {filtered.length === 0 ? (
         <EmptyState
           icon={<Clock className="h-5 w-5" />}
-          title="No time entries match"
-          body="Entries appear here as workers clock in and out."
+          title={t(locale, "a.table.no_match")}
+          body={t(locale, "a.table.adjust_filter")}
         />
       ) : (
         <form action={bulkApprove}>
@@ -148,12 +148,12 @@ export default async function TimesheetPage({
             head={
               <>
                 <Th className="w-8"></Th>
-                <Th>Worker</Th>
-                <Th>Placement</Th>
-                <Th>Clock in</Th>
-                <Th>Clock out</Th>
-                <Th className="text-right">Hours</Th>
-                <Th>Status</Th>
+                <Th>{t(locale, "a.col.worker")}</Th>
+                <Th>{t(locale, "a.col.placement")}</Th>
+                <Th>{t(locale, "a.col.clock_in")}</Th>
+                <Th>{t(locale, "a.col.clock_out")}</Th>
+                <Th className="text-right">{t(locale, "a.col.hours")}</Th>
+                <Th>{t(locale, "a.filter.status")}</Th>
               </>
             }
           >
