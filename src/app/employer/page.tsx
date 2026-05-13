@@ -3,6 +3,12 @@ import { redirect } from "next/navigation";
 import { TrendingUp, Clock, Receipt, AlertCircle } from "lucide-react";
 import { getCurrentEmployer, getEmployerDashboard } from "@/lib/employer";
 import { fmtUsd, fmtHours, fmtNum } from "@/lib/format";
+import {
+  AreaChart,
+  BarChart,
+  Sparkline,
+  CHART_COLORS,
+} from "../_components/charts";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +16,9 @@ export default async function EmployerOverview() {
   const scope = await getCurrentEmployer();
   if (!scope) redirect("/employer/login");
   const d = await getEmployerDashboard(scope.employerId);
+
+  const hoursSpark = d.hoursByDay14.map((p) => p.value);
+  const spendSpark = d.spendByDay14.map((p) => p.value);
 
   return (
     <div className="space-y-6">
@@ -21,28 +30,80 @@ export default async function EmployerOverview() {
       </header>
 
       <section className="grid gap-4 sm:grid-cols-3">
-        <Kpi
+        <KpiSpark
           icon={<TrendingUp className="h-4 w-4" />}
           label="Active workers"
           value={String(d.activePlacements)}
+          spark={[]}
+          color={CHART_COLORS.accent}
           link="/employer/workers"
         />
-        <Kpi
+        <KpiSpark
           icon={<Clock className="h-4 w-4" />}
           label="Hours (last 7d)"
-          value={fmtNum(d.hoursWeek, { decimals: 1 })}
+          value={fmtNum(d.hoursWeek, { decimals: 0 })}
           unit="hrs"
+          spark={hoursSpark.slice(-7)}
+          color={CHART_COLORS.accent}
           link="/employer/hours"
         />
-        <Kpi
+        <KpiSpark
           icon={<Receipt className="h-4 w-4" />}
           label="Outstanding"
           value={fmtUsd(d.outstanding)}
           accent
+          spark={spendSpark.slice(-7)}
+          color={CHART_COLORS.green}
           link="/employer/invoices"
         />
       </section>
 
+      {/* Hours chart */}
+      {d.hoursByDay14.length > 0 && (
+        <section className="rounded-xl border border-border bg-background p-5">
+          <div className="flex items-baseline justify-between">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+              Hours · last 14 days
+            </h2>
+            <span className="text-xs text-muted-foreground">
+              {fmtHours(d.hoursByDay14.reduce((s, x) => s + x.value, 0), { decimals: 0 })} total
+            </span>
+          </div>
+          <div className="mt-4 text-foreground">
+            <AreaChart
+              data={d.hoursByDay14}
+              height={200}
+              yFormatter={(n) => fmtNum(n)}
+              color={CHART_COLORS.accent}
+              xLabels={7}
+            />
+          </div>
+        </section>
+      )}
+
+      {/* Weekly spend (6w bars) */}
+      {d.weeklySpend6w.length > 0 && (
+        <section className="rounded-xl border border-border bg-background p-5">
+          <div className="flex items-baseline justify-between">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+              Weekly spend · last 6 weeks
+            </h2>
+            <span className="text-xs text-muted-foreground">
+              {fmtUsd(d.weeklySpend6w.reduce((s, x) => s + x.value, 0))} total
+            </span>
+          </div>
+          <div className="mt-4 text-foreground">
+            <BarChart
+              data={d.weeklySpend6w}
+              height={200}
+              yFormatter={(n) => fmtUsd(n, { decimals: 0, compact: true })}
+              color={CHART_COLORS.green}
+            />
+          </div>
+        </section>
+      )}
+
+      {/* Recent activity */}
       <section className="rounded-xl border border-border bg-background p-5">
         <div className="flex items-baseline justify-between">
           <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
@@ -100,13 +161,15 @@ export default async function EmployerOverview() {
   );
 }
 
-function Kpi({
+function KpiSpark({
   icon,
   label,
   value,
   unit,
   accent,
   link,
+  spark,
+  color,
 }: {
   icon: React.ReactNode;
   label: string;
@@ -114,6 +177,8 @@ function Kpi({
   unit?: string;
   accent?: boolean;
   link?: string;
+  spark: number[];
+  color: string;
 }) {
   const inner = (
     <div
@@ -128,6 +193,11 @@ function Kpi({
         {value}
         {unit && <span className="ml-1 text-sm font-medium text-muted-foreground">{unit}</span>}
       </p>
+      {spark.length > 1 && (
+        <div className="mt-3 -mx-1 text-foreground">
+          <Sparkline data={spark} stroke={color} fill={color} height={28} />
+        </div>
+      )}
     </div>
   );
   return link ? <Link href={link}>{inner}</Link> : inner;
