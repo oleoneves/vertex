@@ -103,6 +103,13 @@ function makeWorker(n: number, opts: { onboarding?: boolean } = {}): Worker {
     payment_method: n % 3 === 0 ? "check" : "ach",
     notes: null,
     created_at: isoDaysAgo(40 + (n % 30)),
+    // Rating distribution: ~70% 4.5-5.0, ~20% 3.5-4.5, ~10% under
+    rating: opts.onboarding
+      ? null
+      : Math.round((3.0 + ((n * 7) % 21) / 10) * 10) / 10,
+    ratings_count: opts.onboarding ? 0 : 3 + (n % 17),
+    is_favorite: !opts.onboarding && n % 11 === 0,
+    no_show_count: n % 19 === 0 ? 1 + (n % 3) : 0,
   };
 }
 

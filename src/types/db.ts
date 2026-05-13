@@ -61,6 +61,11 @@ export type Worker = {
   payment_method: "check" | "ach" | "zelle" | "cashapp";
   notes: string | null;
   created_at: string;
+  // Reliability / rating (added 2026-05-13, inspired by Bluecrew/Instawork/Wonolo)
+  rating: number | null;        // 1.0 - 5.0 (null when no ratings yet)
+  ratings_count: number;        // total number of ratings received
+  is_favorite: boolean;         // employer can favorite a worker
+  no_show_count: number;        // count of no-show shifts
 };
 
 export type Employer = {

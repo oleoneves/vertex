@@ -8,6 +8,8 @@ import { EmptyState } from "../_components/empty-state";
 import { DataTable, Th, Tr, Td, StatusPill } from "../_components/data-table";
 import { FilterBar } from "../_components/filter-bar";
 import { HorizontalBarChart, USTileMap, CHART_COLORS } from "../../_components/charts";
+import { StarRating } from "../_components/star-rating";
+import { FavoriteToggle } from "../_components/favorite-toggle";
 
 import { fmtUsd, fmtNum } from "@/lib/format";
 export const dynamic = "force-dynamic";
@@ -22,10 +24,15 @@ function initials(name: string) {
     .toUpperCase();
 }
 
-async function load(filters: { status?: string; q?: string }): Promise<Worker[]> {
+async function load(filters: {
+  status?: string;
+  q?: string;
+  favorite?: string;
+}): Promise<Worker[]> {
   if (isDemoMode()) {
     let workers = demoWorkers();
     if (filters.status) workers = workers.filter((w) => w.status === filters.status);
+    if (filters.favorite === "1") workers = workers.filter((w) => w.is_favorite);
     if (filters.q) {
       const q = filters.q.toLowerCase();
       workers = workers.filter(
@@ -50,6 +57,7 @@ async function load(filters: { status?: string; q?: string }): Promise<Worker[]>
     .order("created_at", { ascending: false })
     .limit(200);
   if (filters.status) q = q.eq("status", filters.status);
+  if (filters.favorite === "1") q = q.eq("is_favorite", true);
   if (filters.q) q = q.or(`full_name.ilike.%${filters.q}%,employee_code.ilike.%${filters.q}%,email.ilike.%${filters.q}%`);
   const { data } = await q;
   return (data as Worker[]) ?? [];
@@ -58,7 +66,7 @@ async function load(filters: { status?: string; q?: string }): Promise<Worker[]>
 export default async function WorkersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; q?: string }>;
+  searchParams: Promise<{ status?: string; q?: string; favorite?: string }>;
 }) {
   const sp = await searchParams;
   const workers = await load(sp);
@@ -122,6 +130,12 @@ export default async function WorkersPage({
               { value: "inactive", label: "Inactive" },
             ],
           },
+          {
+            name: "favorite",
+            label: "Favorites",
+            value: sp.favorite,
+            options: [{ value: "1", label: "Favorites only" }],
+          },
         ]}
       />
       {workers.length === 0 ? (
@@ -134,8 +148,9 @@ export default async function WorkersPage({
         <DataTable
           head={
             <>
+              <Th className="w-8"></Th>
               <Th>Name</Th>
-              <Th>Code</Th>
+              <Th>Rating</Th>
               <Th>Status</Th>
               <Th>Pay rate</Th>
               <Th>Contact</Th>
@@ -145,6 +160,9 @@ export default async function WorkersPage({
           {workers.map((w) => (
             <Tr key={w.id}>
               <Td>
+                <FavoriteToggle workerId={w.id} initial={w.is_favorite} />
+              </Td>
+              <Td>
                 <Link
                   href={`/admin/workers/${w.id}`}
                   className="flex items-center gap-2 hover:text-accent"
@@ -152,13 +170,21 @@ export default async function WorkersPage({
                   <span className="flex h-7 w-7 items-center justify-center rounded-full bg-muted text-[10px] font-bold text-muted-foreground">
                     {initials(w.full_name)}
                   </span>
-                  <span className="font-medium">{w.full_name}</span>
+                  <span className="min-w-0">
+                    <span className="block font-medium">{w.full_name}</span>
+                    <span className="block font-mono text-[10px] text-muted-foreground">
+                      {w.employee_code ?? "—"}
+                    </span>
+                  </span>
                 </Link>
               </Td>
               <Td>
-                <span className="font-mono text-xs text-muted-foreground">
-                  {w.employee_code ?? "—"}
-                </span>
+                <StarRating value={w.rating} count={w.ratings_count} size="xs" />
+                {w.no_show_count > 0 && (
+                  <div className="mt-0.5 text-[10px] text-red-600 dark:text-red-400">
+                    {w.no_show_count} no-show{w.no_show_count !== 1 ? "s" : ""}
+                  </div>
+                )}
               </Td>
               <Td>
                 <StatusPill
