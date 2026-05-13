@@ -635,40 +635,74 @@ export function demoInvoiceDetail(id: string): DemoInvoiceDetail | null {
   const employer = demoEmployers().find((e) => e.id === inv.employer_id);
 
   const billRate = inv.employer_id === ID.emp.clearwave ? 26 : 25;
-  const workers = demoWorkers();
-
-  // Pick a worker pool relevant to this employer's placements
-  const placements = demoPlacements().filter((p) => p.employer_id === inv.employer_id);
-  const employerWorkerIds = new Set(placements.map((p) => p.worker_id));
-  const pool = workers.filter((w) => employerWorkerIds.has(w.id));
-  const eligible = pool.length > 0 ? pool : workers.slice(0, 30);
-
   const subtotal = Number(inv.subtotal);
-  const targetHours = Math.round((subtotal / billRate) * 100) / 100;
 
-  // Cap line count at 50; clamp at the eligible pool size; floor at 8
-  const lineCount = Math.min(50, Math.max(8, eligible.length));
-  const perLine = Math.floor((targetHours / lineCount) * 100) / 100;
+  // Service mix by employer:
+  // - Remote/large projects (Sunbelt, Restoration) → labor + travel + per diem
+  // - Local clients (Hilton, ClearWave, Westlake) → labor only (no travel/per diem)
+  const remoteEmployers = new Set<string>([ID.emp.sunbelt, ID.emp.restoration]);
+  const isRemote = remoteEmployers.has(inv.employer_id);
 
   const lines: (InvoiceLineItem & { worker: { full_name: string } | null })[] = [];
-  let allocatedHours = 0;
-  for (let i = 0; i < lineCount; i++) {
-    const isLast = i === lineCount - 1;
-    const hours = isLast
-      ? Math.round((targetHours - allocatedHours) * 100) / 100
-      : perLine;
-    allocatedHours = Math.round((allocatedHours + hours) * 100) / 100;
-    const w = eligible[i % eligible.length];
+  const periodLabel = `${inv.period_start} → ${inv.period_end}`;
+
+  if (isRemote) {
+    // 85% labor, 5% travel time, 10% per diem
+    const laborAmount = Math.round(subtotal * 0.85 * 100) / 100;
+    const travelAmount = Math.round(subtotal * 0.05 * 100) / 100;
+    const perDiemAmount = Math.round((subtotal - laborAmount - travelAmount) * 100) / 100;
+
+    const laborHours = Math.round((laborAmount / billRate) * 100) / 100;
+    const travelHours = Math.round((travelAmount / billRate) * 100) / 100;
+    const perDiemDays = Math.round(perDiemAmount / 24);
+    const perDiemRate = perDiemDays > 0 ? Math.round((perDiemAmount / perDiemDays) * 100) / 100 : 0;
+
     lines.push({
-      id: `${inv.id}-line-${i}`,
+      id: `${inv.id}-line-labor`,
       invoice_id: inv.id,
-      worker_id: w.id,
+      worker_id: "",
       placement_id: null,
-      description: `Labor services · ${inv.period_start} → ${inv.period_end}`,
+      description: `Labor services — week of ${periodLabel}`,
+      hours: laborHours,
+      rate: billRate,
+      amount: laborAmount,
+      worker: null,
+    });
+    lines.push({
+      id: `${inv.id}-line-travel`,
+      invoice_id: inv.id,
+      worker_id: "",
+      placement_id: null,
+      description: `Travel time — round trip to/from job site`,
+      hours: travelHours,
+      rate: billRate,
+      amount: travelAmount,
+      worker: null,
+    });
+    lines.push({
+      id: `${inv.id}-line-per-diem`,
+      invoice_id: inv.id,
+      worker_id: "",
+      placement_id: null,
+      description: `Per diem — meals & lodging (${perDiemDays} person-days)`,
+      hours: perDiemDays,
+      rate: perDiemRate,
+      amount: perDiemAmount,
+      worker: null,
+    });
+  } else {
+    // Local jobs: single labor line
+    const hours = Math.round((subtotal / billRate) * 100) / 100;
+    lines.push({
+      id: `${inv.id}-line-labor`,
+      invoice_id: inv.id,
+      worker_id: "",
+      placement_id: null,
+      description: `Labor services — week of ${periodLabel}`,
       hours,
       rate: billRate,
-      amount: Math.round(hours * billRate * 100) / 100,
-      worker: { full_name: w.full_name },
+      amount: subtotal,
+      worker: null,
     });
   }
 

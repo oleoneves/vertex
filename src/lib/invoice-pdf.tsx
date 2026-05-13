@@ -408,7 +408,6 @@ export function InvoicePDF({ data }: { data: InvoicePDFData }) {
       )
     : 15;
   const status = statusStyle(invoice.status);
-  const totalHours = lines.reduce((s, l) => s + (Number(l.hours) || 0), 0);
 
   return (
     <Document
@@ -498,8 +497,8 @@ export function InvoicePDF({ data }: { data: InvoicePDFData }) {
 
           {/* Line items */}
           <View style={styles.tableHead}>
-            <Text style={[styles.th, styles.cDescription]}>Description</Text>
-            <Text style={[styles.th, styles.cHours]}>Hours</Text>
+            <Text style={[styles.th, styles.cDescription]}>Service</Text>
+            <Text style={[styles.th, styles.cHours]}>Qty</Text>
             <Text style={[styles.th, styles.cRate]}>Rate</Text>
             <Text style={[styles.th, styles.cAmount]}>Amount</Text>
           </View>
@@ -518,10 +517,7 @@ export function InvoicePDF({ data }: { data: InvoicePDFData }) {
                 wrap={false}
               >
                 <View style={styles.cDescription}>
-                  <Text style={styles.descPrimary}>
-                    {l.worker?.full_name ?? "Labor services"}
-                  </Text>
-                  <Text style={styles.descSecondary}>{l.description}</Text>
+                  <Text style={styles.descPrimary}>{l.description}</Text>
                 </View>
                 <Text style={[styles.num, styles.cHours]}>
                   {Number(l.hours).toFixed(2)}
@@ -544,10 +540,7 @@ export function InvoicePDF({ data }: { data: InvoicePDFData }) {
                 }}
               >
                 <Text style={{ fontSize: 8.5, color: COLORS.faint }}>
-                  Total hours billed:{" "}
-                  <Text style={{ fontFamily: "Helvetica-Bold", color: COLORS.black }}>
-                    {totalHours.toFixed(2)}
-                  </Text>
+                  Service period: {fmtDate(invoice.period_start)} → {fmtDate(invoice.period_end)}
                 </Text>
                 <Text style={{ fontSize: 8.5, color: COLORS.faint, marginTop: 3 }}>
                   Line items: {lines.length}

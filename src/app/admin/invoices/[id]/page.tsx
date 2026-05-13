@@ -133,7 +133,6 @@ export default async function InvoiceDetailPage({
   const paidTotal = payments.reduce((s, p) => s + Number(p.amount), 0);
   const balance = Math.max(0, Number(inv.total) - paidTotal);
   const billingEmail = employer?.billing_email ?? null;
-  const totalHours = inv.lines.reduce((s, l) => s + (Number(l.hours) || 0), 0);
 
   return (
     <div className="space-y-6">
@@ -287,18 +286,18 @@ export default async function InvoiceDetailPage({
       <div className="rounded-lg border border-border bg-background overflow-hidden">
         <div className="flex items-center justify-between border-b border-border px-5 py-3">
           <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-            Line items
+            Services
           </p>
           <p className="text-xs text-muted-foreground">
-            {inv.lines.length} lines · {totalHours.toFixed(2)} hours total
+            {inv.lines.length} {inv.lines.length === 1 ? "line" : "lines"}
           </p>
         </div>
         <div className="max-h-96 overflow-y-auto">
           <table className="w-full text-sm">
             <thead className="sticky top-0 bg-background">
               <tr className="border-b border-border text-left text-[10px] uppercase tracking-wider text-muted-foreground">
-                <th className="px-5 py-2 font-bold">Worker / description</th>
-                <th className="px-5 py-2 text-right font-bold">Hours</th>
+                <th className="px-5 py-2 font-bold">Service</th>
+                <th className="px-5 py-2 text-right font-bold">Qty</th>
                 <th className="px-5 py-2 text-right font-bold">Rate</th>
                 <th className="px-5 py-2 text-right font-bold">Amount</th>
               </tr>
@@ -307,7 +306,7 @@ export default async function InvoiceDetailPage({
               {inv.lines.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="px-5 py-6 text-center text-muted-foreground">
-                    No approved hours in this period.
+                    No approved services in this period.
                   </td>
                 </tr>
               ) : (
@@ -317,8 +316,7 @@ export default async function InvoiceDetailPage({
                     className={`border-b border-border/60 ${i % 2 === 1 ? "bg-muted/30" : ""}`}
                   >
                     <td className="px-5 py-2.5">
-                      <div className="font-medium">{l.worker?.full_name ?? "Labor services"}</div>
-                      <div className="text-xs text-muted-foreground">{l.description}</div>
+                      <div className="font-medium">{l.description}</div>
                     </td>
                     <td className="px-5 py-2.5 text-right font-mono tabular-nums">
                       {Number(l.hours).toFixed(2)}

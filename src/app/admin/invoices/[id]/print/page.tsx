@@ -76,7 +76,6 @@ export default async function PrintInvoice({
       )
     : employer?.payment_terms_days ?? 15;
   const status = statusColor(inv.status);
-  const totalHours = inv.lines.reduce((s, l) => s + (Number(l.hours) || 0), 0);
 
   return (
     <html lang="en">
@@ -423,8 +422,8 @@ export default async function PrintInvoice({
             <table className="lines">
               <thead>
                 <tr>
-                  <th>Description</th>
-                  <th className="right" style={{ width: 80 }}>Hours</th>
+                  <th>Service</th>
+                  <th className="right" style={{ width: 80 }}>Qty</th>
                   <th className="right" style={{ width: 90 }}>Rate</th>
                   <th className="right" style={{ width: 110 }}>Amount</th>
                 </tr>
@@ -440,10 +439,7 @@ export default async function PrintInvoice({
                   inv.lines.map((l) => (
                     <tr key={l.id}>
                       <td>
-                        <div className="desc-primary">
-                          {l.worker?.full_name ?? "Labor services"}
-                        </div>
-                        <div className="desc-secondary">{l.description}</div>
+                        <div className="desc-primary">{l.description}</div>
                       </td>
                       <td className="right">{Number(l.hours).toFixed(2)}</td>
                       <td className="right">{fmtMoney(l.rate)}</td>
@@ -457,7 +453,7 @@ export default async function PrintInvoice({
             <div className="totals">
               <div className="totals-hint">
                 <div>
-                  Total hours billed: <strong>{totalHours.toFixed(2)}</strong>
+                  Service period: <strong>{fmtDate(inv.period_start)} → {fmtDate(inv.period_end)}</strong>
                 </div>
                 <div style={{ marginTop: 3 }}>Line items: {inv.lines.length}</div>
               </div>

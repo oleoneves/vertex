@@ -81,8 +81,8 @@ export default async function EmployerInvoiceDetail({
         <table className="mt-6 w-full text-sm">
           <thead>
             <tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground">
-              <th className="py-2">Description</th>
-              <th className="py-2 text-right">Hours</th>
+              <th className="py-2">Service</th>
+              <th className="py-2 text-right">Qty</th>
               <th className="py-2 text-right">Rate</th>
               <th className="py-2 text-right">Amount</th>
             </tr>
