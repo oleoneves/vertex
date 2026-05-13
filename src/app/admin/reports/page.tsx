@@ -1,7 +1,14 @@
 import { Download, TrendingUp } from "lucide-react";
 import { loadReports } from "@/lib/reports";
+import { loadDashboard } from "@/lib/dashboard";
 import { PageHeader } from "../_components/page-header";
 import { fmtUsd, fmtNum } from "@/lib/format";
+import {
+  AreaChart,
+  StackedBarChart,
+  HorizontalBarChart,
+  CHART_COLORS,
+} from "../../_components/charts";
 
 export const dynamic = "force-dynamic";
 
@@ -16,11 +23,25 @@ function monthLabel(key: string): string {
 }
 
 export default async function ReportsPage() {
-  const r = await loadReports({ months: 6 });
-  const maxMargin = Math.max(1, ...r.monthly.map((m) => m.margin));
+  const [r, dash] = await Promise.all([
+    loadReports({ months: 6 }),
+    loadDashboard(),
+  ]);
   const last = r.monthly[r.monthly.length - 1];
   const prev = r.monthly[r.monthly.length - 2];
   const marginDelta = last && prev ? last.margin - prev.margin : 0;
+
+  // Use the richer monthlyRevenue from demo when available, else fallback to reports.monthly
+  const monthly =
+    dash.monthlyRevenue.length > 0
+      ? dash.monthlyRevenue
+      : r.monthly.map((m) => ({
+          month: m.month,
+          label: monthLabel(m.month),
+          revenue: m.revenue,
+          cost: m.cost,
+          margin: m.margin,
+        }));
 
   return (
     <div className="space-y-8">
@@ -59,35 +80,92 @@ export default async function ReportsPage() {
         />
       </section>
 
-      {/* Monthly bars */}
+      {/* Revenue vs cost (stacked) */}
       <section className="rounded-xl border border-border bg-background p-5">
-        <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-          Monthly margin
-        </h2>
-        <div className="mt-6 grid grid-cols-6 items-end gap-3 h-44">
-          {r.monthly.map((m) => {
-            const heightPct = Math.round((m.margin / maxMargin) * 100);
-            return (
-              <div key={m.month} className="flex h-full flex-col items-center justify-end">
-                <div
-                  className="w-full rounded-t bg-accent transition-all"
-                  style={{ height: `${heightPct}%`, minHeight: m.margin > 0 ? "6px" : 0 }}
-                  title={fmtUsd(m.margin)}
-                />
-                <div className="mt-2 text-xs text-muted-foreground">{monthLabel(m.month)}</div>
-                <div className="text-[10px] font-mono text-muted-foreground">
-                  {fmtUsd(m.margin)}
-                </div>
-              </div>
-            );
-          })}
+        <div className="flex items-baseline justify-between">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+            Revenue · cost · margin (6mo)
+          </h2>
+          <div className="flex items-center gap-4 text-xs">
+            <Legend color={CHART_COLORS.slate} label="Worker pay" />
+            <Legend color={CHART_COLORS.accent} label="Margin" />
+          </div>
+        </div>
+        <div className="mt-6 text-foreground">
+          <StackedBarChart
+            data={monthly.map((m) => ({
+              label: m.label,
+              values: [m.cost, m.margin],
+            }))}
+            series={[
+              { name: "Worker pay", color: CHART_COLORS.slate },
+              { name: "Margin", color: CHART_COLORS.accent },
+            ]}
+            height={240}
+            yFormatter={(n) => fmtUsd(n, { decimals: 0, compact: true })}
+          />
         </div>
       </section>
 
-      {/* By employer */}
+      {/* Revenue trend line */}
+      <section className="rounded-xl border border-border bg-background p-5">
+        <div className="flex items-baseline justify-between">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+            Monthly revenue trend
+          </h2>
+          <span className="text-xs text-muted-foreground">
+            Total: {fmtUsd(monthly.reduce((s, m) => s + m.revenue, 0))}
+          </span>
+        </div>
+        <div className="mt-4 text-foreground">
+          <AreaChart
+            data={monthly.map((m) => ({ label: m.label, value: m.revenue }))}
+            height={200}
+            yFormatter={(n) => fmtUsd(n, { decimals: 0, compact: true })}
+            color={CHART_COLORS.accent}
+          />
+        </div>
+      </section>
+
+      {/* By employer (chart + table) */}
+      <section className="grid gap-6 lg:grid-cols-2">
+        <div className="rounded-xl border border-border bg-background p-5">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+            Revenue by employer (6mo)
+          </h2>
+          <div className="mt-4 text-foreground">
+            <HorizontalBarChart
+              data={r.byEmployer.slice(0, 8).map((e) => ({
+                label: e.employer,
+                value: e.revenue,
+              }))}
+              formatter={(n) => fmtUsd(n, { decimals: 0, compact: true })}
+              color={CHART_COLORS.accent}
+            />
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-border bg-background p-5">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+            Margin by employer (6mo)
+          </h2>
+          <div className="mt-4 text-foreground">
+            <HorizontalBarChart
+              data={r.byEmployer.slice(0, 8).map((e) => ({
+                label: e.employer,
+                value: e.margin,
+              }))}
+              formatter={(n) => fmtUsd(n, { decimals: 0, compact: true })}
+              color={CHART_COLORS.green}
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* By employer table */}
       <section className="rounded-xl border border-border bg-background p-5">
         <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-          By employer (6mo)
+          By employer · detail
         </h2>
         {r.byEmployer.length === 0 ? (
           <p className="mt-4 text-sm text-muted-foreground">No approved hours yet.</p>
@@ -179,5 +257,17 @@ function Kpi({
       </p>
       {hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}
     </div>
+  );
+}
+
+function Legend({ color, label }: { color: string; label: string }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+      <span
+        className="h-2.5 w-2.5 rounded-sm"
+        style={{ backgroundColor: color }}
+      />
+      {label}
+    </span>
   );
 }

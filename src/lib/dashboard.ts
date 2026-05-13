@@ -29,6 +29,12 @@ export type DashboardData = {
   topEmployers: { name: string; revenue: number }[];
   topWorkers: { name: string; hours: number }[];
   recentActivity: { type: string; label: string; at: string }[];
+  // Time-series for charts:
+  revenueByDay30: { date: string; label: string; value: number }[];
+  marginByDay30: { date: string; label: string; value: number }[];
+  applicationsByDay14: { date: string; label: string; value: number }[];
+  monthlyRevenue: { month: string; label: string; revenue: number; cost: number; margin: number }[];
+  workersByStatus: { active: number; onboarding: number; inactive: number };
 };
 
 export const EMPTY_DASHBOARD: DashboardData = {
@@ -48,6 +54,11 @@ export const EMPTY_DASHBOARD: DashboardData = {
   topEmployers: [],
   topWorkers: [],
   recentActivity: [],
+  revenueByDay30: [],
+  marginByDay30: [],
+  applicationsByDay14: [],
+  monthlyRevenue: [],
+  workersByStatus: { active: 0, onboarding: 0, inactive: 0 },
 };
 
 function dayBuckets() {
@@ -357,5 +368,12 @@ export async function loadDashboard(): Promise<DashboardData> {
     topEmployers,
     topWorkers,
     recentActivity: recentActivity.slice(0, 8),
+    // TODO: implement real-data series for these (left as empty arrays so the
+    // dashboard still renders with chart placeholders). Demo mode has rich data.
+    revenueByDay30: [],
+    marginByDay30: [],
+    applicationsByDay14: [],
+    monthlyRevenue: [],
+    workersByStatus: { active: activeWorkersCount.count ?? 0, onboarding: 0, inactive: 0 },
   };
 }

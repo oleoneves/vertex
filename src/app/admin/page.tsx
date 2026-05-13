@@ -1,12 +1,24 @@
 import Link from "next/link";
 import { loadDashboard } from "@/lib/dashboard";
 import { fmtUsd, fmtNum, fmtHours } from "@/lib/format";
+import {
+  Sparkline,
+  AreaChart,
+  BarChart,
+  HorizontalBarChart,
+  DonutChart,
+  CHART_COLORS,
+} from "../_components/charts";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboard() {
   const d = await loadDashboard();
-  const maxHours = Math.max(1, ...d.hoursByDay.map((h) => h.hours));
+
+  // Derive sparkline series from the new time-series
+  const revenueSpark = d.revenueByDay30.map((p) => p.value);
+  const marginSpark = d.marginByDay30.map((p) => p.value);
+  const appsSpark = d.applicationsByDay14.map((p) => p.value);
 
   return (
     <div className="space-y-8">
@@ -15,28 +27,33 @@ export default async function AdminDashboard() {
         <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Overview</h1>
       </header>
 
-      {/* Money row */}
+      {/* Money row with sparklines */}
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Kpi
+        <KpiSpark
           label="Revenue MTD"
           value={fmtUsd(d.revenueMtd)}
+          spark={revenueSpark}
+          color={CHART_COLORS.accent}
           accent
         />
-        <Kpi
+        <KpiSpark
           label="Margin this week"
           value={fmtUsd(d.marginThisWeek)}
           hint="bill − pay on logged hours"
+          spark={marginSpark}
+          color={CHART_COLORS.green}
         />
         <Kpi
           label="Outstanding"
           value={fmtUsd(d.outstanding)}
           hint={d.outstanding > 0 ? "invoices sent" : ""}
         />
-        <Kpi
-          label="Pending review"
-          value={`${d.pendingTimesheets}`}
-          unit="entries"
-          link="/admin/timesheet"
+        <KpiSpark
+          label="Applications (24h)"
+          value={`${d.newApplications24h}`}
+          spark={appsSpark}
+          color={CHART_COLORS.blue}
+          link="/admin/applications"
         />
       </section>
 
@@ -45,7 +62,12 @@ export default async function AdminDashboard() {
         <Kpi label="Active workers" value={`${d.activeWorkers}`} link="/admin/workers" />
         <Kpi label="Active placements" value={`${d.activePlacements}`} link="/admin/placements" />
         <Kpi label="Open jobs" value={`${d.openJobs}`} link="/admin/jobs" />
-        <Kpi label="Applications (24h)" value={`${d.newApplications24h}`} link="/admin/applications" />
+        <Kpi
+          label="Pending review"
+          value={`${d.pendingTimesheets}`}
+          unit="entries"
+          link="/admin/timesheet"
+        />
       </section>
 
       {/* Live: who's on the clock right now */}
@@ -89,35 +111,52 @@ export default async function AdminDashboard() {
         </section>
       )}
 
+      {/* Revenue trend */}
+      {d.revenueByDay30.length > 0 && (
+        <section className="rounded-xl border border-border bg-background p-5">
+          <div className="flex items-baseline justify-between">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+              Revenue · last 30 days
+            </h2>
+            <span className="text-xs text-muted-foreground">
+              {fmtUsd(d.revenueByDay30.reduce((s, x) => s + x.value, 0))} total
+            </span>
+          </div>
+          <div className="mt-4 text-foreground">
+            <AreaChart
+              data={d.revenueByDay30}
+              height={220}
+              yFormatter={(n) => fmtUsd(n, { decimals: 0, compact: true })}
+              color={CHART_COLORS.accent}
+              xLabels={6}
+            />
+          </div>
+        </section>
+      )}
+
       {/* Hours chart + activity */}
       <section className="grid gap-6 lg:grid-cols-3">
-        <div className="rounded-lg border border-border bg-background p-5 lg:col-span-2">
+        <div className="rounded-xl border border-border bg-background p-5 lg:col-span-2">
           <div className="flex items-baseline justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
               Hours this week
             </h2>
-            <span className="text-xs text-muted-foreground">{d.hoursThisWeek} total</span>
+            <span className="text-xs text-muted-foreground">
+              {fmtHours(d.hoursThisWeek, { decimals: 0 })} total
+            </span>
           </div>
-          <div className="mt-5 grid grid-cols-7 items-end gap-2 h-40">
-            {d.hoursByDay.map((b) => {
-              const heightPct = Math.round((b.hours / maxHours) * 100);
-              return (
-                <div key={b.day} className="flex h-full flex-col items-center justify-end">
-                  <div
-                    className="w-full rounded-t bg-accent"
-                    style={{ height: `${heightPct}%`, minHeight: b.hours > 0 ? "4px" : "0" }}
-                    title={`${b.hours}h`}
-                  />
-                  <div className="mt-2 text-xs text-muted-foreground">{b.day}</div>
-                  <div className="text-[10px] font-mono text-muted-foreground">{b.hours}</div>
-                </div>
-              );
-            })}
+          <div className="mt-4 text-foreground">
+            <BarChart
+              data={d.hoursByDay.map((b) => ({ label: b.day, value: b.hours }))}
+              height={180}
+              yFormatter={(n) => fmtNum(n)}
+              color={CHART_COLORS.accent}
+            />
           </div>
         </div>
 
-        <div className="rounded-lg border border-border bg-background p-5">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+        <div className="rounded-xl border border-border bg-background p-5">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
             Recent activity
           </h2>
           <ul className="mt-4 space-y-3 text-sm">
@@ -224,21 +263,65 @@ export default async function AdminDashboard() {
         </section>
       )}
 
-      {/* Top employers + workers */}
-      <section className="grid gap-6 lg:grid-cols-2">
-        <RankCard
-          title="Top employers (90d revenue)"
-          rows={d.topEmployers.map((e) => ({ label: e.name, value: fmtUsd(e.revenue) }))}
-        />
-        <RankCard
-          title="Top workers (30d hours)"
-          rows={d.topWorkers.map((w) => ({ label: w.name, value: fmtHours(w.hours, { decimals: 0 }) }))}
-        />
+      {/* Top employers / workers / workforce mix */}
+      <section className="grid gap-6 lg:grid-cols-3">
+        <div className="rounded-xl border border-border bg-background p-5">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+            Top employers (90d revenue)
+          </h2>
+          <div className="mt-4 text-foreground">
+            <HorizontalBarChart
+              data={d.topEmployers.map((e) => ({ label: e.name, value: e.revenue }))}
+              formatter={(n) => fmtUsd(n, { decimals: 0, compact: true })}
+              color={CHART_COLORS.accent}
+            />
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-border bg-background p-5">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+            Top workers (30d hours)
+          </h2>
+          <div className="mt-4 text-foreground">
+            <HorizontalBarChart
+              data={d.topWorkers.map((w) => ({ label: w.name, value: w.hours }))}
+              formatter={(n) => fmtHours(n, { decimals: 0 })}
+              color={CHART_COLORS.green}
+            />
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-border bg-background p-5">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+            Workforce mix
+          </h2>
+          <div className="mt-4 text-foreground">
+            <DonutChart
+              data={[
+                {
+                  label: "Active",
+                  value: d.workersByStatus.active,
+                  color: CHART_COLORS.green,
+                },
+                {
+                  label: "Onboarding",
+                  value: d.workersByStatus.onboarding,
+                  color: CHART_COLORS.amber,
+                },
+                {
+                  label: "Inactive",
+                  value: d.workersByStatus.inactive,
+                  color: CHART_COLORS.muted,
+                },
+              ]}
+            />
+          </div>
+        </div>
       </section>
 
       {!process.env.NEXT_PUBLIC_SUPABASE_URL && (
         <p className="rounded-lg border border-dashed border-border bg-muted/40 p-4 text-sm text-muted-foreground">
-          Showing empty state — connect Supabase + run{" "}
+          Showing demo data — connect Supabase + run{" "}
           <code className="font-mono text-xs">supabase/seed.sql</code> +{" "}
           <code className="font-mono text-xs">supabase/seed_workforce.sql</code> to populate.
         </p>
@@ -264,12 +347,12 @@ function Kpi({
 }) {
   const inner = (
     <div
-      className={`relative rounded-lg border border-border p-5 ${
+      className={`rounded-xl border border-border p-5 ${
         accent ? "bg-accent/10" : "bg-background"
-      } ${link ? "transition hover:border-accent" : ""}`}
+      } ${link ? "transition hover:border-foreground/30" : ""}`}
     >
       <p className="text-xs uppercase tracking-wider text-muted-foreground">{label}</p>
-      <p className="mt-2 text-3xl font-extrabold tracking-tight">
+      <p className="mt-2 text-2xl font-extrabold tracking-tight tabular-nums">
         {value}
         {unit && <span className="ml-1 text-sm font-medium text-muted-foreground">{unit}</span>}
       </p>
@@ -279,30 +362,38 @@ function Kpi({
   return link ? <Link href={link}>{inner}</Link> : inner;
 }
 
-function RankCard({
-  title,
-  rows,
+function KpiSpark({
+  label,
+  value,
+  hint,
+  spark,
+  color,
+  accent,
+  link,
 }: {
-  title: string;
-  rows: { label: string; value: string }[];
+  label: string;
+  value: string;
+  hint?: string;
+  spark: number[];
+  color: string;
+  accent?: boolean;
+  link?: string;
 }) {
-  return (
-    <div className="rounded-lg border border-border bg-background p-5">
-      <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-        {title}
-      </h2>
-      <ol className="mt-4 space-y-2 text-sm">
-        {rows.length === 0 && <li className="text-muted-foreground">No data yet.</li>}
-        {rows.map((r, i) => (
-          <li key={i} className="flex items-baseline justify-between gap-3 border-b border-border/60 pb-2 last:border-0 last:pb-0">
-            <span className="flex items-baseline gap-2">
-              <span className="font-mono text-xs text-muted-foreground">{i + 1}.</span>
-              <span className="font-medium">{r.label}</span>
-            </span>
-            <span className="font-mono">{r.value}</span>
-          </li>
-        ))}
-      </ol>
+  const inner = (
+    <div
+      className={`rounded-xl border border-border p-5 ${
+        accent ? "bg-accent/10" : "bg-background"
+      } ${link ? "transition hover:border-foreground/30" : ""}`}
+    >
+      <p className="text-xs uppercase tracking-wider text-muted-foreground">{label}</p>
+      <p className="mt-2 text-2xl font-extrabold tracking-tight tabular-nums">{value}</p>
+      {hint && <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>}
+      {spark.length > 0 && (
+        <div className="mt-3 -mx-1">
+          <Sparkline data={spark} stroke={color} fill={color} height={28} />
+        </div>
+      )}
     </div>
   );
+  return link ? <Link href={link}>{inner}</Link> : inner;
 }

@@ -418,7 +418,75 @@ export function demoDashboard() {
       hours: 240 - (Number(w.id.slice(-3)) % 6) * 8,
     })),
     recentActivity: recentActivitySample(),
+    revenueByDay30: revenueSeriesByDay(30),
+    marginByDay30: marginSeriesByDay(30),
+    applicationsByDay14: applicationsSeriesByDay(14),
+    monthlyRevenue: monthlyRevenueSeries(6),
+    workersByStatus: { active: 190, onboarding: 10, inactive: 0 },
   };
+}
+
+function dateLabel(d: Date): string {
+  return `${["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][d.getUTCMonth()]} ${d.getUTCDate()}`;
+}
+
+function revenueSeriesByDay(days: number): { date: string; label: string; value: number }[] {
+  const now = new Date();
+  return Array.from({ length: days }).map((_, i) => {
+    const d = new Date(now);
+    d.setUTCDate(now.getUTCDate() - (days - 1 - i));
+    const dow = d.getUTCDay();
+    // Weekday baseline ~$8500, weekend ~$1500; sprinkle some variance
+    const base = dow === 0 || dow === 6 ? 1500 : 8500;
+    const variance = 1 + ((i * 37) % 30 - 15) / 100;
+    return {
+      date: d.toISOString().slice(0, 10),
+      label: dateLabel(d),
+      value: Math.round(base * variance),
+    };
+  });
+}
+
+function marginSeriesByDay(days: number): { date: string; label: string; value: number }[] {
+  return revenueSeriesByDay(days).map((d) => ({
+    ...d,
+    value: Math.round(d.value * 0.4),
+  }));
+}
+
+function applicationsSeriesByDay(days: number): { date: string; label: string; value: number }[] {
+  const now = new Date();
+  return Array.from({ length: days }).map((_, i) => {
+    const d = new Date(now);
+    d.setUTCDate(now.getUTCDate() - (days - 1 - i));
+    return {
+      date: d.toISOString().slice(0, 10),
+      label: dateLabel(d),
+      value: ((i * 13) % 5) + (i % 3 === 0 ? 2 : 0),
+    };
+  });
+}
+
+function monthlyRevenueSeries(
+  months: number,
+): { month: string; label: string; revenue: number; cost: number; margin: number }[] {
+  const now = new Date();
+  const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  return Array.from({ length: months }).map((_, i) => {
+    const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - (months - 1 - i), 1));
+    // Growth trend: ~$120k → $220k
+    const factor = 1 + (i / (months - 1)) * 0.85;
+    const revenue = Math.round(120_000 * factor);
+    const cost = Math.round(revenue * 0.6);
+    const margin = revenue - cost;
+    return {
+      month: `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`,
+      label: `${MONTHS[d.getUTCMonth()]} ${String(d.getUTCFullYear()).slice(2)}`,
+      revenue,
+      cost,
+      margin,
+    };
+  });
 }
 
 function liveOnTheClockSample() {
