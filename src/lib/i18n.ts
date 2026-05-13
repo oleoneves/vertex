@@ -279,6 +279,7 @@ const dict = {
 
   // Sidebar nav items
   "a.nav.dashboard":    { en: "Dashboard",    es: "Panel",         pt: "Painel" },
+  "a.nav.live":         { en: "Live board",   es: "Tablero en vivo", pt: "Painel ao vivo" },
   "a.nav.applications": { en: "Applications", es: "Candidaturas",  pt: "Candidaturas" },
   "a.nav.jobs":         { en: "Jobs",         es: "Vacantes",      pt: "Vagas" },
   "a.nav.projects":     { en: "Projects",     es: "Proyectos",     pt: "Projetos" },
@@ -606,6 +607,29 @@ const dict = {
     pt: "defina RESEND_API_KEY (e opcionalmente INVOICE_FROM_EMAIL) no Vercel",
   },
   "a.email.send_to_employer": { en: "Send to employer", es: "Enviar al empleador", pt: "Enviar para empresa" },
+
+  // Live shift board
+  "a.live.title":       { en: "Live shift board", es: "Tablero en vivo",  pt: "Painel ao vivo" },
+  "a.live.subtitle":    {
+    en: "Real-time workforce status across all active jobs.",
+    es: "Estado del personal en tiempo real en todos los trabajos activos.",
+    pt: "Status do pessoal em tempo real em todos os trabalhos ativos.",
+  },
+  "a.live.live":        { en: "LIVE",         es: "EN VIVO",      pt: "AO VIVO" },
+  "a.live.scheduled":   { en: "Scheduled",    es: "Programado",   pt: "Agendado" },
+  "a.live.en_route":    { en: "En route",     es: "En camino",    pt: "A caminho" },
+  "a.live.on_site":     { en: "On site",      es: "En sitio",     pt: "No local" },
+  "a.live.completed":   { en: "Completed today", es: "Completado hoy", pt: "Concluído hoje" },
+  "a.live.starts_in":   { en: "Starts in",    es: "Comienza en",  pt: "Começa em" },
+  "a.live.eta":         { en: "ETA",          es: "ETA",          pt: "ETA" },
+  "a.live.on_clock":    { en: "On clock",     es: "Trabajando",   pt: "No turno" },
+  "a.live.finished":    { en: "Finished",     es: "Terminó",      pt: "Encerrou" },
+  "a.live.no_active":   { en: "No active shifts right now.", es: "Sin turnos activos.", pt: "Sem turnos ativos." },
+  "a.live.crew_lead":   { en: "Lead",         es: "Líder",        pt: "Líder" },
+  "a.live.refreshes":   { en: "Auto-refreshes every 60s", es: "Actualiza cada 60s", pt: "Atualiza a cada 60s" },
+  "a.live.total_clocked": { en: "Clocked in now", es: "Trabajando ahora", pt: "No turno agora" },
+  "a.live.starting_4h": { en: "Starting in 4h", es: "Comienza en 4h", pt: "Começa em 4h" },
+  "a.live.done_today":  { en: "Done today",   es: "Hechos hoy",   pt: "Feitos hoje" },
 } as const;
 
 export type TKey = keyof typeof dict;

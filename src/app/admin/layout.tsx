@@ -15,6 +15,7 @@ import {
   BarChart3,
   ClipboardList,
   ShieldCheck,
+  Radio,
 } from "lucide-react";
 import { CommandPalette } from "./_components/command-palette";
 import { NotificationsBell } from "./_components/notifications-bell";
@@ -33,6 +34,7 @@ type NavItem = {
 
 const RECRUIT: NavItem[] = [
   { href: "/admin", labelKey: "a.nav.dashboard", Icon: LayoutDashboard },
+  { href: "/admin/live", labelKey: "a.nav.live", Icon: Radio },
   { href: "/admin/applications", labelKey: "a.nav.applications", Icon: FileText },
   { href: "/admin/jobs", labelKey: "a.nav.jobs", Icon: Briefcase },
 ];

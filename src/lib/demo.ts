@@ -865,6 +865,146 @@ export function demoInvoicePayments(invoiceId: string): Payment[] {
   return demoPayments().filter((p) => p.invoice_id === invoiceId);
 }
 
+// ============== Live Shift Board ==============
+export type LiveShiftEntry = {
+  id: string;
+  worker: string;
+  role: string;
+  employer: string;
+  project: string | null;
+  location: string | null;
+  scheduledStart: string;
+  status: "scheduled" | "en_route" | "on_site" | "completed";
+  clockInAt: string | null;
+  clockOutAt: string | null;
+  hours: number | null;
+  // Optional crew leader flag for restoration
+  isCrewLead?: boolean;
+};
+
+export function demoLiveBoard(): LiveShiftEntry[] {
+  const now = Date.now();
+  const workers = demoWorkers();
+  const roles = [
+    "Water Damage Tech",
+    "Mold Remediation Tech",
+    "Fire/Smoke Tech",
+    "Storm Recovery Crew",
+    "Carpentry Lead",
+    "Drywall Tech",
+    "Equipment Operator",
+    "Cleaning Tech",
+  ];
+  const employers = [
+    { name: "Restoration Pro USA", project: "Hurricane Recovery — Tampa Bay" },
+    { name: "Restoration Pro USA", project: "Water damage — Orlando Suites" },
+    { name: "Sunbelt Industrial Group", project: "Sunbelt Refinery Expansion" },
+    { name: "Hilton Orlando", project: null },
+    { name: "ClearWave Facility Services", project: null },
+  ];
+  const sites = [
+    "Tampa, FL",
+    "Galveston, TX",
+    "Orlando, FL",
+    "St. Petersburg, FL",
+    "Clearwater, FL",
+    "Houston, TX",
+    "Austin, TX",
+  ];
+
+  const out: LiveShiftEntry[] = [];
+
+  // 1. SCHEDULED (start in next 0-4h, not clocked in yet)
+  for (let i = 0; i < 8; i++) {
+    const w = workers[(i * 13 + 1) % 200];
+    const e = employers[i % employers.length];
+    const minutesFromNow = 15 + (i * 37) % 240;
+    const start = new Date(now + minutesFromNow * 60000);
+    out.push({
+      id: `live-sch-${i}`,
+      worker: w.full_name,
+      role: roles[i % roles.length],
+      employer: e.name,
+      project: e.project,
+      location: sites[(i + 1) % sites.length],
+      scheduledStart: start.toISOString(),
+      status: "scheduled",
+      clockInAt: null,
+      clockOutAt: null,
+      hours: null,
+      isCrewLead: i % 5 === 0,
+    });
+  }
+
+  // 2. EN_ROUTE (start in next 0-90 min, location captured but not clocked in)
+  for (let i = 0; i < 4; i++) {
+    const w = workers[(i * 19 + 50) % 200];
+    const e = employers[(i + 1) % employers.length];
+    const start = new Date(now + (5 + i * 18) * 60000);
+    out.push({
+      id: `live-enr-${i}`,
+      worker: w.full_name,
+      role: roles[(i + 3) % roles.length],
+      employer: e.name,
+      project: e.project,
+      location: sites[(i + 2) % sites.length],
+      scheduledStart: start.toISOString(),
+      status: "en_route",
+      clockInAt: null,
+      clockOutAt: null,
+      hours: null,
+      isCrewLead: i === 0,
+    });
+  }
+
+  // 3. ON_SITE (clocked in, no clock-out)
+  for (let i = 0; i < 14; i++) {
+    const w = workers[(i * 7 + 100) % 200];
+    const e = employers[i % employers.length];
+    const minsAgo = 5 + (i * 23) % 360;
+    const clockIn = new Date(now - minsAgo * 60000);
+    out.push({
+      id: `live-ons-${i}`,
+      worker: w.full_name,
+      role: roles[(i + 2) % roles.length],
+      employer: e.name,
+      project: e.project,
+      location: sites[(i + 3) % sites.length],
+      scheduledStart: new Date(clockIn.getTime() - 5 * 60000).toISOString(),
+      status: "on_site",
+      clockInAt: clockIn.toISOString(),
+      clockOutAt: null,
+      hours: null,
+      isCrewLead: i % 7 === 0,
+    });
+  }
+
+  // 4. COMPLETED today (clocked out earlier today)
+  for (let i = 0; i < 12; i++) {
+    const w = workers[(i * 11 + 150) % 200];
+    const e = employers[(i + 2) % employers.length];
+    const hoursAgo = 1 + (i * 7) % 8;
+    const clockOut = new Date(now - hoursAgo * 3600 * 1000);
+    const shiftHours = 6 + (i % 3);
+    const clockIn = new Date(clockOut.getTime() - shiftHours * 3600 * 1000);
+    out.push({
+      id: `live-cpl-${i}`,
+      worker: w.full_name,
+      role: roles[(i + 4) % roles.length],
+      employer: e.name,
+      project: e.project,
+      location: sites[i % sites.length],
+      scheduledStart: clockIn.toISOString(),
+      status: "completed",
+      clockInAt: clockIn.toISOString(),
+      clockOutAt: clockOut.toISOString(),
+      hours: shiftHours,
+    });
+  }
+
+  return out;
+}
+
 // ============== Applications ==============
 export function demoApplications(): Array<{
   id: string;
