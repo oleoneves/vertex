@@ -786,6 +786,189 @@ export function demoPayroll() {
   };
 }
 
+// ============== Demo worker (Carlos Mendoza, W-D001) ==============
+export function demoCurrentWorker(): Worker {
+  return demoWorkers()[0];
+}
+
+export function demoWorkerWeek() {
+  const worker = demoCurrentWorker();
+  const placements = demoPlacements().filter((p) => p.worker_id === worker.id);
+  const shifts = Array.from({ length: 5 }).map((_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    return {
+      id: `w-shift-${i}`,
+      placement_id: placements[0]?.id ?? "placement-1",
+      scheduled_start: new Date(d.setHours(7, 0, 0, 0)).toISOString(),
+      scheduled_end: new Date(d.setHours(15, 0, 0, 0)).toISOString(),
+      status: i === 0 ? "scheduled" : "completed",
+      location: "Sunbelt Refinery · Galveston, TX",
+      notes: null,
+      created_at: new Date().toISOString(),
+      placement: {
+        role_title: placements[0]?.role_title ?? "Welder Helper",
+        worker: { full_name: worker.full_name },
+        employer: { name: "Sunbelt Industrial Group" },
+      },
+    };
+  });
+  return {
+    shifts,
+    entries: [],
+    hours: 32,
+  };
+}
+
+export function demoWorkerPaystubs() {
+  return Array.from({ length: 4 }).map((_, i) => {
+    const periodStart = new Date();
+    periodStart.setDate(periodStart.getDate() - ((i + 1) * 7));
+    const day = periodStart.getDay();
+    const mondayOffset = day === 0 ? 6 : day - 1;
+    periodStart.setDate(periodStart.getDate() - mondayOffset);
+    periodStart.setHours(0, 0, 0, 0);
+    const periodEnd = new Date(periodStart);
+    periodEnd.setDate(periodStart.getDate() + 6);
+    return {
+      periodStart: periodStart.toISOString().slice(0, 10),
+      periodEnd: periodEnd.toISOString().slice(0, 10),
+      hours: 40,
+      gross: 600,
+      paidAt: i > 0 ? isoDaysAgo(i * 7 - 1) : null,
+    };
+  });
+}
+
+export function demoWorkerPaystubDetail(periodStart: string) {
+  const worker = demoCurrentWorker();
+  const start = new Date(periodStart);
+  const end = new Date(start);
+  end.setDate(end.getDate() + 7);
+  const lines = Array.from({ length: 5 }).map((_, i) => {
+    const day = new Date(start);
+    day.setDate(start.getDate() + i);
+    return {
+      date: day.toLocaleDateString(undefined, {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+      }),
+      placement: "Sunbelt Industrial Group — Welder Helper",
+      hours: 8,
+      rate: 15,
+      amount: 120,
+    };
+  });
+  return {
+    worker: {
+      full_name: worker.full_name,
+      employee_code: worker.employee_code,
+      payment_method: worker.payment_method,
+    },
+    periodStart,
+    periodEnd: end.toISOString().slice(0, 10),
+    lines,
+    totals: { hours: 40, gross: 600 },
+    paid: {
+      at: isoDaysAgo(1),
+      method: "ach",
+      reference: `PAYROLL-${periodStart}`,
+    },
+  };
+}
+
+// ============== Documents demo ==============
+import type { WorkerDocument, DocumentType, DocumentStatus } from "@/types/db";
+
+const DOC_SAMPLES: { type: DocumentType; status: DocumentStatus; filename: string; daysAgo: number }[] = [
+  { type: "i9", status: "approved", filename: "i9-form.pdf", daysAgo: 28 },
+  { type: "w9", status: "approved", filename: "w9.pdf", daysAgo: 27 },
+  { type: "drivers_license", status: "approved", filename: "license.jpg", daysAgo: 27 },
+  { type: "ssn_card", status: "pending", filename: "ssn.jpg", daysAgo: 2 },
+  { type: "osha10", status: "approved", filename: "osha-10-cert.pdf", daysAgo: 15 },
+];
+
+export function demoWorkerDocuments(workerId?: string): WorkerDocument[] {
+  const targetId = workerId ?? demoCurrentWorker().id;
+  return DOC_SAMPLES.map((d, i) => ({
+    id: `doc-${targetId}-${i}`,
+    worker_id: targetId,
+    type: d.type,
+    filename: d.filename,
+    storage_path: `${targetId}/${d.type}/${i}.pdf`,
+    status: d.status,
+    expires_at: null,
+    uploaded_at: isoDaysAgo(d.daysAgo),
+    reviewed_by: d.status !== "pending" ? "admin-1" : null,
+    reviewed_at: d.status !== "pending" ? isoDaysAgo(d.daysAgo - 1) : null,
+    notes: null,
+  }));
+}
+
+// All documents across all workers — for /admin/documents
+export function demoAllDocuments() {
+  const workers = demoWorkers();
+  const out: (WorkerDocument & {
+    worker: { id: string; full_name: string; employee_code: string | null } | null;
+  })[] = [];
+  // 8 pending docs across 8 different workers
+  for (let i = 0; i < 8; i++) {
+    const w = workers[i * 3];
+    out.push({
+      id: `adoc-pending-${i}`,
+      worker_id: w.id,
+      type: ["i9", "w9", "ssn_card", "drivers_license", "osha10"][i % 5] as DocumentType,
+      filename: `doc-${i}.pdf`,
+      storage_path: `${w.id}/${i}.pdf`,
+      status: "pending",
+      expires_at: null,
+      uploaded_at: isoDaysAgo(i),
+      reviewed_by: null,
+      reviewed_at: null,
+      notes: null,
+      worker: { id: w.id, full_name: w.full_name, employee_code: w.employee_code },
+    });
+  }
+  // 12 approved docs across various workers
+  for (let i = 0; i < 12; i++) {
+    const w = workers[i * 5 + 1];
+    out.push({
+      id: `adoc-approved-${i}`,
+      worker_id: w.id,
+      type: ["i9", "w9", "drivers_license", "ssn_card", "osha10", "osha30", "iicrc_wrt"][i % 7] as DocumentType,
+      filename: `${["i9", "w9", "license", "ssn", "osha", "cert", "iicrc"][i % 7]}-${i}.pdf`,
+      storage_path: `${w.id}/${i}.pdf`,
+      status: "approved",
+      expires_at: null,
+      uploaded_at: isoDaysAgo(20 + i),
+      reviewed_by: "admin-1",
+      reviewed_at: isoDaysAgo(18 + i),
+      notes: null,
+      worker: { id: w.id, full_name: w.full_name, employee_code: w.employee_code },
+    });
+  }
+  // 2 rejected
+  for (let i = 0; i < 2; i++) {
+    const w = workers[i * 11 + 50];
+    out.push({
+      id: `adoc-rejected-${i}`,
+      worker_id: w.id,
+      type: "drivers_license",
+      filename: `dl-${i}.jpg`,
+      storage_path: `${w.id}/dl.jpg`,
+      status: "rejected",
+      expires_at: null,
+      uploaded_at: isoDaysAgo(5 + i),
+      reviewed_by: "admin-1",
+      reviewed_at: isoDaysAgo(4 + i),
+      notes: "Image blurry — please re-upload",
+      worker: { id: w.id, full_name: w.full_name, employee_code: w.employee_code },
+    });
+  }
+  return out.sort((a, b) => (a.uploaded_at < b.uploaded_at ? 1 : -1));
+}
+
 // ============== Helper ==============
 export function isDemoMode(): boolean {
   return (

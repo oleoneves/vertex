@@ -16,11 +16,16 @@ type Row = WorkerDocument & {
 };
 
 async function load(filters: { status?: string; type?: string }): Promise<Row[]> {
+  // Demo mode
   if (
     !process.env.NEXT_PUBLIC_SUPABASE_URL ||
     !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   ) {
-    return [];
+    const { demoAllDocuments } = await import("@/lib/demo");
+    let rows = demoAllDocuments() as unknown as Row[];
+    if (filters.status) rows = rows.filter((r) => r.status === filters.status);
+    if (filters.type) rows = rows.filter((r) => r.type === filters.type);
+    return rows;
   }
   const supabase = await getSupabaseServer();
   let q = supabase

@@ -1,6 +1,7 @@
 import "server-only";
 import { getSupabaseServer } from "./supabase/server";
 import { getSupabaseAdmin } from "./supabase/admin";
+import { isDemoMode, demoWorkerDocuments } from "./demo";
 import type { DocumentType, WorkerDocument } from "@/types/db";
 
 export const DOCUMENT_TYPES: { value: DocumentType; label: string; required: boolean }[] = [
@@ -23,11 +24,8 @@ export const DOCUMENT_LABELS: Record<DocumentType, string> = Object.fromEntries(
 ) as Record<DocumentType, string>;
 
 export async function listWorkerDocuments(workerId: string): Promise<WorkerDocument[]> {
-  if (
-    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  ) {
-    return [];
+  if (isDemoMode()) {
+    return demoWorkerDocuments(workerId);
   }
   const supabase = await getSupabaseServer();
   const { data } = await supabase

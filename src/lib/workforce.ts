@@ -192,6 +192,10 @@ export async function getInvoiceDetail(id: string): Promise<
 
 // Worker portal helpers
 export async function getCurrentWorker(): Promise<Worker | null> {
+  if (isDemoMode()) {
+    const { demoCurrentWorker } = await import("./demo");
+    return demoCurrentWorker();
+  }
   if (!supabaseReady()) return null;
   const supabase = await getSupabaseServer();
   const {
@@ -207,6 +211,7 @@ export async function getCurrentWorker(): Promise<Worker | null> {
 }
 
 export async function getOpenTimeEntry(workerId: string): Promise<TimeEntry | null> {
+  if (isDemoMode()) return null;
   if (!supabaseReady()) return null;
   const supabase = await getSupabaseServer();
   const { data } = await supabase
@@ -225,6 +230,11 @@ export async function getWorkerWeek(workerId: string): Promise<{
   entries: TimeEntry[];
   hours: number;
 }> {
+  if (isDemoMode()) {
+    const { demoWorkerWeek } = await import("./demo");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return demoWorkerWeek() as any;
+  }
   if (!supabaseReady()) return { shifts: [], entries: [], hours: 0 };
   const supabase = await getSupabaseServer();
   const now = new Date();

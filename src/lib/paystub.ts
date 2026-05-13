@@ -1,5 +1,6 @@
 import "server-only";
 import { getSupabaseServer } from "./supabase/server";
+import { isDemoMode, demoWorkerPaystubs, demoWorkerPaystubDetail } from "./demo";
 import type { Worker } from "@/types/db";
 import { payrollReference } from "./payroll";
 
@@ -12,11 +13,8 @@ export type PaystubSummary = {
 };
 
 export async function listWorkerPaystubs(workerId: string): Promise<PaystubSummary[]> {
-  if (
-    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  ) {
-    return [];
+  if (isDemoMode()) {
+    return demoWorkerPaystubs();
   }
   const supabase = await getSupabaseServer();
 
@@ -99,11 +97,8 @@ export async function loadPaystubDetail(
   totals: { hours: number; gross: number };
   paid: { at: string | null; method: string | null; reference: string | null };
 } | null> {
-  if (
-    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  ) {
-    return null;
+  if (isDemoMode()) {
+    return demoWorkerPaystubDetail(periodStart);
   }
   const supabase = await getSupabaseServer();
   const start = new Date(periodStart);
