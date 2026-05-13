@@ -45,13 +45,33 @@ export function Td({
   return <td className={`px-3 py-3 ${className}`}>{children}</td>;
 }
 
-export function StatusPill({
+import { t, type TKey } from "@/lib/i18n";
+import { getLocale } from "@/lib/i18n-server";
+
+// Maps a raw status value to a TKey, returning the original string if no match.
+const STATUS_KEY_MAP: Record<string, TKey> = {
+  active: "a.status.active",
+  inactive: "a.status.inactive",
+  onboarding: "a.status.onboarding",
+  pending: "a.status.pending",
+  approved: "a.status.approved",
+  paid: "a.status.paid",
+  sent: "a.status.sent",
+  draft: "a.status.draft",
+  overdue: "a.status.overdue",
+  void: "a.status.void",
+  completed: "a.status.completed",
+  scheduled: "a.status.scheduled",
+};
+
+export async function StatusPill({
   status,
   variant,
 }: {
   status: string;
   variant: "green" | "amber" | "red" | "blue" | "muted" | "violet";
 }) {
+  const locale = await getLocale();
   const cls = {
     green:  "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300",
     amber:  "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
@@ -60,11 +80,13 @@ export function StatusPill({
     violet: "bg-violet-100 text-violet-800 dark:bg-violet-900/40 dark:text-violet-300",
     muted:  "bg-muted text-muted-foreground",
   }[variant];
+  const key = STATUS_KEY_MAP[status];
+  const label = key ? t(locale, key) : status.replace(/_/g, " ");
   return (
     <span
       className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${cls}`}
     >
-      {status.replace(/_/g, " ")}
+      {label}
     </span>
   );
 }
