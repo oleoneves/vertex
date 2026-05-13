@@ -7,6 +7,8 @@ import { getInvoiceDetail, listInvoicePayments, supabaseReady } from "@/lib/work
 import { emailReady } from "@/lib/email";
 import { SendInvoiceButton } from "./send-button";
 import { RecordPaymentForm } from "./record-payment-form";
+import { t } from "@/lib/i18n";
+import { getLocale } from "@/lib/i18n-server";
 
 export const dynamic = "force-dynamic";
 
@@ -122,9 +124,10 @@ export default async function InvoiceDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [inv, payments] = await Promise.all([
+  const [inv, payments, locale] = await Promise.all([
     getInvoiceDetail(id),
     listInvoicePayments(id),
+    getLocale(),
   ]);
   if (!inv) notFound();
 
@@ -141,7 +144,7 @@ export default async function InvoiceDetailPage({
           href="/admin/invoices"
           className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
         >
-          <ArrowLeft className="h-3 w-3" /> All invoices
+          <ArrowLeft className="h-3 w-3" /> {t(locale, "a.inv.all_invoices")}
         </Link>
       </div>
 
@@ -165,14 +168,14 @@ export default async function InvoiceDetailPage({
             target="_blank"
             className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-3 py-1.5 text-sm font-medium hover:bg-muted"
           >
-            <ExternalLink className="h-3.5 w-3.5" /> Print view
+            <ExternalLink className="h-3.5 w-3.5" /> {t(locale, "a.inv.print_view")}
           </Link>
           <a
             href={`/api/invoices/${inv.id}/pdf?download=1`}
             className="inline-flex items-center gap-1 rounded-md bg-foreground px-3 py-1.5 text-sm font-bold text-background hover:opacity-90"
             download={`${inv.invoice_number}.pdf`}
           >
-            <Download className="h-3.5 w-3.5" /> Download PDF
+            <Download className="h-3.5 w-3.5" /> {t(locale, "a.inv.download_pdf")}
           </a>
           <a
             href={`/api/invoices/${inv.id}/pdf`}
@@ -180,7 +183,7 @@ export default async function InvoiceDetailPage({
             rel="noopener"
             className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-3 py-1.5 text-sm font-medium hover:bg-muted"
           >
-            Preview
+            {t(locale, "a.inv.preview")}
           </a>
           <SendInvoiceButton
             invoiceId={inv.id}
@@ -194,7 +197,7 @@ export default async function InvoiceDetailPage({
               disabled={inv.status !== "draft" || !supabaseReady()}
               className="rounded-md border border-border bg-background px-3 py-1.5 text-sm hover:bg-muted disabled:opacity-50"
             >
-              Mark sent
+              {t(locale, "a.inv.mark_sent")}
             </button>
           </form>
           <RecordPaymentForm
@@ -219,14 +222,14 @@ export default async function InvoiceDetailPage({
 
       {/* Summary cards */}
       <div className="grid gap-3 sm:grid-cols-3">
-        <SummaryCard label="Total invoiced" value={fmtMoney(inv.total)} />
+        <SummaryCard label={t(locale, "a.inv.total_invoiced")} value={fmtMoney(inv.total)} />
         <SummaryCard
-          label="Received"
+          label={t(locale, "a.inv.received_amt")}
           value={fmtMoney(paidTotal)}
           accent={paidTotal > 0 ? "green" : undefined}
         />
         <SummaryCard
-          label="Balance due"
+          label={t(locale, "a.inv.balance")}
           value={fmtMoney(balance)}
           accent={balance > 0 ? "amber" : "muted"}
         />
@@ -236,11 +239,11 @@ export default async function InvoiceDetailPage({
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="rounded-lg border border-border bg-background p-5">
           <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-            Bill to
+            {t(locale, "a.inv.bill_to")}
           </p>
           <p className="mt-2 text-base font-bold">{employer?.name ?? "—"}</p>
           {employer?.contact_name && (
-            <p className="mt-1 text-sm">Attn: {employer.contact_name}</p>
+            <p className="mt-1 text-sm">{t(locale, "a.inv.attn")} {employer.contact_name}</p>
           )}
           {employer?.billing_address && (
             <p className="mt-1 text-sm whitespace-pre-line text-muted-foreground">
@@ -253,29 +256,29 @@ export default async function InvoiceDetailPage({
         </div>
         <div className="rounded-lg border border-border bg-background p-5">
           <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-            Period & terms
+            {t(locale, "a.inv.period_terms")}
           </p>
           <p className="mt-2 text-sm">
-            <span className="text-muted-foreground">Service period:</span>{" "}
+            <span className="text-muted-foreground">{t(locale, "a.inv.service_period")}:</span>{" "}
             <strong>{fmtDate(inv.period_start)} → {fmtDate(inv.period_end)}</strong>
           </p>
           <p className="mt-1 text-sm">
-            <span className="text-muted-foreground">Issued:</span>{" "}
+            <span className="text-muted-foreground">{t(locale, "a.inv.issued")}:</span>{" "}
             <strong>{fmtDate(inv.created_at)}</strong>
           </p>
           <p className="mt-1 text-sm">
-            <span className="text-muted-foreground">Due:</span>{" "}
+            <span className="text-muted-foreground">{t(locale, "a.inv.due")}:</span>{" "}
             <strong>{fmtDate(inv.due_date)}</strong>
           </p>
           {inv.sent_at && (
             <p className="mt-1 text-sm">
-              <span className="text-muted-foreground">Sent:</span>{" "}
+              <span className="text-muted-foreground">{t(locale, "a.inv.sent")}:</span>{" "}
               <strong>{fmtDate(inv.sent_at)}</strong>
             </p>
           )}
           {inv.paid_at && (
             <p className="mt-1 text-sm">
-              <span className="text-muted-foreground">Paid:</span>{" "}
+              <span className="text-muted-foreground">{t(locale, "a.inv.paid")}:</span>{" "}
               <strong>{fmtDate(inv.paid_at)}</strong>
             </p>
           )}
@@ -286,27 +289,27 @@ export default async function InvoiceDetailPage({
       <div className="rounded-lg border border-border bg-background overflow-hidden">
         <div className="flex items-center justify-between border-b border-border px-5 py-3">
           <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-            Services
+            {t(locale, "a.inv.services")}
           </p>
           <p className="text-xs text-muted-foreground">
-            {inv.lines.length} {inv.lines.length === 1 ? "line" : "lines"}
+            {inv.lines.length} {inv.lines.length === 1 ? t(locale, "a.inv.line") : t(locale, "a.inv.lines")}
           </p>
         </div>
         <div className="max-h-96 overflow-y-auto">
           <table className="w-full text-sm">
             <thead className="sticky top-0 bg-background">
               <tr className="border-b border-border text-left text-[10px] uppercase tracking-wider text-muted-foreground">
-                <th className="px-5 py-2 font-bold">Service</th>
-                <th className="px-5 py-2 text-right font-bold">Qty</th>
-                <th className="px-5 py-2 text-right font-bold">Rate</th>
-                <th className="px-5 py-2 text-right font-bold">Amount</th>
+                <th className="px-5 py-2 font-bold">{t(locale, "a.inv.service")}</th>
+                <th className="px-5 py-2 text-right font-bold">{t(locale, "a.inv.qty")}</th>
+                <th className="px-5 py-2 text-right font-bold">{t(locale, "a.inv.rate")}</th>
+                <th className="px-5 py-2 text-right font-bold">{t(locale, "a.col.amount")}</th>
               </tr>
             </thead>
             <tbody>
               {inv.lines.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="px-5 py-6 text-center text-muted-foreground">
-                    No approved services in this period.
+                    {t(locale, "a.inv.no_services")}
                   </td>
                 </tr>
               ) : (
@@ -334,7 +337,7 @@ export default async function InvoiceDetailPage({
             <tfoot className="border-t border-border bg-muted/20">
               <tr>
                 <td colSpan={3} className="px-5 py-2 text-right text-sm text-muted-foreground">
-                  Subtotal
+                  {t(locale, "a.inv.subtotal")}
                 </td>
                 <td className="px-5 py-2 text-right font-mono tabular-nums">
                   {fmtMoney(inv.subtotal)}
@@ -342,7 +345,7 @@ export default async function InvoiceDetailPage({
               </tr>
               <tr>
                 <td colSpan={3} className="px-5 py-1.5 text-right text-sm text-muted-foreground">
-                  Tax
+                  {t(locale, "a.inv.tax")}
                 </td>
                 <td className="px-5 py-1.5 text-right font-mono tabular-nums">
                   {fmtMoney(inv.tax)}
@@ -350,7 +353,7 @@ export default async function InvoiceDetailPage({
               </tr>
               <tr className="border-t border-border">
                 <td colSpan={3} className="px-5 py-3 text-right text-base font-bold">
-                  Total due
+                  {t(locale, "a.inv.total_due")}
                 </td>
                 <td className="px-5 py-3 text-right font-mono text-lg font-extrabold tabular-nums">
                   {fmtMoney(inv.total)}
@@ -365,27 +368,27 @@ export default async function InvoiceDetailPage({
       <div className="rounded-lg border border-border bg-background overflow-hidden">
         <div className="flex items-center justify-between border-b border-border px-5 py-3">
           <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-            Payments received
+            {t(locale, "a.inv.payments_received")}
           </p>
           <p className="text-xs text-muted-foreground">
-            {payments.length} · {fmtMoney(paidTotal)} total
+            {payments.length} · {fmtMoney(paidTotal)}
           </p>
         </div>
         {payments.length === 0 ? (
           <div className="px-5 py-8 text-center">
             <Receipt className="mx-auto h-6 w-6 text-muted-foreground" />
             <p className="mt-2 text-sm text-muted-foreground">
-              No payments recorded yet for this invoice.
+              {t(locale, "a.inv.no_payments")}
             </p>
           </div>
         ) : (
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border text-left text-[10px] uppercase tracking-wider text-muted-foreground">
-                <th className="px-5 py-2 font-bold">Received</th>
-                <th className="px-5 py-2 font-bold">Method</th>
-                <th className="px-5 py-2 font-bold">Reference</th>
-                <th className="px-5 py-2 text-right font-bold">Amount</th>
+                <th className="px-5 py-2 font-bold">{t(locale, "a.col.received")}</th>
+                <th className="px-5 py-2 font-bold">{t(locale, "a.col.method")}</th>
+                <th className="px-5 py-2 font-bold">{t(locale, "a.col.reference")}</th>
+                <th className="px-5 py-2 text-right font-bold">{t(locale, "a.col.amount")}</th>
               </tr>
             </thead>
             <tbody>
@@ -411,7 +414,7 @@ export default async function InvoiceDetailPage({
       {inv.notes && (
         <div className="rounded-lg border border-border bg-background p-5">
           <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-            Notes
+            {t(locale, "a.inv.notes")}
           </p>
           <p className="mt-2 text-sm whitespace-pre-line">{inv.notes}</p>
         </div>
