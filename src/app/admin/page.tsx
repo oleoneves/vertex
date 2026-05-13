@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowUp, ArrowDown, Minus } from "lucide-react";
 import { loadDashboard } from "@/lib/dashboard";
@@ -26,14 +27,58 @@ export default async function AdminDashboard() {
 
   return (
     <div className="space-y-8">
-      <header>
-        <p className="text-xs uppercase tracking-wider text-muted-foreground">
-          {t(locale, "a.dash.eyebrow")}
-        </p>
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-          {t(locale, "a.dash.title")}
-        </h1>
-      </header>
+      {/* Branded hero */}
+      <section className="relative overflow-hidden rounded-2xl border border-border bg-[#1F2A3D] text-white shadow-lg">
+        {/* Decorative mark watermark */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -right-8 -top-8 opacity-20 sm:-right-4 sm:-top-4"
+        >
+          <Image
+            src="/vertex-mark-yellow.png"
+            alt=""
+            width={240}
+            height={240}
+            priority
+            className="h-44 w-auto sm:h-64"
+          />
+        </div>
+        <div className="relative grid gap-6 p-6 sm:grid-cols-[auto,1fr] sm:items-center sm:p-8">
+          <div className="flex items-center gap-4">
+            <Image
+              src="/vertex-mark-yellow.png"
+              alt=""
+              width={72}
+              height={72}
+              priority
+              className="h-14 w-auto sm:h-16"
+            />
+            <div className="leading-tight">
+              <div className="text-2xl font-black tracking-[4px] sm:text-3xl">
+                VERTEX
+              </div>
+              <div className="text-[10px] font-semibold uppercase tracking-[3px] text-[#EDB23E] sm:text-xs">
+                Restoration · Recovery
+              </div>
+            </div>
+          </div>
+          <div className="sm:border-l sm:border-white/15 sm:pl-6">
+            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#EDB23E]">
+              {t(locale, "a.dash.eyebrow")}
+            </p>
+            <h1 className="mt-1 text-2xl font-black tracking-tight sm:text-3xl">
+              {t(locale, "a.dash.title")}
+            </h1>
+            <p className="mt-2 text-sm text-white/70 max-w-md">
+              {locale === "pt"
+                ? `${fmtUsd(d.revenueMtd, { decimals: 0 })} de receita no mês · ${d.activeWorkers} colaboradores ativos · ${d.activePlacements} alocações`
+                : locale === "es"
+                ? `${fmtUsd(d.revenueMtd, { decimals: 0 })} ingresos del mes · ${d.activeWorkers} trabajadores activos · ${d.activePlacements} asignaciones`
+                : `${fmtUsd(d.revenueMtd, { decimals: 0 })} revenue MTD · ${d.activeWorkers} active workers · ${d.activePlacements} placements`}
+            </p>
+          </div>
+        </div>
+      </section>
 
       {/* Money row with sparklines */}
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
