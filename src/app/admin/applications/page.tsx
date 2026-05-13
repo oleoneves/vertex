@@ -38,9 +38,9 @@ export default async function ApplicationsPage({
     rejected: allApps.filter((a) => a.status === "rejected").length,
   };
   const funnelData = [
-    { label: "Applied", value: allApps.length, color: CHART_COLORS.blue },
-    { label: "Reviewing", value: byStatus.reviewing + byStatus.accepted, color: CHART_COLORS.amber },
-    { label: "Accepted", value: byStatus.accepted, color: CHART_COLORS.green },
+    { label: "Applied", value: allApps.length, color: CHART_COLORS.blue, href: "/admin/applications" },
+    { label: "Reviewing", value: byStatus.reviewing + byStatus.accepted, color: CHART_COLORS.amber, href: "/admin/applications?status=reviewing" },
+    { label: "Accepted", value: byStatus.accepted, color: CHART_COLORS.green, href: "/admin/applications?status=accepted" },
   ];
 
   return (

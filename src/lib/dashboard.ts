@@ -31,6 +31,7 @@ export type DashboardData = {
   recentActivity: { type: string; label: string; at: string }[];
   // Time-series for charts:
   revenueByDay30: { date: string; label: string; value: number }[];
+  revenueForecast14: { date: string; label: string; value: number }[];
   marginByDay30: { date: string; label: string; value: number }[];
   applicationsByDay14: { date: string; label: string; value: number }[];
   monthlyRevenue: { month: string; label: string; revenue: number; cost: number; margin: number }[];
@@ -55,6 +56,7 @@ export const EMPTY_DASHBOARD: DashboardData = {
   topWorkers: [],
   recentActivity: [],
   revenueByDay30: [],
+  revenueForecast14: [],
   marginByDay30: [],
   applicationsByDay14: [],
   monthlyRevenue: [],
@@ -371,6 +373,7 @@ export async function loadDashboard(): Promise<DashboardData> {
     // TODO: implement real-data series for these (left as empty arrays so the
     // dashboard still renders with chart placeholders). Demo mode has rich data.
     revenueByDay30: [],
+    revenueForecast14: [],
     marginByDay30: [],
     applicationsByDay14: [],
     monthlyRevenue: [],

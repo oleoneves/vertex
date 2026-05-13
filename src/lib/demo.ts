@@ -110,6 +110,28 @@ export function demoWorkers(): Worker[] {
   return Array.from({ length: 200 }, (_, i) => makeWorker(i + 1, { onboarding: i >= 190 }));
 }
 
+// Workers grouped by US state (derived deterministically from worker_id).
+const WORKER_STATES = [
+  "TX", "FL", "CA", "TX", "TX", "FL", "GA", "TX", "CA", "FL",
+  "AZ", "NC", "TX", "FL", "TX", "GA", "TX", "FL", "NY", "CA",
+];
+
+export function workerStateFor(workerId: string): string {
+  const n = Number(workerId.slice(-3)) || 0;
+  return WORKER_STATES[n % WORKER_STATES.length];
+}
+
+export function demoWorkersByState(): { state: string; count: number }[] {
+  const map = new Map<string, number>();
+  for (const w of demoWorkers()) {
+    const s = workerStateFor(w.id);
+    map.set(s, (map.get(s) ?? 0) + 1);
+  }
+  return Array.from(map.entries())
+    .map(([state, count]) => ({ state, count }))
+    .sort((a, b) => b.count - a.count);
+}
+
 // ============== Employers ==============
 export function demoEmployers(): Employer[] {
   return [
@@ -419,11 +441,43 @@ export function demoDashboard() {
     })),
     recentActivity: recentActivitySample(),
     revenueByDay30: revenueSeriesByDay(30),
+    revenueForecast14: revenueForecastSeries(30, 14),
     marginByDay30: marginSeriesByDay(30),
     applicationsByDay14: applicationsSeriesByDay(14),
     monthlyRevenue: monthlyRevenueSeries(6),
     workersByStatus: { active: 190, onboarding: 10, inactive: 0 },
   };
+}
+
+function revenueForecastSeries(
+  actualDays: number,
+  forecastDays: number,
+): { date: string; label: string; value: number }[] {
+  // Simple linear-trend forecast: take the last 14 actual days, fit a slope,
+  // project forward with weekend dips preserved.
+  const actual = revenueSeriesByDay(actualDays);
+  const tail = actual.slice(-14);
+  const avg = tail.reduce((s, d) => s + d.value, 0) / tail.length;
+  const first = tail[0].value;
+  const last = tail[tail.length - 1].value;
+  const slope = (last - first) / (tail.length - 1);
+
+  const now = new Date();
+  return Array.from({ length: forecastDays }).map((_, i) => {
+    const d = new Date(now);
+    d.setUTCDate(now.getUTCDate() + i + 1);
+    const dow = d.getUTCDay();
+    const trended = last + slope * (i + 1);
+    // Mute weekends to match actual pattern
+    const adjusted = dow === 0 || dow === 6 ? trended * 0.18 : trended;
+    // Add slight noise to avoid a perfectly straight line
+    const noise = 1 + ((i * 19) % 12 - 6) / 100;
+    return {
+      date: d.toISOString().slice(0, 10),
+      label: `${["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][d.getUTCMonth()]} ${d.getUTCDate()}`,
+      value: Math.max(0, Math.round(Math.max(adjusted, avg * 0.2) * noise)),
+    };
+  });
 }
 
 function dateLabel(d: Date): string {

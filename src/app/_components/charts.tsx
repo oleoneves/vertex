@@ -230,6 +230,204 @@ export function AreaChart({
 }
 
 // ============================================================
+// <ForecastChart>
+// Area chart with an actual + projected segment (dashed line for forecast).
+// ============================================================
+export function ForecastChart({
+  actual,
+  forecast,
+  height = 220,
+  yFormatter,
+  color = ACCENT,
+  xLabels = 8,
+}: {
+  actual: { label: string; value: number }[];
+  forecast: { label: string; value: number }[];
+  height?: number;
+  yFormatter?: (n: number) => string;
+  color?: string;
+  xLabels?: number;
+}) {
+  const width = 600;
+  const padding = { top: 16, right: 16, bottom: 28, left: 64 };
+  const innerW = width - padding.left - padding.right;
+  const innerH = height - padding.top - padding.bottom;
+  const all = [...actual, ...forecast];
+
+  if (all.length === 0) return <EmptyChart height={height} />;
+
+  const min = 0;
+  const max = Math.max(1, ...all.map((d) => d.value));
+  const range = max - min || 1;
+  const stepX = all.length > 1 ? innerW / (all.length - 1) : innerW;
+
+  const points = all.map((d, i) => ({
+    x: padding.left + i * stepX,
+    y: padding.top + innerH - ((d.value - min) / range) * innerH,
+    label: d.label,
+    value: d.value,
+    isForecast: i >= actual.length,
+  }));
+
+  const actualPoints = points.slice(0, actual.length);
+  const forecastPoints = points.slice(Math.max(0, actual.length - 1)); // include last actual for continuity
+
+  const actualPath = actualPoints
+    .map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`)
+    .join(" ");
+  const forecastPath = forecastPoints
+    .map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`)
+    .join(" ");
+
+  const lastActual = actualPoints[actualPoints.length - 1];
+  const actualArea =
+    actualPath +
+    ` L${lastActual.x.toFixed(1)},${padding.top + innerH} L${actualPoints[0].x.toFixed(1)},${padding.top + innerH} Z`;
+
+  const yTicks = [0, 0.25, 0.5, 0.75, 1].map((t) => ({
+    y: padding.top + innerH - t * innerH,
+    value: min + t * range,
+  }));
+
+  const labelCount = xLabels;
+  const xLabelIdxs = Array.from({ length: labelCount }, (_, i) =>
+    Math.round((i * (all.length - 1)) / (labelCount - 1)),
+  );
+
+  const gradientId = `forecast-grad-${Math.random().toString(36).slice(2, 8)}`;
+
+  return (
+    <svg
+      viewBox={`0 0 ${width} ${height}`}
+      width="100%"
+      preserveAspectRatio="none"
+      style={{ maxHeight: height }}
+      role="img"
+    >
+      <defs>
+        <linearGradient id={gradientId} x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.35" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+
+      {yTicks.map((t, i) => (
+        <line
+          key={i}
+          x1={padding.left}
+          x2={width - padding.right}
+          y1={t.y}
+          y2={t.y}
+          stroke="currentColor"
+          strokeOpacity={0.08}
+        />
+      ))}
+      {yTicks.map((t, i) => (
+        <text
+          key={i}
+          x={padding.left - 8}
+          y={t.y + 3}
+          fontSize="10"
+          textAnchor="end"
+          fill="currentColor"
+          fillOpacity={0.5}
+        >
+          {yFormatter ? yFormatter(t.value) : Math.round(t.value)}
+        </text>
+      ))}
+
+      {/* Vertical "now" line */}
+      {forecast.length > 0 && (
+        <line
+          x1={lastActual.x}
+          x2={lastActual.x}
+          y1={padding.top}
+          y2={padding.top + innerH}
+          stroke="currentColor"
+          strokeOpacity={0.25}
+          strokeDasharray="3,3"
+        />
+      )}
+
+      {/* Area (actual only) */}
+      <path d={actualArea} fill={`url(#${gradientId})`} />
+
+      {/* Actual line */}
+      <path
+        d={actualPath}
+        fill="none"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinejoin="round"
+        strokeLinecap="round"
+      />
+
+      {/* Forecast (dashed) */}
+      {forecast.length > 0 && (
+        <path
+          d={forecastPath}
+          fill="none"
+          stroke={color}
+          strokeOpacity={0.6}
+          strokeWidth={2}
+          strokeDasharray="6,4"
+          strokeLinejoin="round"
+          strokeLinecap="round"
+        />
+      )}
+
+      {/* "Forecast" label */}
+      {forecast.length > 0 && (
+        <text
+          x={lastActual.x + 6}
+          y={padding.top + 12}
+          fontSize="9"
+          fill="currentColor"
+          fillOpacity={0.5}
+          style={{ textTransform: "uppercase", letterSpacing: 1 }}
+        >
+          Forecast →
+        </text>
+      )}
+
+      {/* Dots */}
+      {points.map((p, i) => (
+        <g key={i}>
+          <circle
+            cx={p.x}
+            cy={p.y}
+            r={p.isForecast ? 2 : 2.5}
+            fill={color}
+            fillOpacity={p.isForecast ? 0.6 : 1}
+          />
+          <circle cx={p.x} cy={p.y} r={10} fill="transparent">
+            <title>
+              {p.isForecast ? "Forecast — " : ""}
+              {p.label}: {yFormatter ? yFormatter(p.value) : p.value}
+            </title>
+          </circle>
+        </g>
+      ))}
+
+      {/* X labels */}
+      {xLabelIdxs.map((i) => (
+        <text
+          key={i}
+          x={points[i].x}
+          y={height - 8}
+          fontSize="10"
+          textAnchor="middle"
+          fill="currentColor"
+          fillOpacity={0.5}
+        >
+          {all[i].label}
+        </text>
+      ))}
+    </svg>
+  );
+}
+
+// ============================================================
 // <BarChart>
 // Single-series vertical bars.
 // ============================================================
@@ -709,7 +907,7 @@ export function FunnelChart({
   data,
   formatter,
 }: {
-  data: { label: string; value: number; color: string }[];
+  data: { label: string; value: number; color: string; href?: string }[];
   formatter?: (n: number) => string;
 }) {
   if (data.length === 0) return <EmptyChart height={140} />;
@@ -722,8 +920,12 @@ export function FunnelChart({
         const pct = Math.round((d.value / max) * 100);
         const conversionPct =
           totalEntries > 0 ? Math.round((d.value / totalEntries) * 100) : 0;
-        return (
-          <li key={i} className="flex items-center gap-3 text-sm">
+        const row = (
+          <div
+            className={`flex items-center gap-3 rounded-md py-1 text-sm ${
+              d.href ? "px-1.5 -mx-1.5 hover:bg-muted/50 transition" : ""
+            }`}
+          >
             <span
               className="shrink-0 font-medium"
               style={{ minWidth: 100, maxWidth: 100 }}
@@ -748,6 +950,17 @@ export function FunnelChart({
             <span className="w-12 shrink-0 text-right text-xs font-mono tabular-nums text-muted-foreground">
               {i === 0 ? "—" : `${conversionPct}%`}
             </span>
+          </div>
+        );
+        return (
+          <li key={i}>
+            {d.href ? (
+              <a href={d.href} className="block">
+                {row}
+              </a>
+            ) : (
+              row
+            )}
           </li>
         );
       })}

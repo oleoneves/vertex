@@ -7,6 +7,7 @@ import {
   BarChart,
   HorizontalBarChart,
   DonutChart,
+  ForecastChart,
   CHART_COLORS,
 } from "../_components/charts";
 
@@ -111,24 +112,28 @@ export default async function AdminDashboard() {
         </section>
       )}
 
-      {/* Revenue trend */}
+      {/* Revenue trend (actual + forecast) */}
       {d.revenueByDay30.length > 0 && (
         <section className="rounded-xl border border-border bg-background p-5">
           <div className="flex items-baseline justify-between">
             <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-              Revenue · last 30 days
+              Revenue · last 30 days + 14-day forecast
             </h2>
             <span className="text-xs text-muted-foreground">
-              {fmtUsd(d.revenueByDay30.reduce((s, x) => s + x.value, 0))} total
+              {fmtUsd(d.revenueByDay30.reduce((s, x) => s + x.value, 0))} actual ·{" "}
+              <span className="text-accent">
+                {fmtUsd(d.revenueForecast14.reduce((s, x) => s + x.value, 0))} projected
+              </span>
             </span>
           </div>
           <div className="mt-4 text-foreground">
-            <AreaChart
-              data={d.revenueByDay30}
-              height={220}
+            <ForecastChart
+              actual={d.revenueByDay30}
+              forecast={d.revenueForecast14}
+              height={240}
               yFormatter={(n) => fmtUsd(n, { decimals: 0, compact: true })}
               color={CHART_COLORS.accent}
-              xLabels={6}
+              xLabels={8}
             />
           </div>
         </section>
