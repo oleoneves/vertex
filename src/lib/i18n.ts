@@ -539,6 +539,40 @@ const dict = {
   "a.inv.line":         { en: "line",          es: "línea",         pt: "linha" },
   "a.inv.all_invoices": { en: "All invoices",  es: "Todas las facturas", pt: "Todas as faturas" },
   "a.inv.attn":         { en: "Attn:",         es: "A la atención de:", pt: "A/C:" },
+
+  // Project detail
+  "a.proj.approved_hours": { en: "Approved hours", es: "Horas aprobadas", pt: "Horas aprovadas" },
+  "a.proj.pending_hours":  { en: "pending",        es: "pendientes",      pt: "pendentes" },
+  "a.proj.of_revenue":     { en: "of revenue",     es: "de los ingresos", pt: "da receita" },
+  "a.proj.hours_budget":   { en: "Hours budget",   es: "Presupuesto de horas", pt: "Orçamento de horas" },
+  "a.proj.dollar_budget":  { en: "$ budget",       es: "Presupuesto $",   pt: "Orçamento $" },
+  "a.proj.hours_14":       { en: "Hours · last 14 days", es: "Horas · últimos 14 días", pt: "Horas · últimos 14 dias" },
+  "a.proj.budget_burn":    { en: "Budget burn (cumulative)", es: "Consumo de presupuesto (acum.)", pt: "Consumo do orçamento (acum.)" },
+  "a.proj.used":           { en: "used",           es: "usado",           pt: "usado" },
+  "a.proj.hours_by_role":  { en: "Hours by role",  es: "Horas por rol",   pt: "Horas por função" },
+  "a.proj.recent_clockins": { en: "Recent clock-ins", es: "Entradas recientes", pt: "Entradas recentes" },
+  "a.proj.no_clockins":    { en: "No clock-ins yet.", es: "Aún no hay entradas.", pt: "Sem entradas ainda." },
+  "a.proj.no_hours":       { en: "No approved hours yet.", es: "Aún no hay horas aprobadas.", pt: "Sem horas aprovadas ainda." },
+  "a.proj.workers":        { en: "workers",        es: "trabajadores",    pt: "colaboradores" },
+
+  // Employer/Worker detail
+  "a.det.total_hours":     { en: "Total hours",    es: "Horas totales",   pt: "Horas totais" },
+  "a.det.revenue_all":     { en: "Revenue (all time)", es: "Ingresos totales", pt: "Receita total" },
+  "a.det.margin_all":      { en: "Margin (all time)", es: "Margen total", pt: "Margem total" },
+  "a.det.paid_invoices":   { en: "Paid invoices",  es: "Facturas pagadas", pt: "Faturas pagas" },
+  "a.det.recent_activity": { en: "Recent activity", es: "Actividad reciente", pt: "Atividade recente" },
+  "a.det.placements":      { en: "Placements",     es: "Asignaciones",    pt: "Alocações" },
+  "a.det.month_hours":     { en: "Hours this month", es: "Horas este mes", pt: "Horas este mês" },
+  "a.det.month_pay":       { en: "Pay this month", es: "Pago este mes",   pt: "Salário este mês" },
+  "a.det.recent_entries":  { en: "Recent time entries", es: "Entradas recientes", pt: "Entradas recentes" },
+  "a.det.documents":       { en: "Documents",      es: "Documentos",      pt: "Documentos" },
+  "a.det.compliance":      { en: "Compliance",     es: "Cumplimiento",    pt: "Conformidade" },
+
+  // Payroll
+  "a.pay.gross_payroll":   { en: "Gross payroll",  es: "Nómina bruta",    pt: "Folha bruta" },
+  "a.pay.unpaid":          { en: "Unpaid",         es: "Sin pagar",       pt: "Não pago" },
+  "a.pay.pay_all":         { en: "Pay all unpaid", es: "Pagar todo pendiente", pt: "Pagar tudo pendente" },
+  "a.pay.run_payroll":     { en: "Run payroll",    es: "Ejecutar nómina", pt: "Rodar folha" },
 } as const;
 
 export type TKey = keyof typeof dict;

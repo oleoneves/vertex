@@ -34,7 +34,7 @@ export default async function PayrollPage({
               type="submit"
               className="inline-flex h-9 items-center rounded-md bg-accent px-3 text-sm font-bold text-accent-foreground hover:opacity-90"
             >
-              Pay all unpaid ({fmtUsd(data.totals.unpaidPay)})
+              {t(locale, "a.pay.pay_all")} ({fmtUsd(data.totals.unpaidPay)})
             </button>
           </form>
         )}
@@ -46,7 +46,7 @@ export default async function PayrollPage({
         className="mb-6 flex flex-wrap items-end gap-3 rounded-lg border border-border bg-muted/30 p-3"
       >
         <label className="text-xs">
-          <span className="block text-muted-foreground">Period start</span>
+          <span className="block text-muted-foreground">{t(locale, "a.col.period")} {t(locale, "a.inv.service_period").includes("nicio") || locale === "pt" ? "início" : "start"}</span>
           <input
             name="period_start"
             type="date"
@@ -55,7 +55,7 @@ export default async function PayrollPage({
           />
         </label>
         <label className="text-xs">
-          <span className="block text-muted-foreground">Period end</span>
+          <span className="block text-muted-foreground">{t(locale, "a.col.period")} {locale === "pt" ? "fim" : locale === "es" ? "fin" : "end"}</span>
           <input
             name="period_end"
             type="date"
@@ -67,40 +67,40 @@ export default async function PayrollPage({
           type="submit"
           className="h-9 rounded-md bg-foreground px-3 text-sm font-bold text-background hover:opacity-90"
         >
-          Apply
+          {t(locale, "a.act.filter")}
         </button>
       </form>
 
       {/* Totals */}
       <section className="mb-6 grid gap-3 sm:grid-cols-4">
-        <Kpi label="Workers" value={String(data.rows.length)} />
-        <Kpi label="Total hours" value={fmtNum(data.totals.hours, { decimals: 1 })} unit="hrs" />
-        <Kpi label="Gross payroll" value={fmtUsd(data.totals.grossPay)} />
+        <Kpi label={t(locale, "a.nav.workers")} value={String(data.rows.length)} />
+        <Kpi label={t(locale, "a.det.total_hours")} value={fmtNum(data.totals.hours, { decimals: 1 })} unit="hrs" />
+        <Kpi label={t(locale, "a.pay.gross_payroll")} value={fmtUsd(data.totals.grossPay)} />
         <Kpi
-          label="Unpaid"
+          label={t(locale, "a.pay.unpaid")}
           value={fmtUsd(data.totals.unpaidPay)}
           accent
-          subValue={`${data.totals.unpaidCount} workers`}
+          subValue={`${data.totals.unpaidCount} ${t(locale, "a.dash.workers_count")}`}
         />
       </section>
 
       {data.rows.length === 0 ? (
         <EmptyState
           icon={<DollarSign className="h-5 w-5" />}
-          title="No approved hours in this period"
-          body="Pick a different date range or approve some hours on the Timesheet page."
+          title={t(locale, "a.table.no_match")}
+          body={t(locale, "a.reports.no_hours")}
         />
       ) : (
         <DataTable
           head={
             <>
-              <Th>Worker</Th>
-              <Th>Code</Th>
-              <Th>Method</Th>
-              <Th className="text-right">Hours</Th>
-              <Th className="text-right">Rate</Th>
-              <Th className="text-right">Gross</Th>
-              <Th>Status</Th>
+              <Th>{t(locale, "a.col.worker")}</Th>
+              <Th>{t(locale, "a.col.code")}</Th>
+              <Th>{t(locale, "a.col.method")}</Th>
+              <Th className="text-right">{t(locale, "a.col.hours")}</Th>
+              <Th className="text-right">{t(locale, "a.inv.rate")}</Th>
+              <Th className="text-right">{t(locale, "a.col.total")}</Th>
+              <Th>{t(locale, "a.filter.status")}</Th>
               <Th></Th>
             </>
           }

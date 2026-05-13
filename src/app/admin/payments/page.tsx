@@ -60,28 +60,28 @@ export default async function PaymentsPage() {
 
       {payments.length > 0 && (
         <div className="mb-6 grid gap-3 sm:grid-cols-3">
-          <SummaryCard label="Received" value={net.in} positive />
-          <SummaryCard label="Paid out" value={net.out} />
-          <SummaryCard label="Net" value={net.in - net.out} accent />
+          <SummaryCard label={t(locale, "a.inv.received_amt")} value={net.in} positive />
+          <SummaryCard label={locale === "pt" ? "Pago" : locale === "es" ? "Pagado" : "Paid out"} value={net.out} />
+          <SummaryCard label={locale === "pt" ? "Líquido" : locale === "es" ? "Neto" : "Net"} value={net.in - net.out} accent />
         </div>
       )}
 
       {payments.length === 0 ? (
         <EmptyState
           icon={<DollarSign className="h-5 w-5" />}
-          title="No payments recorded"
-          body="Receipts and payouts will appear here."
+          title={t(locale, "a.table.no_match")}
+          body={t(locale, "a.table.adjust_filter")}
         />
       ) : (
         <DataTable
           head={
             <>
-              <Th>When</Th>
-              <Th>Direction</Th>
-              <Th>Counterparty</Th>
-              <Th>Method</Th>
-              <Th>Reference</Th>
-              <Th className="text-right">Amount</Th>
+              <Th>{t(locale, "a.col.received")}</Th>
+              <Th>{locale === "pt" ? "Direção" : locale === "es" ? "Dirección" : "Direction"}</Th>
+              <Th>{locale === "pt" ? "Contraparte" : locale === "es" ? "Contraparte" : "Counterparty"}</Th>
+              <Th>{t(locale, "a.col.method")}</Th>
+              <Th>{t(locale, "a.col.reference")}</Th>
+              <Th className="text-right">{t(locale, "a.col.amount")}</Th>
             </>
           }
         >
@@ -91,11 +91,11 @@ export default async function PaymentsPage() {
               <Td>
                 {p.direction === "in" ? (
                   <span className="inline-flex items-center gap-1 text-xs font-bold text-green-700 dark:text-green-400">
-                    <ArrowDownLeft className="h-3 w-3" /> Received
+                    <ArrowDownLeft className="h-3 w-3" /> {t(locale, "a.inv.received_amt")}
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1 text-xs font-bold text-blue-700 dark:text-blue-400">
-                    <ArrowUpRight className="h-3 w-3" /> Paid out
+                    <ArrowUpRight className="h-3 w-3" /> {locale === "pt" ? "Pago" : locale === "es" ? "Pagado" : "Paid out"}
                   </span>
                 )}
               </Td>

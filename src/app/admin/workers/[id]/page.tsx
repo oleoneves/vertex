@@ -16,6 +16,8 @@ import {
 } from "../../_components/form";
 import { StatusPill } from "../../_components/data-table";
 import { updateWorker, setWorkerStatus, resendWorkerInvite } from "../../_actions";
+import { t } from "@/lib/i18n";
+import { getLocale } from "@/lib/i18n-server";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +27,7 @@ export default async function WorkerDetail({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const locale = await getLocale();
   if (
     !process.env.NEXT_PUBLIC_SUPABASE_URL ||
     !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -144,16 +147,16 @@ export default async function WorkerDetail({
         <div className="space-y-6">
           <section className="rounded-xl border border-border bg-background p-5">
             <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              This month
+              {t(locale, "a.det.month_hours")}
             </h2>
             <div className="mt-3 grid grid-cols-2 gap-3">
               <div>
                 <p className="text-2xl font-extrabold tabular-nums">{fmtNum(monthHours, { decimals: 1 })}</p>
-                <p className="text-xs text-muted-foreground">hours worked</p>
+                <p className="text-xs text-muted-foreground">{t(locale, "a.col.hours")}</p>
               </div>
               <div>
                 <p className="text-2xl font-extrabold tabular-nums">{fmtUsd(monthPay)}</p>
-                <p className="text-xs text-muted-foreground">pay earned</p>
+                <p className="text-xs text-muted-foreground">{t(locale, "a.col.pay_earned")}</p>
               </div>
             </div>
           </section>
@@ -230,17 +233,17 @@ export default async function WorkerDetail({
           <section className="rounded-xl border border-border bg-background p-5">
             <div className="flex items-baseline justify-between">
               <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                Placements
+                {t(locale, "a.det.placements")}
               </h2>
               <Link
                 href="/admin/placements/new"
                 className="text-xs text-accent underline-offset-4 hover:underline"
               >
-                + New
+                + {t(locale, "a.act.new")}
               </Link>
             </div>
             {placements.length === 0 ? (
-              <p className="mt-4 text-sm text-muted-foreground">No placements yet.</p>
+              <p className="mt-4 text-sm text-muted-foreground">—</p>
             ) : (
               <ul className="mt-4 space-y-2">
                 {placements.map((p) => {
@@ -285,10 +288,10 @@ export default async function WorkerDetail({
 
           <section className="rounded-xl border border-border bg-background p-5">
             <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Recent hours
+              {t(locale, "a.det.recent_entries")}
             </h2>
             {entries.length === 0 ? (
-              <p className="mt-4 text-sm text-muted-foreground">No time entries yet.</p>
+              <p className="mt-4 text-sm text-muted-foreground">—</p>
             ) : (
               <ul className="mt-4 divide-y divide-border/60 text-sm">
                 {entries.slice(0, 10).map((e) => (
@@ -322,13 +325,13 @@ export default async function WorkerDetail({
           <section className="rounded-xl border border-border bg-background p-5">
             <div className="flex items-baseline justify-between">
               <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                Documents ({docs.length})
+                {t(locale, "a.det.documents")} ({docs.length})
               </h2>
               <Link
                 href="/admin/documents"
                 className="text-xs text-accent underline-offset-4 hover:underline"
               >
-                All →
+                {t(locale, "a.filter.all")} →
               </Link>
             </div>
             {docs.length === 0 ? (

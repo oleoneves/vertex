@@ -5,6 +5,8 @@ import { getProjectDetail } from "@/lib/projects";
 import { PageHeader } from "../../_components/page-header";
 import { StatusPill } from "../../_components/data-table";
 import { fmtUsd, fmtNum, fmtHours } from "@/lib/format";
+import { t } from "@/lib/i18n";
+import { getLocale } from "@/lib/i18n-server";
 import { AreaChart, HorizontalBarChart, DonutChart, CHART_COLORS } from "../../../_components/charts";
 
 const ROLE_COLORS = [
@@ -24,6 +26,7 @@ export default async function ProjectDashboard({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const locale = await getLocale();
   const raw = await getProjectDetail(id);
   if (!raw) notFound();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -103,9 +106,9 @@ export default async function ProjectDashboard({
       {/* KPI row */}
       <section className="grid gap-3 sm:grid-cols-4">
         <Kpi label="Active workers" value={String(activeWorkers)} subValue={`${totalWorkers} placed total`} />
-        <Kpi label="Approved hours" value={fmtNum(totals.hours)} unit="hrs" subValue={totals.pendingHours > 0 ? `+${fmtNum(totals.pendingHours)} pending` : undefined} />
-        <Kpi label="Revenue" value={fmtUsd(totals.revenue)} accent />
-        <Kpi label="Margin" value={fmtUsd(totals.margin)} subValue={`${totals.revenue > 0 ? Math.round((totals.margin / totals.revenue) * 100) : 0}% of revenue`} />
+        <Kpi label={t(locale, "a.proj.approved_hours")} value={fmtNum(totals.hours)} unit="hrs" subValue={totals.pendingHours > 0 ? `+${fmtNum(totals.pendingHours)} ${t(locale, "a.proj.pending_hours")}` : undefined} />
+        <Kpi label={t(locale, "a.dash.revenue")} value={fmtUsd(totals.revenue)} accent />
+        <Kpi label={t(locale, "a.dash.margin")} value={fmtUsd(totals.margin)} subValue={`${totals.revenue > 0 ? Math.round((totals.margin / totals.revenue) * 100) : 0}% ${t(locale, "a.proj.of_revenue")}`} />
       </section>
 
       {/* Budgets */}
@@ -113,7 +116,7 @@ export default async function ProjectDashboard({
         <section className="mt-6 grid gap-4 sm:grid-cols-2">
           {project.budget_hours && (
             <Budget
-              label="Hours budget"
+              label={t(locale, "a.proj.hours_budget")}
               used={totals.hours}
               cap={Number(project.budget_hours)}
               pct={budgetHoursPct ?? 0}
@@ -122,7 +125,7 @@ export default async function ProjectDashboard({
           )}
           {project.budget_amount && (
             <Budget
-              label="$ budget"
+              label={t(locale, "a.proj.dollar_budget")}
               used={totals.revenue}
               cap={Number(project.budget_amount)}
               pct={budgetAmountPct ?? 0}
@@ -138,10 +141,10 @@ export default async function ProjectDashboard({
         <div className="rounded-xl border border-border bg-background p-5">
           <div className="flex items-baseline justify-between">
             <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Hours · last 14 days
+              {t(locale, "a.proj.hours_14")}
             </h2>
             <span className="text-xs text-muted-foreground">
-              {fmtHours(days.reduce((s, d) => s + d.hours, 0), { decimals: 0 })} total
+              {fmtHours(days.reduce((s, d) => s + d.hours, 0), { decimals: 0 })} {t(locale, "a.dash.hours_total")}
             </span>
           </div>
           <div className="mt-4 text-foreground">
@@ -159,10 +162,10 @@ export default async function ProjectDashboard({
           <div className="rounded-xl border border-border bg-background p-5">
             <div className="flex items-baseline justify-between">
               <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                Budget burn (cumulative)
+                {t(locale, "a.proj.budget_burn")}
               </h2>
               <span className="text-xs text-muted-foreground">
-                {budgetAmountPct ?? 0}% used
+                {budgetAmountPct ?? 0}% {t(locale, "a.proj.used")}
               </span>
             </div>
             <div className="mt-4 text-foreground">
@@ -199,11 +202,11 @@ export default async function ProjectDashboard({
         <div className="rounded-xl border border-border bg-background p-5">
           <div className="flex items-baseline justify-between">
             <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Hours by role
+              {t(locale, "a.proj.hours_by_role")}
             </h2>
           </div>
           {roleRows.length === 0 ? (
-            <p className="mt-4 text-sm text-muted-foreground">No approved hours yet.</p>
+            <p className="mt-4 text-sm text-muted-foreground">{t(locale, "a.proj.no_hours")}</p>
           ) : (
             <div className="mt-4 space-y-5 text-foreground">
               <DonutChart
@@ -217,7 +220,7 @@ export default async function ProjectDashboard({
                 data={roleRows.map((r) => ({
                   label: r.role,
                   value: r.hours,
-                  sub: `${r.headcount} workers`,
+                  sub: `${r.headcount} ${t(locale, "a.proj.workers")}`,
                 }))}
                 formatter={(n) => fmtHours(n, { decimals: 0 })}
                 color={CHART_COLORS.accent}
@@ -228,10 +231,10 @@ export default async function ProjectDashboard({
 
         <div className="rounded-xl border border-border bg-background p-5">
           <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-            Recent clock-ins ({recentEntries.length})
+            {t(locale, "a.proj.recent_clockins")} ({recentEntries.length})
           </h2>
           {recentEntries.length === 0 ? (
-            <p className="mt-4 text-sm text-muted-foreground">No clock-ins yet.</p>
+            <p className="mt-4 text-sm text-muted-foreground">{t(locale, "a.proj.no_clockins")}</p>
           ) : (
             <ul className="mt-4 divide-y divide-border/60 text-sm">
               {recentEntries.map((e) => (
@@ -263,7 +266,7 @@ export default async function ProjectDashboard({
       <section className="mt-6 rounded-xl border border-border bg-background p-5">
         <div className="flex items-baseline justify-between">
           <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-            Workers ({placements.length})
+            {t(locale, "a.nav.workers")} ({placements.length})
           </h2>
           <Link
             href="/admin/placements/new"
