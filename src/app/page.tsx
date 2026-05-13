@@ -27,21 +27,21 @@ export default async function Home() {
           className="object-cover opacity-50"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/80" />
-        <div className="relative mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-32">
-          <div className="mb-6 flex items-center gap-4 sm:mb-10 sm:gap-5">
+        <div className="relative mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-20">
+          <div className="mb-5 flex items-center gap-3 sm:mb-7 sm:gap-5">
             <Image
               src="/vertex-mark-yellow.png"
               alt=""
               width={88}
               height={88}
               priority
-              className="h-16 w-auto sm:h-20"
+              className="h-12 w-auto sm:h-16"
             />
             <div className="leading-tight">
-              <div className="text-3xl font-black tracking-[5px] sm:text-5xl">
+              <div className="text-2xl font-black tracking-[4px] sm:text-4xl sm:tracking-[5px]">
                 VERTEX
               </div>
-              <div className="mt-0.5 text-[10px] font-semibold uppercase tracking-[4px] text-accent sm:text-xs">
+              <div className="mt-0.5 text-[10px] font-semibold uppercase tracking-[3px] text-accent sm:tracking-[4px] sm:text-xs">
                 Restoration · Recovery
               </div>
             </div>

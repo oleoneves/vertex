@@ -43,21 +43,21 @@ export default async function AdminDashboard() {
             className="h-44 w-auto sm:h-64"
           />
         </div>
-        <div className="relative grid gap-6 p-6 sm:grid-cols-[auto,1fr] sm:items-center sm:p-8">
-          <div className="flex items-center gap-4">
+        <div className="relative grid gap-4 p-4 sm:grid-cols-[auto,1fr] sm:items-center sm:gap-6 sm:p-6">
+          <div className="flex items-center gap-3 sm:gap-4">
             <Image
               src="/vertex-mark-yellow.png"
               alt=""
               width={72}
               height={72}
               priority
-              className="h-14 w-auto sm:h-16"
+              className="h-12 w-auto sm:h-14"
             />
             <div className="leading-tight">
-              <div className="text-2xl font-black tracking-[4px] sm:text-3xl">
+              <div className="text-xl font-black tracking-[4px] sm:text-2xl">
                 VERTEX
               </div>
-              <div className="text-[10px] font-semibold uppercase tracking-[3px] text-[#EDB23E] sm:text-xs">
+              <div className="text-[10px] font-semibold uppercase tracking-[3px] text-[#EDB23E]">
                 Restoration · Recovery
               </div>
             </div>
