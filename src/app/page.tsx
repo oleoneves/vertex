@@ -28,15 +28,23 @@ export default async function Home() {
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/80" />
         <div className="relative mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-32">
-          <div className="mb-6 inline-flex sm:mb-8">
+          <div className="mb-6 flex items-center gap-4 sm:mb-10 sm:gap-5">
             <Image
               src="/vertex-mark-yellow.png"
-              alt="Vertex Restoration"
+              alt=""
               width={88}
               height={88}
               priority
               className="h-16 w-auto sm:h-20"
             />
+            <div className="leading-tight">
+              <div className="text-3xl font-black tracking-[5px] sm:text-5xl">
+                VERTEX
+              </div>
+              <div className="mt-0.5 text-[10px] font-semibold uppercase tracking-[4px] text-accent sm:text-xs">
+                Restoration · Recovery
+              </div>
+            </div>
           </div>
           <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.18em] text-accent sm:mb-4 sm:text-xs">
             {t(locale, "hero.eyebrow")}
