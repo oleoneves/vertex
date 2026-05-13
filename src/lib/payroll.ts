@@ -1,5 +1,6 @@
 import "server-only";
 import { getSupabaseServer } from "./supabase/server";
+import { isDemoMode, demoPayroll } from "./demo";
 
 export type PayrollRow = {
   workerId: string;
@@ -50,16 +51,8 @@ export async function loadPayroll({
   const start = periodStart || fallback.periodStart;
   const end = periodEnd || fallback.periodEnd;
 
-  if (
-    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  ) {
-    return {
-      periodStart: start,
-      periodEnd: end,
-      rows: [],
-      totals: { hours: 0, grossPay: 0, unpaidPay: 0, unpaidCount: 0 },
-    };
+  if (isDemoMode()) {
+    return demoPayroll() as PayrollData;
   }
 
   const supabase = await getSupabaseServer();

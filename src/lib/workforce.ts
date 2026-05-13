@@ -1,5 +1,15 @@
 import "server-only";
 import { getSupabaseServer } from "./supabase/server";
+import {
+  isDemoMode,
+  demoWorkers,
+  demoEmployers,
+  demoPlacements,
+  demoUpcomingShifts,
+  demoTimeEntries,
+  demoInvoices,
+  demoProjects,
+} from "./demo";
 import type {
   Worker,
   Employer,
@@ -17,7 +27,7 @@ export function supabaseReady() {
 }
 
 export async function listWorkers(): Promise<Worker[]> {
-  if (!supabaseReady()) return [];
+  if (isDemoMode()) return demoWorkers();
   const supabase = await getSupabaseServer();
   const { data } = await supabase
     .from("workers")
@@ -27,7 +37,7 @@ export async function listWorkers(): Promise<Worker[]> {
 }
 
 export async function listEmployers(): Promise<Employer[]> {
-  if (!supabaseReady()) return [];
+  if (isDemoMode()) return demoEmployers();
   const supabase = await getSupabaseServer();
   const { data } = await supabase
     .from("employers")
@@ -43,7 +53,22 @@ export type PlacementWithRefs = Placement & {
 };
 
 export async function listPlacements(): Promise<PlacementWithRefs[]> {
-  if (!supabaseReady()) return [];
+  if (isDemoMode()) {
+    const workers = demoWorkers();
+    const employers = demoEmployers();
+    const projects = demoProjects();
+    return demoPlacements().map((p) => {
+      const w = workers.find((x) => x.id === p.worker_id);
+      const e = employers.find((x) => x.id === p.employer_id);
+      const proj = p.project_id ? projects.find((x) => x.id === p.project_id) : null;
+      return {
+        ...p,
+        worker: w ? { full_name: w.full_name, employee_code: w.employee_code } : null,
+        employer: e ? { name: e.name } : null,
+        project: proj ? { name: proj.name } : null,
+      };
+    });
+  }
   const supabase = await getSupabaseServer();
   const { data } = await supabase
     .from("placements")
@@ -62,7 +87,24 @@ export type ShiftWithRefs = Shift & {
 };
 
 export async function listShifts(opts: { upcoming?: boolean } = {}): Promise<ShiftWithRefs[]> {
-  if (!supabaseReady()) return [];
+  if (isDemoMode()) {
+    const workers = demoWorkers();
+    const placements = demoPlacements();
+    return demoUpcomingShifts().map((s) => {
+      const placement = placements.find((p) => p.id === s.placement_id);
+      const worker = placement ? workers.find((w) => w.id === placement.worker_id) : null;
+      return {
+        ...s,
+        placement: placement
+          ? {
+              role_title: placement.role_title,
+              worker: worker ? { full_name: worker.full_name } : null,
+              employer: { name: "Sunbelt Industrial Group" },
+            }
+          : null,
+      };
+    });
+  }
   const supabase = await getSupabaseServer();
   let q = supabase
     .from("shifts")
@@ -90,7 +132,13 @@ export async function listTimeEntries(opts: {
   unapprovedOnly?: boolean;
   workerId?: string;
 } = {}): Promise<TimeEntryWithRefs[]> {
-  if (!supabaseReady()) return [];
+  if (isDemoMode()) {
+    let entries = demoTimeEntries({ limit: 80 });
+    if (opts.unapprovedOnly) {
+      entries = entries.filter((e) => !e.approved && e.clock_out_at);
+    }
+    return entries as unknown as TimeEntryWithRefs[];
+  }
   const supabase = await getSupabaseServer();
   let q = supabase
     .from("time_entries")
@@ -111,7 +159,7 @@ export type InvoiceWithEmployer = Invoice & {
 };
 
 export async function listInvoices(): Promise<InvoiceWithEmployer[]> {
-  if (!supabaseReady()) return [];
+  if (isDemoMode()) return demoInvoices() as unknown as InvoiceWithEmployer[];
   const supabase = await getSupabaseServer();
   const { data } = await supabase
     .from("invoices")

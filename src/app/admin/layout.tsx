@@ -46,8 +46,16 @@ const MONEY: NavItem[] = [
 const ALL_ITEMS: NavItem[] = [...RECRUIT, ...WORKFORCE, ...MONEY];
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
+  const demoMode =
+    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
+    !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   return (
     <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-8 lg:flex lg:gap-10">
+      {demoMode && (
+        <div className="mb-4 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-300 lg:hidden">
+          🟡 <strong>Demo mode</strong> — realistic mock data. Connect Supabase to switch to real.
+        </div>
+      )}
       {/* Mobile: horizontal scrollable chip nav */}
       <nav
         aria-label="Admin"

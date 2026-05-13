@@ -1,5 +1,6 @@
 import "server-only";
 import { getSupabaseServer } from "./supabase/server";
+import { isDemoMode, demoProjects, demoProjectDetail } from "./demo";
 import type { Project, Employer, Worker, Placement, TimeEntry } from "@/types/db";
 
 export type ProjectWithEmployer = Project & {
@@ -7,11 +8,8 @@ export type ProjectWithEmployer = Project & {
 };
 
 export async function listProjects(): Promise<ProjectWithEmployer[]> {
-  if (
-    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  ) {
-    return [];
+  if (isDemoMode()) {
+    return demoProjects() as ProjectWithEmployer[];
   }
   const supabase = await getSupabaseServer();
   const { data } = await supabase
@@ -22,11 +20,9 @@ export async function listProjects(): Promise<ProjectWithEmployer[]> {
 }
 
 export async function getProjectDetail(id: string) {
-  if (
-    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  ) {
-    return null;
+  if (isDemoMode()) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return demoProjectDetail(id) as any;
   }
   const supabase = await getSupabaseServer();
 

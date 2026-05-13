@@ -1,5 +1,6 @@
 import "server-only";
 import { getSupabaseServer } from "./supabase/server";
+import { isDemoMode, demoReports } from "./demo";
 
 export type MonthlyReport = {
   month: string;
@@ -40,11 +41,8 @@ function emptyReport(): ReportsData {
 }
 
 export async function loadReports(opts: { months?: number } = {}): Promise<ReportsData> {
-  if (
-    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  ) {
-    return emptyReport();
+  if (isDemoMode()) {
+    return demoReports() as ReportsData;
   }
 
   const months = opts.months ?? 6;

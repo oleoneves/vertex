@@ -1,5 +1,6 @@
 import "server-only";
 import { getSupabaseServer } from "./supabase/server";
+import { isDemoMode, demoDashboard } from "./demo";
 
 export type DashboardData = {
   revenueMtd: number;
@@ -68,11 +69,8 @@ function dayBuckets() {
 }
 
 export async function loadDashboard(): Promise<DashboardData> {
-  if (
-    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  ) {
-    return EMPTY_DASHBOARD;
+  if (isDemoMode()) {
+    return demoDashboard() as DashboardData;
   }
 
   const supabase = await getSupabaseServer();

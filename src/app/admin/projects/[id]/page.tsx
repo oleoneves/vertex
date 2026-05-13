@@ -13,9 +13,20 @@ export default async function ProjectDashboard({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const data = await getProjectDetail(id);
-  if (!data) notFound();
-  const { project, placements, activeWorkers, totalWorkers, totals, days, roleRows, recentEntries } = data;
+  const raw = await getProjectDetail(id);
+  if (!raw) notFound();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const data = raw as any;
+  const { project, placements, activeWorkers, totalWorkers, totals, days, roleRows, recentEntries } = data as {
+    project: { name: string; budget_hours: number | null; budget_amount: number | null; status: string; employer: { name: string } | null; location: string | null; start_date: string | null; end_date: string | null };
+    placements: Array<{ id: string; worker_id: string; status: string; role_title: string; worker: { full_name: string } | null }>;
+    activeWorkers: number;
+    totalWorkers: number;
+    totals: { hours: number; revenue: number; margin: number; pendingHours: number };
+    days: Array<{ day: string; label: string; hours: number }>;
+    roleRows: Array<{ role: string; headcount: number; hours: number }>;
+    recentEntries: Array<{ id: string; clock_in_at: string; clock_out_at: string | null; hours_worked: number | null; approved: boolean; worker: { full_name: string } | null }>;
+  };
 
   const budgetHoursPct = project.budget_hours
     ? Math.min(100, Math.round((totals.hours / Number(project.budget_hours)) * 100))
