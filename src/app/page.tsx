@@ -28,6 +28,16 @@ export default async function Home() {
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/80" />
         <div className="relative mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-32">
+          <div className="mb-6 inline-flex sm:mb-8">
+            <Image
+              src="/vertex-mark-yellow.png"
+              alt="Vertex Restoration"
+              width={88}
+              height={88}
+              priority
+              className="h-16 w-auto sm:h-20"
+            />
+          </div>
           <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.18em] text-accent sm:mb-4 sm:text-xs">
             {t(locale, "hero.eyebrow")}
           </p>

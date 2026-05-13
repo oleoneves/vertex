@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import {
@@ -69,6 +70,28 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   const todayRevenue = dash.revenueByDay30.at(-1)?.value ?? 0;
   return (
     <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-8 lg:flex lg:gap-10">
+      {/* Mobile: brand mark in header */}
+      <Link
+        href="/admin"
+        className="mb-3 flex items-center gap-2 lg:hidden"
+        aria-label="Vertex Restoration"
+      >
+        <Image
+          src="/vertex-mark-navy.png"
+          alt=""
+          width={28}
+          height={28}
+          priority
+          unoptimized
+          className="h-7 w-auto shrink-0 dark:invert"
+        />
+        <div className="leading-tight">
+          <div className="text-sm font-extrabold tracking-tight">VERTEX</div>
+          <div className="text-[8px] font-semibold uppercase tracking-[2px] text-muted-foreground">
+            Restoration
+          </div>
+        </div>
+      </Link>
       {demoMode && (
         <div className="mb-4 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-300 lg:hidden">
           🟡 <strong>Demo mode</strong> — realistic mock data. Connect Supabase to switch to real.
@@ -95,6 +118,28 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       {/* Desktop: grouped sidebar */}
       <aside className="hidden lg:block lg:w-60 lg:shrink-0">
         <nav className="sticky top-24 flex flex-col gap-1 text-sm">
+          {/* Vertex brand mark + wordmark */}
+          <Link
+            href="/admin"
+            className="mb-3 flex items-center gap-2.5 rounded-md px-2 py-1.5 hover:bg-muted"
+            aria-label="Vertex Restoration"
+          >
+            <Image
+              src="/vertex-mark-navy.png"
+              alt=""
+              width={32}
+              height={32}
+              priority
+              unoptimized
+              className="h-8 w-auto shrink-0 dark:invert"
+            />
+            <div className="min-w-0 leading-tight">
+              <div className="text-sm font-extrabold tracking-tight">VERTEX</div>
+              <div className="text-[9px] font-semibold uppercase tracking-[2px] text-muted-foreground">
+                Restoration
+              </div>
+            </div>
+          </Link>
           <div className="flex items-center gap-2 px-2 pb-3">
             <div className="flex-1">
               <CommandPalette />

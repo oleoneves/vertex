@@ -21,7 +21,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
   title: {
-    default: `${brand.name} — Labor recruitment across the USA`,
+    default: `${brand.legalName} — Disaster restoration & recovery`,
     template: `%s · ${brand.name}`,
   },
   description: brand.tagline.en,
