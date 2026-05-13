@@ -13,6 +13,9 @@ import type {
   InvoiceLineItem,
   Project,
   Payment,
+  WorkerDocument,
+  DocumentType,
+  DocumentStatus,
 } from "@/types/db";
 
 // ============== Name pools ==============
@@ -879,7 +882,6 @@ export function demoWorkerPaystubDetail(periodStart: string) {
 }
 
 // ============== Documents demo ==============
-import type { WorkerDocument, DocumentType, DocumentStatus } from "@/types/db";
 
 const DOC_SAMPLES: { type: DocumentType; status: DocumentStatus; filename: string; daysAgo: number }[] = [
   { type: "i9", status: "approved", filename: "i9-form.pdf", daysAgo: 28 },

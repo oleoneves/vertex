@@ -13,7 +13,9 @@ import {
   DollarSign,
   BarChart3,
   ClipboardList,
+  ShieldCheck,
 } from "lucide-react";
+import { CommandPalette } from "./_components/command-palette";
 
 type NavItem = {
   href: string;
@@ -34,6 +36,7 @@ const WORKFORCE: NavItem[] = [
   { href: "/admin/placements", label: "Placements", Icon: Link2 },
   { href: "/admin/shifts", label: "Shifts", Icon: CalendarDays },
   { href: "/admin/timesheet", label: "Timesheet", Icon: Clock },
+  { href: "/admin/documents", label: "Documents", Icon: ShieldCheck },
 ];
 
 const MONEY: NavItem[] = [
@@ -77,6 +80,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       {/* Desktop: grouped sidebar */}
       <aside className="hidden lg:block lg:w-60 lg:shrink-0">
         <nav className="sticky top-24 flex flex-col gap-1 text-sm">
+          <div className="px-2 pb-3">
+            <CommandPalette />
+          </div>
           <Group label="Recruitment" items={RECRUIT} />
           <Group label="Workforce" items={WORKFORCE} />
           <Group label="Money" items={MONEY} />
