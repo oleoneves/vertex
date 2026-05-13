@@ -29,9 +29,7 @@ export async function GET(
   const inv = await getInvoiceDetail(id);
   if (!inv) return new NextResponse("Invoice not found", { status: 404 });
 
-  const employer = inv.employer as
-    | { name: string; billing_email: string | null; billing_address: string | null }
-    | null;
+  const employer = inv.employer;
   if (!employer) return new NextResponse("Invoice missing employer", { status: 500 });
 
   const buffer = await renderToBuffer(
@@ -40,6 +38,7 @@ export async function GET(
         invoice: inv,
         employer: {
           name: employer.name,
+          contact_name: employer.contact_name,
           billing_email: employer.billing_email,
           billing_address: employer.billing_address,
         },

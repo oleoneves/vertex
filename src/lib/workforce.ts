@@ -168,26 +168,27 @@ export async function listInvoices(): Promise<InvoiceWithEmployer[]> {
   return (data as unknown as InvoiceWithEmployer[]) ?? [];
 }
 
-export async function getInvoiceDetail(id: string): Promise<
-  | (InvoiceWithEmployer & {
-      lines: (InvoiceLineItem & { worker: Pick<Worker, "full_name"> | null })[];
-    })
-  | null
-> {
+export type InvoiceDetail = Invoice & {
+  employer:
+    | Pick<
+        Employer,
+        "name" | "billing_email" | "billing_address" | "contact_name" | "payment_terms_days"
+      >
+    | null;
+  lines: (InvoiceLineItem & { worker: Pick<Worker, "full_name"> | null })[];
+};
+
+export async function getInvoiceDetail(id: string): Promise<InvoiceDetail | null> {
   if (!supabaseReady()) return null;
   const supabase = await getSupabaseServer();
   const { data } = await supabase
     .from("invoices")
     .select(
-      "*, employer:employers(name, billing_email, billing_address, payment_terms_days), lines:invoice_line_items(*, worker:workers(full_name))",
+      "*, employer:employers(name, contact_name, billing_email, billing_address, payment_terms_days), lines:invoice_line_items(*, worker:workers(full_name))",
     )
     .eq("id", id)
     .maybeSingle();
-  return data as unknown as
-    | (InvoiceWithEmployer & {
-        lines: (InvoiceLineItem & { worker: Pick<Worker, "full_name"> | null })[];
-      })
-    | null;
+  return (data as unknown as InvoiceDetail) ?? null;
 }
 
 // Worker portal helpers
