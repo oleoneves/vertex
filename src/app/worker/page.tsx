@@ -158,6 +158,16 @@ export default async function WorkerDashboard() {
   const upcomingShifts = (upcomingShiftsRes.data as unknown as UpcomingShift[]) ?? [];
   const nextShift = upcomingShifts[0] ?? null;
 
+  // Signature compliance
+  const { data: sigsHome } = await supabase
+    .from("worker_signatures")
+    .select("document")
+    .eq("worker_id", worker.id);
+  const signedDocs = new Set(
+    ((sigsHome as { document: string }[]) ?? []).map((s) => s.document),
+  );
+  const needsSign = !signedDocs.has("ppe") || !signedDocs.has("terms");
+
   // Availability summary for next week
   type AvailRow = {
     day_of_week: number;
@@ -204,6 +214,19 @@ export default async function WorkerDashboard() {
           )}
         </div>
       </header>
+
+      {/* Onboarding banner if missing signatures */}
+      {needsSign && (
+        <Link
+          href="/worker/sign"
+          className="flex items-center justify-between rounded-2xl border-2 border-red-500/40 bg-red-50 px-4 py-3 text-sm dark:bg-red-900/20"
+        >
+          <span className="flex items-center gap-2 font-medium text-red-800 dark:text-red-300">
+            ⚠ Você ainda precisa assinar EPI + Termos antes de fazer clock-in.
+          </span>
+          <span className="text-xs font-bold text-red-800 dark:text-red-300">Assinar agora →</span>
+        </Link>
+      )}
 
       {/* Reliability + ranking badge row */}
       <section className="grid gap-3 sm:grid-cols-2">
