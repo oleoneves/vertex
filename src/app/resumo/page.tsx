@@ -86,6 +86,7 @@ const SECTIONS: Section[] = [
       "Folha de Horas editável linha a linha: clock-in, clock-out, break — com Save por linha",
       "Botão Print / PDF",
       "Weekly Timesheet em /admin/employers/[id]/weekly: header navy + logo Vertex, agrupado por colaborador, assinaturas de ambas as partes, navegação prev/next-week, totalizadores",
+      "**Formato batendo com o PDF da Andrea**: colunas Ticket # (work-order da contratante, ex: 4110322351) + Extra (bônus/hora extra fora do hours×rate), edição inline + soma automática no subtotal por colaborador",
       "Edição inline de horários antes de imprimir/enviar",
     ],
   },
@@ -104,11 +105,11 @@ const SECTIONS: Section[] = [
     title: "Relatórios",
     subtitle: "Análise por período, por PM, por colaborador",
     items: [
-      "Filtro de período: últimos 7 dias · 30 dias · 3 meses · 6 meses · 12 meses · 24 meses",
-      "Top Project Managers — qual contato em cada contratante deu mais trabalho e mais receita",
-      "Top Colaboradores agora com coluna de Vertex margin (não só horas e salário)",
+      "Filtro de período: últimos 7 dias · 30 dias · 3 meses · 6 meses · 12 meses · 24 meses — **gráficos respondem ao filtro** (antes mostravam sempre 6 meses)",
+      "**Top 10 Project Managers** com ranking numerado: PM · Empresa · Invoices · **Total faturado** · Custo estimado · **Margem Vertex** (calculada via ratio do employer)",
+      "Top Colaboradores com coluna de Vertex margin (não só horas e salário)",
       "Gráficos com tooltips ao passar o mouse (data + valor)",
-      "8 meses de dados históricos simulados para os gráficos ficarem cheios",
+      "12 meses de dados históricos simulados (90 paid invoices + 4.000+ time entries) — todos os gráficos cheios",
     ],
   },
   {
@@ -155,16 +156,17 @@ const SECTIONS: Section[] = [
       "Cron jobs: auto-gerar invoice + marcar overdue (diários)",
       "Email via Resend",
       "Storage privado para documentos (W9, contratos, timesheets)",
+      "Domínio definido: **vertexrestoration.us**",
       "Modo sandbox para testes — dados serão limpos antes da virada para produção",
     ],
   },
 ];
 
 const NUMBERS = [
-  { value: "21", label: "deploys nesta sessão" },
-  { value: "17", label: "migrations no banco" },
+  { value: "26", label: "deploys nesta sessão" },
+  { value: "18", label: "migrations no banco" },
   { value: "12", label: "áreas do produto melhoradas" },
-  { value: "4.000+", label: "registros de teste populados" },
+  { value: "12.000+", label: "registros de teste populados" },
 ];
 
 export default function ResumoPage() {
@@ -319,7 +321,7 @@ export default function ResumoPage() {
                 style={{ background: brand.colors.accent }}
               />
               <span className="text-white/80">
-                Apontar o domínio <strong className="text-white">vertexlaborservice.com</strong> para a Vercel
+                Apontar o domínio <strong className="text-white">vertexrestoration.us</strong> para a Vercel
               </span>
             </li>
             <li className="flex items-start gap-3">
