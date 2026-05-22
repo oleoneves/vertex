@@ -257,25 +257,41 @@ export default async function AdminDashboard() {
             {d.recentActivity.length === 0 && (
               <li className="text-muted-foreground">{t(locale, "a.dash.no_activity")}</li>
             )}
-            {d.recentActivity.map((a, i) => (
-              <li key={i} className="flex items-baseline gap-2">
-                <span
-                  className={
-                    a.type === "application"
-                      ? "h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500"
-                      : a.type === "invoice"
-                      ? "h-1.5 w-1.5 shrink-0 rounded-full bg-accent"
-                      : "h-1.5 w-1.5 shrink-0 rounded-full bg-green-500"
-                  }
-                />
-                <div className="min-w-0 flex-1">
-                  <div className="truncate">{a.label}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {new Date(a.at).toLocaleString()}
+            {d.recentActivity.map((a, i) => {
+              const inner = (
+                <div className="flex items-baseline gap-2">
+                  <span
+                    className={
+                      a.type === "application"
+                        ? "h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500"
+                        : a.type === "invoice"
+                        ? "h-1.5 w-1.5 shrink-0 rounded-full bg-accent"
+                        : "h-1.5 w-1.5 shrink-0 rounded-full bg-green-500"
+                    }
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate">{a.label}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {new Date(a.at).toLocaleString()}
+                    </div>
                   </div>
                 </div>
-              </li>
-            ))}
+              );
+              return (
+                <li key={i}>
+                  {a.href ? (
+                    <Link
+                      href={a.href}
+                      className="-mx-2 block rounded-md px-2 py-1 transition hover:bg-muted"
+                    >
+                      {inner}
+                    </Link>
+                  ) : (
+                    inner
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </div>
       </section>

@@ -28,7 +28,7 @@ export type DashboardData = {
   hoursByDay: { day: string; hours: number }[];
   topEmployers: { name: string; revenue: number }[];
   topWorkers: { name: string; hours: number }[];
-  recentActivity: { type: string; label: string; at: string }[];
+  recentActivity: { type: string; label: string; at: string; href?: string }[];
   // Time-series for charts:
   revenueByDay30: { date: string; label: string; value: number }[];
   revenueForecast14: { date: string; label: string; value: number }[];
@@ -501,6 +501,7 @@ export async function loadDashboard(): Promise<DashboardData> {
       type: "application",
       label: `${a.candidate?.full_name ?? "Someone"} applied to ${a.job?.title ?? "a job"}`,
       at: a.created_at,
+      href: "/admin/applications",
     });
   }
   for (const i of (recentInvoices.data ?? []) as unknown as Array<{
@@ -514,6 +515,7 @@ export async function loadDashboard(): Promise<DashboardData> {
       type: "invoice",
       label: `${i.invoice_number} — $${Number(i.total).toFixed(0)} (${i.status})`,
       at: i.created_at,
+      href: `/admin/invoices/${i.id}`,
     });
   }
   for (const t of (recentEntries.data ?? []) as unknown as Array<{
@@ -528,6 +530,7 @@ export async function loadDashboard(): Promise<DashboardData> {
         ? `${t.worker?.full_name ?? "Worker"} clocked out`
         : `${t.worker?.full_name ?? "Worker"} clocked in`,
       at: t.clock_out_at ?? t.clock_in_at,
+      href: "/admin/timesheet",
     });
   }
   recentActivity.sort((a, b) => +new Date(b.at) - +new Date(a.at));

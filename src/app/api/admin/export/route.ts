@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSupabaseServer } from "@/lib/supabase/server";
+import { getCurrentAdminRole, can } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
@@ -38,6 +39,12 @@ export async function GET(req: Request) {
   } = await supabase.auth.getUser();
   if (!user) {
     return new NextResponse("Unauthorized", { status: 401 });
+  }
+
+  // CSV exports include bill/revenue numbers — restrict to super_admin (financial role)
+  const role = await getCurrentAdminRole();
+  if (!can(role, "view_financials")) {
+    return new NextResponse("Forbidden — financial role required", { status: 403 });
   }
 
   let csv = "";
