@@ -39,27 +39,47 @@ export default async function WorkerDetail({
   }
 
   const supabase = await getSupabaseServer();
-  const [workerRes, placementsRes, entriesRes, docsRes] = await Promise.all([
-    supabase.from("workers").select("*").eq("id", id).maybeSingle(),
-    supabase
-      .from("placements")
-      .select("*, employer:employers(name)")
-      .eq("worker_id", id)
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("time_entries")
-      .select(
-        "id, clock_in_at, clock_out_at, hours_worked, pay_rate_at_entry, approved, placement:placements(role_title, employer:employers(name))",
-      )
-      .eq("worker_id", id)
-      .order("clock_in_at", { ascending: false })
-      .limit(20),
-    supabase
-      .from("documents")
-      .select("*")
-      .eq("worker_id", id)
-      .order("uploaded_at", { ascending: false }),
-  ]);
+  const [workerRes, placementsRes, entriesRes, docsRes, sigsRes, incidentsRes, ratingsRes, referralsRes] =
+    await Promise.all([
+      supabase.from("workers").select("*").eq("id", id).maybeSingle(),
+      supabase
+        .from("placements")
+        .select("*, employer:employers(name)")
+        .eq("worker_id", id)
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("time_entries")
+        .select(
+          "id, clock_in_at, clock_out_at, hours_worked, pay_rate_at_entry, approved, placement:placements(role_title, employer:employers(name))",
+        )
+        .eq("worker_id", id)
+        .order("clock_in_at", { ascending: false })
+        .limit(20),
+      supabase
+        .from("documents")
+        .select("*")
+        .eq("worker_id", id)
+        .order("uploaded_at", { ascending: false }),
+      supabase
+        .from("worker_signatures")
+        .select("document, signed_at")
+        .eq("worker_id", id),
+      supabase
+        .from("incident_reports")
+        .select("id, title, severity, status, created_at", { count: "exact" })
+        .eq("worker_id", id)
+        .order("created_at", { ascending: false })
+        .limit(5),
+      supabase
+        .from("worker_ratings_given")
+        .select("stars, target_kind")
+        .eq("target_worker_id", id)
+        .eq("target_kind", "peer"),
+      supabase
+        .from("worker_referrals")
+        .select("status", { count: "exact", head: true })
+        .eq("referrer_worker_id", id),
+    ]);
 
   const worker = workerRes.data as Worker | null;
   if (!worker) notFound();
@@ -347,6 +367,70 @@ export default async function WorkerDetail({
               </ul>
             )}
           </section>
+
+          {/* Engagement snapshot — signatures, incidents, ratings, referrals */}
+          {(() => {
+            type SigRow = { document: string; signed_at: string };
+            type IncRow = { id: string; title: string; severity: string; status: string; created_at: string };
+            type RatRow = { stars: number; target_kind: string };
+            const sigs = (sigsRes.data as SigRow[]) ?? [];
+            const ppe = sigs.find((s) => s.document === "ppe");
+            const terms = sigs.find((s) => s.document === "terms");
+            const incidents = (incidentsRes.data as IncRow[]) ?? [];
+            const incidentCount = incidentsRes.count ?? incidents.length;
+            const ratings = (ratingsRes.data as RatRow[]) ?? [];
+            const avgPeerRating =
+              ratings.length > 0
+                ? ratings.reduce((s, r) => s + r.stars, 0) / ratings.length
+                : null;
+            const referralsCount = referralsRes.count ?? 0;
+            return (
+              <section className="rounded-xl border border-border bg-background p-5">
+                <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  Engajamento
+                </h2>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-md border border-border bg-muted/20 p-3 text-xs">
+                    <p className="font-bold uppercase tracking-wider text-muted-foreground">
+                      Assinaturas
+                    </p>
+                    <div className="mt-1.5 space-y-1">
+                      <p className={ppe ? "text-green-700 dark:text-green-300" : "text-red-600"}>
+                        {ppe ? "✓" : "✗"} PPE {ppe && `· ${new Date(ppe.signed_at).toLocaleDateString()}`}
+                      </p>
+                      <p className={terms ? "text-green-700 dark:text-green-300" : "text-red-600"}>
+                        {terms ? "✓" : "✗"} Termos {terms && `· ${new Date(terms.signed_at).toLocaleDateString()}`}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="rounded-md border border-border bg-muted/20 p-3 text-xs">
+                    <p className="font-bold uppercase tracking-wider text-muted-foreground">
+                      Atividade
+                    </p>
+                    <p className="mt-1.5">
+                      🚨 {incidentCount} incident{incidentCount === 1 ? "" : "s"} reportado{incidentCount === 1 ? "" : "s"}
+                    </p>
+                    <p>🎁 {referralsCount} indicaç{referralsCount === 1 ? "ão" : "ões"}</p>
+                    {avgPeerRating != null && (
+                      <p>⭐ {avgPeerRating.toFixed(1)} média peer ({ratings.length} avaliações)</p>
+                    )}
+                  </div>
+                </div>
+                {incidents.length > 0 && (
+                  <ul className="mt-3 space-y-1 text-xs">
+                    {incidents.slice(0, 3).map((i) => (
+                      <li key={i.id} className="flex items-center justify-between border-t border-border/40 py-1.5">
+                        <span className="truncate">{i.title}</span>
+                        <span className="text-[10px] text-muted-foreground">
+                          {i.severity} · {i.status}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+            );
+          })()}
 
           {/* Documents */}
           <section className="rounded-xl border border-border bg-background p-5">
