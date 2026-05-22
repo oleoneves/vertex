@@ -1129,6 +1129,8 @@ export function demoTimeEntries(opts: { limit?: number } = {}): (TimeEntry & {
       approved_by: null,
       approved_at: null,
       location: i % 4 === 0 ? `29.39${i % 10},-94.95${(i + 7) % 10}` : null,
+      ticket_number: null,
+      extra: null,
       notes: null,
       created_at: clockIn.toISOString(),
       worker: { full_name: w.full_name, employee_code: w.employee_code },

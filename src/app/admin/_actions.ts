@@ -532,6 +532,8 @@ export async function addManualTimeEntry(formData: FormData) {
   if (pErr || !p) throw new Error("Placement not found");
   const clockIn = new Date(`${date}T08:00:00`);
   const clockOut = new Date(clockIn.getTime() + hours * 3600 * 1000);
+  const ticketNum = String(formData.get("ticket_number") || "").trim() || null;
+  const extraNum = Number(formData.get("extra")) || null;
   const { error } = await supabase.from("time_entries").insert({
     placement_id,
     worker_id: p.worker_id,
@@ -541,6 +543,8 @@ export async function addManualTimeEntry(formData: FormData) {
     bill_rate_at_entry: p.bill_rate,
     approved: true,
     approved_at: new Date().toISOString(),
+    ticket_number: ticketNum,
+    extra: extraNum,
     notes: "Manual entry — offline project",
   });
   if (error) throw new Error(error.message);
@@ -563,10 +567,19 @@ export async function updateTimeEntry(formData: FormData) {
   const clockOut = clockOutRaw
     ? new Date(`${dateStr}T${clockOutRaw}:00`).toISOString()
     : null;
+  const ticketRaw = formData.get("ticket_number");
+  const extraRaw = formData.get("extra");
   const supabase = await getSupabaseServer();
   const payload: Record<string, unknown> = { break_minutes: breakMinutes };
   if (clockIn) payload.clock_in_at = clockIn;
   if (clockOut) payload.clock_out_at = clockOut;
+  if (ticketRaw !== null) {
+    payload.ticket_number = String(ticketRaw).trim() || null;
+  }
+  if (extraRaw !== null) {
+    const n = Number(extraRaw);
+    payload.extra = Number.isFinite(n) && n > 0 ? n : null;
+  }
   const { error } = await supabase.from("time_entries").update(payload).eq("id", id);
   if (error) throw new Error(error.message);
   if (employer_id) {

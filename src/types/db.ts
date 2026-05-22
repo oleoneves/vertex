@@ -172,6 +172,8 @@ export type TimeEntry = {
   approved_by: string | null;
   approved_at: string | null;
   location: string | null;
+  ticket_number: string | null;
+  extra: number | null;
   notes: string | null;
   created_at: string;
 };

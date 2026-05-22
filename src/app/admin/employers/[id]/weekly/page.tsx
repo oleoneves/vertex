@@ -17,6 +17,8 @@ type EntryRow = {
   hours_worked: number | null;
   bill_rate_at_entry: number | null;
   approved: boolean;
+  ticket_number: string | null;
+  extra: number | null;
   notes: string | null;
   worker: { full_name: string; employee_code: string | null } | null;
   placement: {
@@ -101,7 +103,7 @@ export default async function WeeklyTimesheetPage({
   const { data: entriesRaw } = await supabase
     .from("time_entries")
     .select(
-      "id, clock_in_at, clock_out_at, break_minutes, hours_worked, bill_rate_at_entry, approved, notes, worker:workers(full_name, employee_code), placement:placements!inner(role_title, employer_id, project:projects(name))",
+      "id, clock_in_at, clock_out_at, break_minutes, hours_worked, bill_rate_at_entry, approved, ticket_number, extra, notes, worker:workers(full_name, employee_code), placement:placements!inner(role_title, employer_id, project:projects(name))",
     )
     .eq("placement.employer_id", id)
     .gte("clock_in_at", weekStart.toISOString())
@@ -113,7 +115,7 @@ export default async function WeeklyTimesheetPage({
   // Group by worker
   const byWorker = new Map<
     string,
-    { name: string; code: string | null; entries: EntryRow[]; hours: number; amount: number }
+    { name: string; code: string | null; entries: EntryRow[]; hours: number; amount: number; extra: number }
   >();
   for (const e of entries) {
     const name = e.worker?.full_name ?? "(unassigned)";
@@ -124,12 +126,15 @@ export default async function WeeklyTimesheetPage({
       entries: [],
       hours: 0,
       amount: 0,
+      extra: 0,
     };
     bucket.entries.push(e);
     const hrs = Number(e.hours_worked ?? 0);
     const rate = Number(e.bill_rate_at_entry ?? 0);
+    const xtra = Number(e.extra ?? 0);
     bucket.hours += hrs;
-    bucket.amount += hrs * rate;
+    bucket.amount += hrs * rate + xtra;
+    bucket.extra += xtra;
     byWorker.set(key, bucket);
   }
   const grouped = Array.from(byWorker.values()).sort((a, b) =>
@@ -328,12 +333,12 @@ export default async function WeeklyTimesheetPage({
                     <thead>
                       <tr className="border-b border-slate-200 text-left text-[10px] uppercase tracking-wider text-slate-500">
                         <th className="px-4 py-1.5 font-bold">Date</th>
+                        <th className="px-4 py-1.5 font-bold">Ticket #</th>
                         <th className="px-4 py-1.5 font-bold">Project / Role</th>
-                        <th className="px-4 py-1.5 font-bold">In</th>
-                        <th className="px-4 py-1.5 font-bold">Out</th>
-                        <th className="px-4 py-1.5 text-right font-bold">Break (min)</th>
+                        <th className="px-4 py-1.5 font-bold" colSpan={3}>In → Out · Break · Save</th>
                         <th className="px-4 py-1.5 text-right font-bold">Hrs</th>
                         <th className="px-4 py-1.5 text-right font-bold">Rate</th>
+                        <th className="px-4 py-1.5 text-right font-bold">Extra</th>
                         <th className="px-4 py-1.5 text-right font-bold">Amount</th>
                         <th className="px-2 py-1.5 no-print"></th>
                       </tr>
@@ -343,7 +348,8 @@ export default async function WeeklyTimesheetPage({
                         const date = new Date(e.clock_in_at);
                         const hrs = Number(e.hours_worked ?? 0);
                         const rate = Number(e.bill_rate_at_entry ?? 0);
-                        const amount = hrs * rate;
+                        const xtra = Number(e.extra ?? 0);
+                        const amount = hrs * rate + xtra;
                         const dateIso = isoDate(date);
                         return (
                           <tr
@@ -354,6 +360,9 @@ export default async function WeeklyTimesheetPage({
                               <div className="font-medium">
                                 {fmtDow(date)} {date.toLocaleDateString("en-US", { month: "2-digit", day: "2-digit" })}
                               </div>
+                            </td>
+                            <td className="px-4 py-1.5 font-mono text-xs tabular-nums text-slate-600">
+                              {e.ticket_number ?? "—"}
                             </td>
                             <td className="px-4 py-1.5">
                               <div className="font-medium">
@@ -394,6 +403,22 @@ export default async function WeeklyTimesheetPage({
                                   placeholder="brk"
                                   className="w-12 rounded border border-slate-300 bg-white px-1 py-0.5 text-right font-mono text-xs tabular-nums"
                                 />
+                                <input
+                                  type="text"
+                                  name="ticket_number"
+                                  defaultValue={e.ticket_number ?? ""}
+                                  placeholder="ticket #"
+                                  className="w-24 rounded border border-slate-300 bg-white px-1.5 py-0.5 font-mono text-xs"
+                                />
+                                <input
+                                  type="number"
+                                  name="extra"
+                                  defaultValue={e.extra ?? ""}
+                                  min="0"
+                                  step="0.01"
+                                  placeholder="extra"
+                                  className="w-16 rounded border border-slate-300 bg-white px-1 py-0.5 text-right font-mono text-xs tabular-nums"
+                                />
                                 <button
                                   type="submit"
                                   className="no-print rounded bg-slate-900 px-2 py-0.5 text-[10px] font-bold text-white hover:opacity-80"
@@ -407,6 +432,9 @@ export default async function WeeklyTimesheetPage({
                             </td>
                             <td className="px-4 py-1.5 text-right font-mono tabular-nums">
                               {fmtUsd(rate)}
+                            </td>
+                            <td className="px-4 py-1.5 text-right font-mono tabular-nums">
+                              {xtra > 0 ? fmtUsd(xtra) : "—"}
                             </td>
                             <td className="px-4 py-1.5 text-right font-mono font-bold tabular-nums">
                               {fmtUsd(amount)}
