@@ -79,8 +79,11 @@ export type Employer = {
   billing_address: string | null;
   bill_rate_multiplier: number;
   hourly_bill_rate: number | null;
+  hourly_pay_rate: number | null;
   per_diem_rate: number | null;
+  per_diem_cost: number | null;
   travel_time_rate: number | null;
+  travel_time_cost: number | null;
   payment_terms_days: number;
   notes: string | null;
   created_at: string;

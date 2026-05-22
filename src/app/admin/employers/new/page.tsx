@@ -19,8 +19,11 @@ async function createEmployer(formData: FormData) {
     billing_address: String(formData.get("billing_address") || "").trim() || null,
     bill_rate_multiplier: Number(formData.get("bill_rate_multiplier")) || 1.5,
     hourly_bill_rate: Number(formData.get("hourly_bill_rate")) || null,
+    hourly_pay_rate: Number(formData.get("hourly_pay_rate")) || null,
     per_diem_rate: Number(formData.get("per_diem_rate")) || null,
+    per_diem_cost: Number(formData.get("per_diem_cost")) || null,
     travel_time_rate: Number(formData.get("travel_time_rate")) || null,
+    travel_time_cost: Number(formData.get("travel_time_cost")) || null,
     payment_terms_days: Number(formData.get("payment_terms_days")) || 15,
     notes: String(formData.get("notes") || "") || null,
   };
@@ -51,43 +54,58 @@ export default function NewEmployerPage() {
         </FormSection>
 
         <FormSection
-          title="Billing rates"
-          description="Per-employer rates used to compute invoice line items. Leave blank to fall back to the multiplier."
+          title="Billing rates & Vertex cost"
+          description="What the employer pays Vertex (bill) and what Vertex pays out (cost). Used to compute invoice line items and margin."
         >
           <FormGrid>
             <FormField
-              label="Hourly rate ($/hr)"
+              label="Labor — bill ($/hr)"
               name="hourly_bill_rate"
               type="number"
               step="0.01"
               placeholder="e.g. 25.00"
-              hint="Billed per labor hour worked."
+              hint="What the employer pays per labor hour."
             />
             <FormField
-              label="Per diem ($/day per worker)"
+              label="Labor — Vertex cost ($/hr)"
+              name="hourly_pay_rate"
+              type="number"
+              step="0.01"
+              placeholder="e.g. 15.00"
+              hint="What Vertex pays the worker per hour."
+            />
+            <FormField
+              label="Per diem — bill ($/day per person)"
               name="per_diem_rate"
               type="number"
               step="0.01"
               placeholder="e.g. 50.00"
-              hint="Daily allowance billed per worker on-site."
             />
             <FormField
-              label="Travel time ($/hr)"
+              label="Per diem — Vertex cost ($/day)"
+              name="per_diem_cost"
+              type="number"
+              step="0.01"
+              placeholder="e.g. 35.00"
+            />
+            <FormField
+              label="Travel time — bill ($/hr)"
               name="travel_time_rate"
               type="number"
               step="0.01"
               placeholder="e.g. 15.00"
-              hint="Hourly rate for travel time."
             />
             <FormField
-              label="Hotel"
-              name="hotel_placeholder"
-              type="text"
-              disabled
-              placeholder="Added per invoice"
-              hint="Hotel cost is captured at invoice time, not per employer."
+              label="Travel time — Vertex cost ($/hr)"
+              name="travel_time_cost"
+              type="number"
+              step="0.01"
+              placeholder="e.g. 10.00"
             />
           </FormGrid>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Hotel is captured at invoice time (not per employer).
+          </p>
         </FormSection>
 
         <FormSection

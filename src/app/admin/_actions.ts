@@ -342,8 +342,11 @@ export async function updateEmployerRates(formData: FormData) {
   const supabase = await getSupabaseServer();
   const payload = {
     hourly_bill_rate: Number(formData.get("hourly_bill_rate")) || null,
+    hourly_pay_rate: Number(formData.get("hourly_pay_rate")) || null,
     per_diem_rate: Number(formData.get("per_diem_rate")) || null,
+    per_diem_cost: Number(formData.get("per_diem_cost")) || null,
     travel_time_rate: Number(formData.get("travel_time_rate")) || null,
+    travel_time_cost: Number(formData.get("travel_time_cost")) || null,
     bill_rate_multiplier: Number(formData.get("bill_rate_multiplier")) || 1.5,
     payment_terms_days: Number(formData.get("payment_terms_days")) || 15,
   };

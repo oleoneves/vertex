@@ -199,36 +199,72 @@ export default async function EmployerDetail({
               Billing rates
             </h3>
             <div className="mt-3 grid gap-2.5 text-xs">
-              <label className="block">
-                <span className="text-muted-foreground">Hourly ($/hr)</span>
-                <input
-                  type="number"
-                  step="0.01"
-                  name="hourly_bill_rate"
-                  defaultValue={employer.hourly_bill_rate ?? ""}
-                  className="mt-0.5 block w-full rounded-md border border-border bg-background px-2 py-1 text-sm font-mono tabular-nums"
-                />
-              </label>
-              <label className="block">
-                <span className="text-muted-foreground">Per diem ($/day per worker)</span>
-                <input
-                  type="number"
-                  step="0.01"
-                  name="per_diem_rate"
-                  defaultValue={employer.per_diem_rate ?? ""}
-                  className="mt-0.5 block w-full rounded-md border border-border bg-background px-2 py-1 text-sm font-mono tabular-nums"
-                />
-              </label>
-              <label className="block">
-                <span className="text-muted-foreground">Travel time ($/hr)</span>
-                <input
-                  type="number"
-                  step="0.01"
-                  name="travel_time_rate"
-                  defaultValue={employer.travel_time_rate ?? ""}
-                  className="mt-0.5 block w-full rounded-md border border-border bg-background px-2 py-1 text-sm font-mono tabular-nums"
-                />
-              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <label className="block">
+                  <span className="text-muted-foreground">Labor bill ($/hr)</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    name="hourly_bill_rate"
+                    defaultValue={employer.hourly_bill_rate ?? ""}
+                    className="mt-0.5 block w-full rounded-md border border-border bg-background px-2 py-1 text-sm font-mono tabular-nums"
+                  />
+                </label>
+                <label className="block">
+                  <span className="text-muted-foreground">Labor cost ($/hr)</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    name="hourly_pay_rate"
+                    defaultValue={employer.hourly_pay_rate ?? ""}
+                    className="mt-0.5 block w-full rounded-md border border-border bg-background px-2 py-1 text-sm font-mono tabular-nums"
+                  />
+                </label>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <label className="block">
+                  <span className="text-muted-foreground">Per diem bill ($/day)</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    name="per_diem_rate"
+                    defaultValue={employer.per_diem_rate ?? ""}
+                    className="mt-0.5 block w-full rounded-md border border-border bg-background px-2 py-1 text-sm font-mono tabular-nums"
+                  />
+                </label>
+                <label className="block">
+                  <span className="text-muted-foreground">Per diem cost ($/day)</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    name="per_diem_cost"
+                    defaultValue={employer.per_diem_cost ?? ""}
+                    className="mt-0.5 block w-full rounded-md border border-border bg-background px-2 py-1 text-sm font-mono tabular-nums"
+                  />
+                </label>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <label className="block">
+                  <span className="text-muted-foreground">Travel bill ($/hr)</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    name="travel_time_rate"
+                    defaultValue={employer.travel_time_rate ?? ""}
+                    className="mt-0.5 block w-full rounded-md border border-border bg-background px-2 py-1 text-sm font-mono tabular-nums"
+                  />
+                </label>
+                <label className="block">
+                  <span className="text-muted-foreground">Travel cost ($/hr)</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    name="travel_time_cost"
+                    defaultValue={employer.travel_time_cost ?? ""}
+                    className="mt-0.5 block w-full rounded-md border border-border bg-background px-2 py-1 text-sm font-mono tabular-nums"
+                  />
+                </label>
+              </div>
               <label className="block">
                 <span className="text-muted-foreground">Multiplier (fallback)</span>
                 <input
