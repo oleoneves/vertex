@@ -152,19 +152,39 @@ export default async function TimesheetPage({
         <>
           <form id="bulk-approve-form" action={bulkApprove} className="no-print">
             {approvable.length > 0 && (
-              <div className="mb-3 flex items-center justify-between gap-3 rounded-lg border border-dashed border-accent/40 bg-accent/5 px-3 py-2 text-sm">
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-dashed border-accent/40 bg-accent/5 px-3 py-2 text-sm">
                 <span className="text-muted-foreground">
-                  Select rows to approve in bulk.
+                  {approvable.length} entries pending. Select rows or approve all at once.
                 </span>
-                <button
-                  type="submit"
-                  className="inline-flex h-8 items-center rounded-md bg-accent px-3 text-xs font-bold text-accent-foreground hover:opacity-90"
-                >
-                  Approve selected
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="submit"
+                    className="inline-flex h-8 items-center rounded-md border border-border bg-background px-3 text-xs font-bold hover:bg-muted"
+                  >
+                    Approve selected
+                  </button>
+                </div>
               </div>
             )}
+            {/* Hidden inputs to allow "approve all visible" without checking each box */}
+            {approvable.map((e) => (
+              <input key={`hidden-${e.id}`} type="hidden" name="ids_pool" value={e.id} />
+            ))}
           </form>
+          {approvable.length > 0 && (
+            <form action={bulkApprove} className="no-print mb-3 inline-block">
+              {approvable.map((e) => (
+                <input key={`all-${e.id}`} type="hidden" name="ids" value={e.id} />
+              ))}
+              <button
+                type="submit"
+                className="inline-flex h-9 items-center gap-1 rounded-md bg-accent px-4 text-sm font-bold text-accent-foreground hover:opacity-90"
+                onClick={undefined}
+              >
+                ✓ Aprovar TODAS as {approvable.length} pendentes
+              </button>
+            </form>
+          )}
           <DataTable
             head={
               <>
