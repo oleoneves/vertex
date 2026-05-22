@@ -18,6 +18,9 @@ async function createEmployer(formData: FormData) {
     billing_email: String(formData.get("billing_email") || "").trim() || null,
     billing_address: String(formData.get("billing_address") || "").trim() || null,
     bill_rate_multiplier: Number(formData.get("bill_rate_multiplier")) || 1.5,
+    hourly_bill_rate: Number(formData.get("hourly_bill_rate")) || null,
+    per_diem_rate: Number(formData.get("per_diem_rate")) || null,
+    travel_time_rate: Number(formData.get("travel_time_rate")) || null,
     payment_terms_days: Number(formData.get("payment_terms_days")) || 15,
     notes: String(formData.get("notes") || "") || null,
   };
@@ -48,8 +51,48 @@ export default function NewEmployerPage() {
         </FormSection>
 
         <FormSection
-          title="Billing terms"
-          description="How we mark up cost and how long the employer has to pay."
+          title="Billing rates"
+          description="Per-employer rates used to compute invoice line items. Leave blank to fall back to the multiplier."
+        >
+          <FormGrid>
+            <FormField
+              label="Hourly rate ($/hr)"
+              name="hourly_bill_rate"
+              type="number"
+              step="0.01"
+              placeholder="e.g. 25.00"
+              hint="Billed per labor hour worked."
+            />
+            <FormField
+              label="Per diem ($/day per worker)"
+              name="per_diem_rate"
+              type="number"
+              step="0.01"
+              placeholder="e.g. 50.00"
+              hint="Daily allowance billed per worker on-site."
+            />
+            <FormField
+              label="Travel time ($/hr)"
+              name="travel_time_rate"
+              type="number"
+              step="0.01"
+              placeholder="e.g. 15.00"
+              hint="Hourly rate for travel time."
+            />
+            <FormField
+              label="Hotel"
+              name="hotel_placeholder"
+              type="text"
+              disabled
+              placeholder="Added per invoice"
+              hint="Hotel cost is captured at invoice time, not per employer."
+            />
+          </FormGrid>
+        </FormSection>
+
+        <FormSection
+          title="Fallback multiplier"
+          description="Used only when an hourly rate above isn't set."
         >
           <FormGrid>
             <FormField
@@ -58,14 +101,7 @@ export default function NewEmployerPage() {
               type="number"
               step="0.01"
               defaultValue="1.5"
-              hint="Applied to worker pay rate to compute the bill rate."
-            />
-            <FormField
-              label="Payment terms (days)"
-              name="payment_terms_days"
-              type="number"
-              defaultValue="15"
-              hint="Invoice due date = period end + N days."
+              hint="Applied to worker pay rate when no explicit hourly rate."
             />
           </FormGrid>
         </FormSection>

@@ -2,9 +2,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Building2, Mail, MapPin } from "lucide-react";
 import { getSupabaseServer } from "@/lib/supabase/server";
-import type { Employer, Placement, Invoice, Payment } from "@/types/db";
+import type { Employer, Placement, Invoice, Payment, EmployerContact } from "@/types/db";
 import { PageHeader } from "../../_components/page-header";
 import { StatusPill } from "../../_components/data-table";
+import { updateEmployerRates, addEmployerContact, deleteEmployerContact } from "../../_actions";
 
 import { fmtUsd, fmtNum, fmtHours } from "@/lib/format";
 import { t } from "@/lib/i18n";
@@ -26,7 +27,7 @@ export default async function EmployerDetail({
   }
 
   const supabase = await getSupabaseServer();
-  const [employerRes, placementsRes, invoicesRes, paymentsRes, hoursRes] =
+  const [employerRes, placementsRes, invoicesRes, paymentsRes, hoursRes, contactsRes] =
     await Promise.all([
       supabase.from("employers").select("*").eq("id", id).maybeSingle(),
       supabase
@@ -51,7 +52,13 @@ export default async function EmployerDetail({
         )
         .eq("placement.employer_id", id)
         .limit(5000),
+      supabase
+        .from("employer_contacts")
+        .select("*")
+        .eq("employer_id", id)
+        .order("created_at", { ascending: false }),
     ]);
+  const contacts = (contactsRes.data as EmployerContact[]) ?? [];
 
   const employer = employerRes.data as Employer | null;
   if (!employer) notFound();
@@ -105,7 +112,16 @@ export default async function EmployerDetail({
         <ArrowLeft className="h-3.5 w-3.5" /> Employers
       </Link>
 
-      <PageHeader title={employer.name} subtitle={`Net ${employer.payment_terms_days} · ${employer.bill_rate_multiplier}× bill multiplier`}>
+      <PageHeader
+        title={employer.name}
+        subtitle={
+          employer.hourly_bill_rate
+            ? `$${employer.hourly_bill_rate}/hr labor` +
+              (employer.per_diem_rate ? ` · $${employer.per_diem_rate}/day per diem` : "") +
+              (employer.travel_time_rate ? ` · $${employer.travel_time_rate}/hr travel` : "")
+            : `${employer.bill_rate_multiplier}× bill multiplier`
+        }
+      >
         <Link
           href="/admin/placements/new"
           className="inline-flex h-9 items-center rounded-md bg-accent px-3 text-sm font-bold text-accent-foreground hover:opacity-90"
@@ -173,6 +189,178 @@ export default async function EmployerDetail({
               {employer.notes}
             </p>
           )}
+
+          <form
+            action={updateEmployerRates}
+            className="mt-5 border-t border-border pt-4"
+          >
+            <input type="hidden" name="id" value={employer.id} />
+            <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              Billing rates
+            </h3>
+            <div className="mt-3 grid gap-2.5 text-xs">
+              <label className="block">
+                <span className="text-muted-foreground">Hourly ($/hr)</span>
+                <input
+                  type="number"
+                  step="0.01"
+                  name="hourly_bill_rate"
+                  defaultValue={employer.hourly_bill_rate ?? ""}
+                  className="mt-0.5 block w-full rounded-md border border-border bg-background px-2 py-1 text-sm font-mono tabular-nums"
+                />
+              </label>
+              <label className="block">
+                <span className="text-muted-foreground">Per diem ($/day per worker)</span>
+                <input
+                  type="number"
+                  step="0.01"
+                  name="per_diem_rate"
+                  defaultValue={employer.per_diem_rate ?? ""}
+                  className="mt-0.5 block w-full rounded-md border border-border bg-background px-2 py-1 text-sm font-mono tabular-nums"
+                />
+              </label>
+              <label className="block">
+                <span className="text-muted-foreground">Travel time ($/hr)</span>
+                <input
+                  type="number"
+                  step="0.01"
+                  name="travel_time_rate"
+                  defaultValue={employer.travel_time_rate ?? ""}
+                  className="mt-0.5 block w-full rounded-md border border-border bg-background px-2 py-1 text-sm font-mono tabular-nums"
+                />
+              </label>
+              <label className="block">
+                <span className="text-muted-foreground">Multiplier (fallback)</span>
+                <input
+                  type="number"
+                  step="0.01"
+                  name="bill_rate_multiplier"
+                  defaultValue={employer.bill_rate_multiplier}
+                  className="mt-0.5 block w-full rounded-md border border-border bg-background px-2 py-1 text-sm font-mono tabular-nums"
+                />
+              </label>
+              <input
+                type="hidden"
+                name="payment_terms_days"
+                value={employer.payment_terms_days}
+              />
+              <button
+                type="submit"
+                className="mt-1 rounded-md bg-accent px-3 py-1.5 text-xs font-bold text-accent-foreground hover:opacity-90"
+              >
+                Save rates
+              </button>
+              <p className="text-[11px] text-muted-foreground">
+                Hotel is captured per-invoice (not per-employer).
+              </p>
+            </div>
+          </form>
+
+          {/* Contacts */}
+          <div className="mt-5 border-t border-border pt-4">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              Contacts
+            </h3>
+            {contacts.length === 0 ? (
+              <p className="mt-2 text-xs text-muted-foreground">
+                No contacts yet — add supervisor, finance, director, etc. below.
+              </p>
+            ) : (
+              <ul className="mt-3 space-y-2.5">
+                {contacts.map((c) => (
+                  <li
+                    key={c.id}
+                    className="rounded-md border border-border bg-muted/30 p-2.5"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                          {c.position.replace("_", " ")}
+                        </p>
+                        <p className="truncate text-sm font-medium">{c.full_name}</p>
+                        {c.email && (
+                          <a
+                            href={`mailto:${c.email}`}
+                            className="block truncate text-xs text-accent hover:underline"
+                          >
+                            {c.email}
+                          </a>
+                        )}
+                        {c.phone && (
+                          <a
+                            href={`tel:${c.phone}`}
+                            className="block text-xs text-muted-foreground"
+                          >
+                            {c.phone}
+                          </a>
+                        )}
+                        {c.notes && (
+                          <p className="mt-1 text-[11px] text-muted-foreground">
+                            {c.notes}
+                          </p>
+                        )}
+                      </div>
+                      <form action={deleteEmployerContact}>
+                        <input type="hidden" name="id" value={c.id} />
+                        <input type="hidden" name="employer_id" value={employer.id} />
+                        <button
+                          type="submit"
+                          aria-label="Remove contact"
+                          className="text-[11px] text-muted-foreground hover:text-red-500"
+                        >
+                          ✕
+                        </button>
+                      </form>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            <form action={addEmployerContact} className="mt-3 grid gap-2 text-xs">
+              <input type="hidden" name="employer_id" value={employer.id} />
+              <div className="grid grid-cols-2 gap-2">
+                <select
+                  name="position"
+                  defaultValue="supervisor"
+                  className="rounded-md border border-border bg-background px-2 py-1 text-sm"
+                >
+                  <option value="supervisor">Supervisor</option>
+                  <option value="finance">Finance</option>
+                  <option value="director">Director</option>
+                  <option value="project_manager">Project manager</option>
+                  <option value="operations">Operations</option>
+                  <option value="safety">Safety</option>
+                  <option value="billing">Billing</option>
+                  <option value="other">Other</option>
+                </select>
+                <input
+                  name="full_name"
+                  required
+                  placeholder="Full name"
+                  className="rounded-md border border-border bg-background px-2 py-1 text-sm"
+                />
+              </div>
+              <input
+                name="email"
+                type="email"
+                placeholder="Email"
+                className="rounded-md border border-border bg-background px-2 py-1 text-sm"
+              />
+              <input
+                name="phone"
+                type="tel"
+                placeholder="Phone"
+                className="rounded-md border border-border bg-background px-2 py-1 text-sm"
+              />
+              <button
+                type="submit"
+                className="mt-1 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-bold hover:bg-muted"
+              >
+                + Add contact
+              </button>
+            </form>
+          </div>
         </aside>
 
         <div className="space-y-6">

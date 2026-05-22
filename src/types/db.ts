@@ -78,7 +78,31 @@ export type Employer = {
   billing_email: string | null;
   billing_address: string | null;
   bill_rate_multiplier: number;
+  hourly_bill_rate: number | null;
+  per_diem_rate: number | null;
+  travel_time_rate: number | null;
   payment_terms_days: number;
+  notes: string | null;
+  created_at: string;
+};
+
+export type EmployerContactPosition =
+  | "supervisor"
+  | "finance"
+  | "director"
+  | "project_manager"
+  | "operations"
+  | "safety"
+  | "billing"
+  | "other";
+
+export type EmployerContact = {
+  id: string;
+  employer_id: string;
+  position: EmployerContactPosition;
+  full_name: string;
+  email: string | null;
+  phone: string | null;
   notes: string | null;
   created_at: string;
 };

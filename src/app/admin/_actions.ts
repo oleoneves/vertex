@@ -336,3 +336,43 @@ export async function updateJob(formData: FormData) {
   if (error) throw new Error(error.message);
   redirect("/admin/jobs");
 }
+
+export async function updateEmployerRates(formData: FormData) {
+  const id = String(formData.get("id"));
+  const supabase = await getSupabaseServer();
+  const payload = {
+    hourly_bill_rate: Number(formData.get("hourly_bill_rate")) || null,
+    per_diem_rate: Number(formData.get("per_diem_rate")) || null,
+    travel_time_rate: Number(formData.get("travel_time_rate")) || null,
+    bill_rate_multiplier: Number(formData.get("bill_rate_multiplier")) || 1.5,
+    payment_terms_days: Number(formData.get("payment_terms_days")) || 15,
+  };
+  const { error } = await supabase.from("employers").update(payload).eq("id", id);
+  if (error) throw new Error(error.message);
+  revalidatePath(`/admin/employers/${id}`);
+}
+
+export async function addEmployerContact(formData: FormData) {
+  const employer_id = String(formData.get("employer_id"));
+  const supabase = await getSupabaseServer();
+  const payload = {
+    employer_id,
+    position: String(formData.get("position") || "other"),
+    full_name: String(formData.get("full_name") || "").trim(),
+    email: String(formData.get("email") || "").trim() || null,
+    phone: String(formData.get("phone") || "").trim() || null,
+    notes: String(formData.get("notes") || "").trim() || null,
+  };
+  if (!payload.full_name) throw new Error("Full name is required");
+  const { error } = await supabase.from("employer_contacts").insert(payload);
+  if (error) throw new Error(error.message);
+  revalidatePath(`/admin/employers/${employer_id}`);
+}
+
+export async function deleteEmployerContact(formData: FormData) {
+  const id = String(formData.get("id"));
+  const employer_id = String(formData.get("employer_id"));
+  const supabase = await getSupabaseServer();
+  await supabase.from("employer_contacts").delete().eq("id", id);
+  revalidatePath(`/admin/employers/${employer_id}`);
+}
