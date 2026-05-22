@@ -5,7 +5,8 @@ import { getProjectDetail } from "@/lib/projects";
 import { listProjectTimesheets } from "@/lib/timesheets";
 import { getCurrentAdminRole, can } from "@/lib/auth";
 import { TimesheetUploader } from "./timesheet-uploader";
-import { updateProjectEstimate, addManualTimeEntry } from "../../_actions";
+import { updateProjectEstimate, addManualTimeEntry, addProjectExpense, deleteProjectExpense } from "../../_actions";
+import { getSupabaseServer } from "@/lib/supabase/server";
 import { PageHeader } from "../../_components/page-header";
 import { StatusPill } from "../../_components/data-table";
 import { fmtUsd, fmtNum, fmtHours } from "@/lib/format";
@@ -40,8 +41,32 @@ export default async function ProjectDashboard({
   if (!raw) notFound();
   const showMoney = can(role, "view_financials");
   const isSuperAdmin = role === "super_admin";
+
+  // Load project expenses (super-admin only)
+  type Expense = {
+    id: string;
+    category: string;
+    description: string;
+    amount: number;
+    expense_date: string | null;
+    vendor: string | null;
+    notes: string | null;
+  };
+  let expenses: Expense[] = [];
+  if (isSuperAdmin) {
+    const supabase = await getSupabaseServer();
+    const { data: expData } = await supabase
+      .from("project_expenses")
+      .select("id, category, description, amount, expense_date, vendor, notes")
+      .eq("project_id", id)
+      .order("expense_date", { ascending: false, nullsFirst: false })
+      .order("created_at", { ascending: false });
+    expenses = (expData as Expense[]) ?? [];
+  }
+  const expensesTotal = expenses.reduce((s, e) => s + Number(e.amount), 0);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const data = raw as any;
+  const netMargin = (data.totals?.margin ?? 0) - expensesTotal;
   const { project, placements, activeWorkers, totalWorkers, totals, days, roleRows, recentEntries } = data as {
     project: { id: string; name: string; budget_hours: number | null; budget_amount: number | null; status: string; employer: { name: string } | null; location: string | null; start_date: string | null; end_date: string | null; estimate_people: number | null; estimate_hours_per_day: number | null; estimate_travel_hours_per_person: number | null };
     placements: Array<{ id: string; worker_id: string; status: string; role_title: string; worker: { full_name: string } | null }>;
@@ -489,6 +514,177 @@ export default async function ProjectDashboard({
           </ul>
         )}
       </section>
+
+      {/* Project closing — expenses to subtract from revenue (super-admin only) */}
+      {isSuperAdmin && (
+        <section className="mt-8 rounded-xl border border-border bg-background p-5">
+          <div className="mb-4 flex items-baseline justify-between">
+            <div>
+              <h3 className="text-sm font-bold uppercase tracking-wider">
+                Project closing — expenses
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                Out-of-pocket costs Vertex paid on this project. Subtracted from gross margin to compute the real take-home.
+              </p>
+            </div>
+            <span className="text-xs text-muted-foreground">
+              {expenses.length} {expenses.length === 1 ? "expense" : "expenses"}
+            </span>
+          </div>
+
+          {showMoney && (
+            <div className="mb-4 grid gap-3 sm:grid-cols-4 rounded-lg border border-border bg-muted/30 p-4 text-center">
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Revenue (approved hrs)</p>
+                <p className="mt-1 font-mono text-base font-bold tabular-nums">{fmtUsd(data.totals.revenue)}</p>
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Labor cost</p>
+                <p className="mt-1 font-mono text-base font-bold tabular-nums">{fmtUsd(data.totals.cost ?? data.totals.revenue - data.totals.margin)}</p>
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Other expenses</p>
+                <p className="mt-1 font-mono text-base font-bold tabular-nums text-red-600 dark:text-red-400">−{fmtUsd(expensesTotal)}</p>
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Net margin</p>
+                <p
+                  className={`mt-1 font-mono text-lg font-extrabold tabular-nums ${netMargin >= 0 ? "text-accent" : "text-red-600 dark:text-red-400"}`}
+                >
+                  {fmtUsd(netMargin)}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Add expense */}
+          <form
+            action={addProjectExpense}
+            className="grid grid-cols-12 gap-2 rounded-lg border border-dashed border-border bg-muted/20 p-3 text-sm"
+          >
+            <input type="hidden" name="project_id" value={project.id} />
+            <select
+              name="category"
+              defaultValue="airbnb"
+              className="col-span-6 rounded-md border border-border bg-background px-2 py-1.5 sm:col-span-2"
+            >
+              <option value="airbnb">Airbnb</option>
+              <option value="hotel">Hotel</option>
+              <option value="car_rental">Car rental</option>
+              <option value="flights">Flights</option>
+              <option value="gas">Gas</option>
+              <option value="food">Food</option>
+              <option value="extra_labor">Extra labor</option>
+              <option value="materials">Materials</option>
+              <option value="pharmacy">Pharmacy</option>
+              <option value="medical">Medical / hospital</option>
+              <option value="other">Other</option>
+            </select>
+            <input
+              name="description"
+              required
+              placeholder="What was it? (e.g. Airbnb 3 nights, Galveston)"
+              className="col-span-12 rounded-md border border-border bg-background px-2 py-1.5 sm:col-span-4"
+            />
+            <input
+              name="vendor"
+              placeholder="Vendor (optional)"
+              className="col-span-6 rounded-md border border-border bg-background px-2 py-1.5 sm:col-span-2"
+            />
+            <input
+              name="expense_date"
+              type="date"
+              className="col-span-6 rounded-md border border-border bg-background px-2 py-1.5 sm:col-span-2"
+            />
+            <input
+              name="amount"
+              required
+              type="number"
+              step="0.01"
+              min="0.01"
+              placeholder="$"
+              className="col-span-8 rounded-md border border-border bg-background px-2 py-1.5 font-mono tabular-nums sm:col-span-1"
+            />
+            <button
+              type="submit"
+              className="col-span-4 rounded-md bg-accent px-3 py-1.5 text-xs font-bold text-accent-foreground hover:opacity-90 sm:col-span-1"
+            >
+              + Add
+            </button>
+          </form>
+
+          {/* List of expenses */}
+          {expenses.length > 0 ? (
+            <div className="mt-4 overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border text-left text-[10px] uppercase tracking-wider text-muted-foreground">
+                    <th className="px-3 py-2 font-bold">Category</th>
+                    <th className="px-3 py-2 font-bold">Description</th>
+                    <th className="px-3 py-2 font-bold">Vendor</th>
+                    <th className="px-3 py-2 font-bold">Date</th>
+                    <th className="px-3 py-2 text-right font-bold">Amount</th>
+                    <th className="px-3 py-2"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {expenses.map((e, i) => (
+                    <tr
+                      key={e.id}
+                      className={`border-b border-border/60 ${i % 2 === 1 ? "bg-muted/30" : ""}`}
+                    >
+                      <td className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                        {e.category.replace("_", " ")}
+                      </td>
+                      <td className="px-3 py-2">
+                        <div className="font-medium">{e.description}</div>
+                        {e.notes && (
+                          <div className="text-[11px] text-muted-foreground">{e.notes}</div>
+                        )}
+                      </td>
+                      <td className="px-3 py-2 text-xs">{e.vendor ?? "—"}</td>
+                      <td className="px-3 py-2 font-mono text-xs tabular-nums">
+                        {e.expense_date ?? "—"}
+                      </td>
+                      <td className="px-3 py-2 text-right font-mono font-bold tabular-nums">
+                        {fmtUsd(Number(e.amount))}
+                      </td>
+                      <td className="px-3 py-2 text-right">
+                        <form action={deleteProjectExpense}>
+                          <input type="hidden" name="id" value={e.id} />
+                          <input type="hidden" name="project_id" value={project.id} />
+                          <button
+                            type="submit"
+                            aria-label="Delete expense"
+                            className="text-muted-foreground hover:text-red-500"
+                          >
+                            ✕
+                          </button>
+                        </form>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr className="border-t border-border bg-muted/20">
+                    <td colSpan={4} className="px-3 py-2 text-right text-xs text-muted-foreground">
+                      Total expenses
+                    </td>
+                    <td className="px-3 py-2 text-right font-mono text-base font-extrabold tabular-nums text-red-600 dark:text-red-400">
+                      {fmtUsd(expensesTotal)}
+                    </td>
+                    <td></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          ) : (
+            <p className="mt-3 text-center text-xs text-muted-foreground">
+              No expenses logged yet.
+            </p>
+          )}
+        </section>
+      )}
 
       {/* Contracts — signed by contracting company (super-admin only) */}
       {isSuperAdmin && (

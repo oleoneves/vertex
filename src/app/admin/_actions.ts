@@ -583,3 +583,37 @@ export async function deleteTimeEntry(formData: FormData) {
   if (employer_id) revalidatePath(`/admin/employers/${employer_id}/weekly`);
   revalidatePath("/admin/timesheet");
 }
+
+// ============ Project expenses (closing) ============
+
+export async function addProjectExpense(formData: FormData) {
+  const project_id = String(formData.get("project_id"));
+  const category = String(formData.get("category") || "other");
+  const description = String(formData.get("description") || "").trim();
+  const amount = Number(formData.get("amount")) || 0;
+  if (!project_id || !description || amount <= 0) {
+    throw new Error("Project, description and amount are required");
+  }
+  const supabase = await getSupabaseServer();
+  const { data: { user } } = await supabase.auth.getUser();
+  const { error } = await supabase.from("project_expenses").insert({
+    project_id,
+    category,
+    description,
+    amount,
+    expense_date: String(formData.get("expense_date") || "") || null,
+    vendor: String(formData.get("vendor") || "").trim() || null,
+    notes: String(formData.get("notes") || "").trim() || null,
+    created_by: user?.id ?? null,
+  });
+  if (error) throw new Error(error.message);
+  revalidatePath(`/admin/projects/${project_id}`);
+}
+
+export async function deleteProjectExpense(formData: FormData) {
+  const id = String(formData.get("id"));
+  const project_id = String(formData.get("project_id"));
+  const supabase = await getSupabaseServer();
+  await supabase.from("project_expenses").delete().eq("id", id);
+  revalidatePath(`/admin/projects/${project_id}`);
+}
