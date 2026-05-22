@@ -9,6 +9,7 @@ import { clockIn, clockOut } from "./actions";
 import { ClockForm } from "./clock-form";
 
 import { fmtNum, fmtUsd } from "@/lib/format";
+import { AreaChart, CHART_COLORS } from "../_components/charts";
 export const dynamic = "force-dynamic";
 
 export default async function WorkerDashboard() {
@@ -19,7 +20,8 @@ export default async function WorkerDashboard() {
   const locale = await getLocale();
   const supabase = await getSupabaseServer();
 
-  const [open, placements, week, projectsRes] = await Promise.all([
+  const since14d = new Date(Date.now() - 14 * 86400000).toISOString();
+  const [open, placements, week, projectsRes, entries14dRes, upcomingShiftsRes] = await Promise.all([
     getOpenTimeEntry(worker.id),
     supabase
       .from("placements")
@@ -37,6 +39,22 @@ export default async function WorkerDashboard() {
       .eq("worker_id", worker.id)
       .order("clock_in_at", { ascending: false })
       .limit(1000),
+    supabase
+      .from("time_entries")
+      .select("hours_worked, clock_in_at, pay_rate_at_entry")
+      .eq("worker_id", worker.id)
+      .gte("clock_in_at", since14d)
+      .order("clock_in_at", { ascending: false })
+      .limit(500),
+    supabase
+      .from("shifts")
+      .select(
+        "id, scheduled_start, scheduled_end, location, status, placement:placements!inner(role_title, employer:employers(name), worker_id)",
+      )
+      .eq("placement.worker_id", worker.id)
+      .gte("scheduled_start", new Date().toISOString())
+      .order("scheduled_start", { ascending: true })
+      .limit(5),
   ]);
 
   const activePlacements =
@@ -80,6 +98,42 @@ export default async function WorkerDashboard() {
     (a, b) => b.approved + b.pending - (a.approved + a.pending),
   );
 
+  // Last-14-days bucket for chart
+  const days14: { label: string; iso: string; value: number; earnings: number }[] = [];
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    d.setDate(d.getDate() - i);
+    days14.push({
+      iso: d.toISOString().slice(0, 10),
+      label: d.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+      value: 0,
+      earnings: 0,
+    });
+  }
+  type Entry14 = { hours_worked: number | null; clock_in_at: string; pay_rate_at_entry: number | null };
+  for (const e of ((entries14dRes.data as Entry14[]) ?? [])) {
+    const key = e.clock_in_at.slice(0, 10);
+    const bucket = days14.find((d) => d.iso === key);
+    if (bucket) {
+      const h = Number(e.hours_worked ?? 0);
+      bucket.value += h;
+      bucket.earnings += h * Number(e.pay_rate_at_entry ?? 0);
+    }
+  }
+
+  // Next upcoming shift
+  type UpcomingShift = {
+    id: string;
+    scheduled_start: string;
+    scheduled_end: string;
+    location: string | null;
+    status: string;
+    placement: { role_title: string; employer: { name: string } | null } | null;
+  };
+  const upcomingShifts = (upcomingShiftsRes.data as unknown as UpcomingShift[]) ?? [];
+  const nextShift = upcomingShifts[0] ?? null;
+
   const firstName = worker.full_name.split(" ")[0];
   const greeting = greetingKeyFor(new Date());
 
@@ -98,6 +152,40 @@ export default async function WorkerDashboard() {
         <ClockedInPanel open={open} locale={locale} />
       ) : (
         <ClockInPanel placements={activePlacements} locale={locale} />
+      )}
+
+      {/* Next shift card */}
+      {nextShift && (
+        <section className="rounded-2xl border-2 border-accent/40 bg-accent/10 p-5">
+          <p className="text-xs font-bold uppercase tracking-wider text-accent">
+            <Calendar className="inline h-3 w-3" /> Próximo turno
+          </p>
+          <div className="mt-2 flex items-baseline justify-between gap-3">
+            <div>
+              <p className="text-lg font-extrabold">
+                {new Date(nextShift.scheduled_start).toLocaleDateString("pt-BR", {
+                  weekday: "long",
+                  day: "numeric",
+                  month: "long",
+                })}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {new Date(nextShift.scheduled_start).toLocaleTimeString("pt-BR", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}{" "}
+                →{" "}
+                {new Date(nextShift.scheduled_end).toLocaleTimeString("pt-BR", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {nextShift.placement?.employer?.name} — {nextShift.placement?.role_title}
+              </p>
+            </div>
+          </div>
+        </section>
       )}
 
       {/* Big earnings card */}
@@ -176,6 +264,30 @@ export default async function WorkerDashboard() {
               </li>
             ))}
           </ul>
+        </section>
+      )}
+
+      {/* Hours last 14 days chart */}
+      {days14.some((d) => d.value > 0) && (
+        <section className="rounded-xl border border-border bg-background p-5">
+          <div className="flex items-baseline justify-between">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+              Horas — últimos 14 dias
+            </h2>
+            <span className="text-xs text-muted-foreground">
+              {fmtNum(days14.reduce((s, d) => s + d.value, 0), { decimals: 1 })} hrs ·{" "}
+              {fmtUsd(days14.reduce((s, d) => s + d.earnings, 0))}
+            </span>
+          </div>
+          <div className="mt-4 text-foreground">
+            <AreaChart
+              data={days14}
+              height={180}
+              yFormatter={(n) => `${fmtNum(n, { decimals: 0 })}h`}
+              color={CHART_COLORS.accent}
+              xLabels={7}
+            />
+          </div>
         </section>
       )}
 

@@ -103,3 +103,43 @@ export async function clockOut(formData: FormData) {
 
   revalidatePath("/worker");
 }
+
+export async function acceptShift(formData: FormData) {
+  const shiftId = String(formData.get("shift_id"));
+  const worker = await getCurrentWorker();
+  if (!worker) redirect("/worker/login");
+  const supabase = await getSupabaseServer();
+  const { data: shift } = await supabase
+    .from("shifts")
+    .select("placement:placements(worker_id)")
+    .eq("id", shiftId)
+    .maybeSingle();
+  const p = (shift as unknown as { placement: { worker_id: string } | null } | null)?.placement;
+  if (!p || p.worker_id !== worker.id) throw new Error("Shift not found or not yours");
+  await supabase
+    .from("shifts")
+    .update({ status: "accepted", worker_responded_at: new Date().toISOString() })
+    .eq("id", shiftId);
+  revalidatePath("/worker/shifts");
+  revalidatePath("/worker");
+}
+
+export async function declineShift(formData: FormData) {
+  const shiftId = String(formData.get("shift_id"));
+  const worker = await getCurrentWorker();
+  if (!worker) redirect("/worker/login");
+  const supabase = await getSupabaseServer();
+  const { data: shift } = await supabase
+    .from("shifts")
+    .select("placement:placements(worker_id)")
+    .eq("id", shiftId)
+    .maybeSingle();
+  const p = (shift as unknown as { placement: { worker_id: string } | null } | null)?.placement;
+  if (!p || p.worker_id !== worker.id) throw new Error("Shift not found or not yours");
+  await supabase
+    .from("shifts")
+    .update({ status: "declined", worker_responded_at: new Date().toISOString() })
+    .eq("id", shiftId);
+  revalidatePath("/worker/shifts");
+  revalidatePath("/worker");
+}

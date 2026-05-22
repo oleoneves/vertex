@@ -1,10 +1,11 @@
 import { redirect } from "next/navigation";
-import { CalendarDays, MapPin } from "lucide-react";
+import { CalendarDays, MapPin, Check, X } from "lucide-react";
 import { getCurrentWorker } from "@/lib/workforce";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { t } from "@/lib/i18n";
 import { getLocale } from "@/lib/i18n-server";
 import type { Shift } from "@/types/db";
+import { acceptShift, declineShift } from "../actions";
 
 import { fmtNum } from "@/lib/format";
 export const dynamic = "force-dynamic";
@@ -106,6 +107,38 @@ export default async function WorkerShiftsPage() {
                         {s.location && (
                           <div className="mt-2 inline-flex items-center gap-1 text-xs text-muted-foreground">
                             <MapPin className="h-3 w-3" /> {s.location}
+                          </div>
+                        )}
+                        {(s.status === "offered" || s.status === "scheduled") && start > new Date() && (
+                          <div className="mt-3 flex gap-2">
+                            <form action={acceptShift} className="flex-1">
+                              <input type="hidden" name="shift_id" value={s.id} />
+                              <button
+                                type="submit"
+                                className="inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-lg bg-green-600 px-3 text-sm font-bold text-white hover:bg-green-700"
+                              >
+                                <Check className="h-4 w-4" /> Aceitar
+                              </button>
+                            </form>
+                            <form action={declineShift} className="flex-1">
+                              <input type="hidden" name="shift_id" value={s.id} />
+                              <button
+                                type="submit"
+                                className="inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-lg border border-border bg-background px-3 text-sm font-bold hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-900/30 dark:hover:text-red-300"
+                              >
+                                <X className="h-4 w-4" /> Recusar
+                              </button>
+                            </form>
+                          </div>
+                        )}
+                        {s.status === "accepted" && (
+                          <div className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-green-100 px-2 py-1 text-xs font-bold text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                            <Check className="h-3 w-3" /> Aceito
+                          </div>
+                        )}
+                        {s.status === "declined" && (
+                          <div className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-red-100 px-2 py-1 text-xs font-bold text-red-800 dark:bg-red-900/30 dark:text-red-300">
+                            <X className="h-3 w-3" /> Recusado
                           </div>
                         )}
                       </li>

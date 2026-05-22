@@ -43,7 +43,7 @@ export type Application = {
 
 export type WorkerStatus = "onboarding" | "active" | "inactive";
 export type PlacementStatus = "active" | "ended" | "paused";
-export type ShiftStatus = "scheduled" | "in_progress" | "completed" | "no_show" | "cancelled";
+export type ShiftStatus = "offered" | "accepted" | "scheduled" | "in_progress" | "completed" | "no_show" | "cancelled" | "declined";
 export type InvoiceStatus = "draft" | "sent" | "paid" | "void" | "overdue";
 export type PaymentDirection = "in" | "out";
 
