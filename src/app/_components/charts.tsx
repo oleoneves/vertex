@@ -1,9 +1,6 @@
-"use client";
+// Pure-SVG chart primitives — server-rendered. Tooltips via CSS :hover on SVG groups.
 
-// SVG chart primitives. AreaChart + ForecastChart use client state for
-// interactive hover tooltips; others remain effectively static.
-
-import { useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 
 const ACCENT = "var(--color-accent, #EDB23E)";
 const ACCENT_DARK = "var(--color-accent-dark, #CA9F0C)";
@@ -146,17 +143,22 @@ export function AreaChart({
         );
 
   const gradientId = `area-grad-${Math.random().toString(36).slice(2, 8)}`;
-  const [hoverIdx, setHoverIdx] = useState<number | null>(null);
+  const tooltipClass = `tip-${gradientId}`;
 
   return (
-    <div className="relative" style={{ maxHeight: height }}>
     <svg
       viewBox={`0 0 ${width} ${height}`}
       width="100%"
       preserveAspectRatio="none"
-      style={{ maxHeight: height, display: "block" }}
+      style={{ maxHeight: height, display: "block", overflow: "visible" }}
       role="img"
     >
+      <style>{`
+        .${tooltipClass} { opacity: 0; transition: opacity .12s; pointer-events: none; }
+        .${tooltipClass}-group:hover .${tooltipClass} { opacity: 1; }
+        .${tooltipClass}-group:hover .${tooltipClass}-dot { r: 4.5; }
+        .${tooltipClass}-group:hover .${tooltipClass}-cross { opacity: .4; }
+      `}</style>
       <defs>
         <linearGradient id={gradientId} x1="0" x2="0" y1="0" y2="1">
           <stop offset="0%" stopColor={color} stopOpacity="0.35" />
@@ -203,34 +205,70 @@ export function AreaChart({
         strokeLinecap="round"
       />
 
-      {/* Dots */}
-      {points.map((p, i) => (
-        <g key={i}>
-          <circle cx={p.x} cy={p.y} r={hoverIdx === i ? 4.5 : 2.5} fill={color} />
-          <circle
-            cx={p.x}
-            cy={p.y}
-            r={Math.max(12, stepX / 2)}
-            fill="transparent"
-            style={{ cursor: "pointer" }}
-            onMouseEnter={() => setHoverIdx(i)}
-            onMouseLeave={() => setHoverIdx((v) => (v === i ? null : v))}
-          />
-        </g>
-      ))}
-
-      {/* Crosshair on hover */}
-      {hoverIdx !== null && (
-        <line
-          x1={points[hoverIdx].x}
-          x2={points[hoverIdx].x}
-          y1={padding.top}
-          y2={padding.top + innerH}
-          stroke={color}
-          strokeOpacity={0.35}
-          strokeDasharray="3 3"
-        />
-      )}
+      {/* Dots + per-dot tooltips (pure CSS hover) */}
+      {points.map((p, i) => {
+        const valueText = yFormatter ? yFormatter(p.value) : String(p.value);
+        const tipText = `${p.label} · ${valueText}`;
+        const tipWidth = Math.max(80, tipText.length * 6 + 16);
+        const tipX = Math.min(
+          Math.max(p.x - tipWidth / 2, padding.left),
+          width - padding.right - tipWidth,
+        );
+        const tipY = Math.max(p.y - 38, padding.top);
+        return (
+          <g key={i} className={`${tooltipClass}-group`}>
+            <line
+              className={`${tooltipClass}-cross`}
+              x1={p.x}
+              x2={p.x}
+              y1={padding.top}
+              y2={padding.top + innerH}
+              stroke={color}
+              strokeOpacity={0}
+              strokeDasharray="3 3"
+            />
+            <circle className={`${tooltipClass}-dot`} cx={p.x} cy={p.y} r={2.5} fill={color} />
+            <circle
+              cx={p.x}
+              cy={p.y}
+              r={Math.max(12, stepX / 2)}
+              fill="transparent"
+              style={{ cursor: "pointer" }}
+            />
+            <g className={tooltipClass}>
+              <rect
+                x={tipX}
+                y={tipY}
+                width={tipWidth}
+                height={28}
+                rx={4}
+                fill="white"
+                stroke={color}
+                strokeOpacity={0.4}
+              />
+              <text
+                x={tipX + tipWidth / 2}
+                y={tipY + 12}
+                fontSize="9"
+                textAnchor="middle"
+                fill="#475569"
+              >
+                {p.label}
+              </text>
+              <text
+                x={tipX + tipWidth / 2}
+                y={tipY + 23}
+                fontSize="11"
+                fontWeight="700"
+                textAnchor="middle"
+                fill={color}
+              >
+                {valueText}
+              </text>
+            </g>
+          </g>
+        );
+      })}
 
       {/* X labels */}
       {xLabelIdxs.map((i) => (
@@ -247,21 +285,6 @@ export function AreaChart({
         </text>
       ))}
     </svg>
-    {hoverIdx !== null && (
-      <div
-        className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-full rounded-md border border-border bg-background px-2.5 py-1.5 text-xs shadow-lg"
-        style={{
-          left: `${(points[hoverIdx].x / width) * 100}%`,
-          top: `${((points[hoverIdx].y - 8) / height) * 100}%`,
-        }}
-      >
-        <div className="font-medium">{points[hoverIdx].label}</div>
-        <div className="font-mono tabular-nums" style={{ color }}>
-          {yFormatter ? yFormatter(points[hoverIdx].value) : points[hoverIdx].value}
-        </div>
-      </div>
-    )}
-    </div>
   );
 }
 

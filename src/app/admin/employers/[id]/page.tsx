@@ -129,6 +129,12 @@ export default async function EmployerDetail({
           + Placement
         </Link>
         <Link
+          href={`/admin/employers/${employer.id}/weekly`}
+          className="inline-flex h-9 items-center rounded-md border border-border bg-background px-3 text-sm font-medium hover:bg-muted"
+        >
+          Weekly timesheet
+        </Link>
+        <Link
           href={`/admin/invoices/new?employer_id=${employer.id}`}
           className="inline-flex h-9 items-center rounded-md border border-border bg-background px-3 text-sm font-medium hover:bg-muted"
         >

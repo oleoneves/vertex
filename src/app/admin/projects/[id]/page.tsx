@@ -31,13 +31,15 @@ export default async function ProjectDashboard({
 }) {
   const { id } = await params;
   const locale = await getLocale();
-  const [raw, timesheets, role] = await Promise.all([
+  const [raw, timesheets, contracts, role] = await Promise.all([
     getProjectDetail(id),
-    listProjectTimesheets(id),
+    listProjectTimesheets(id, "timesheet"),
+    listProjectTimesheets(id, "contract"),
     getCurrentAdminRole(),
   ]);
   if (!raw) notFound();
   const showMoney = can(role, "view_financials");
+  const isSuperAdmin = role === "super_admin";
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const data = raw as any;
   const { project, placements, activeWorkers, totalWorkers, totals, days, roleRows, recentEntries } = data as {
@@ -487,6 +489,55 @@ export default async function ProjectDashboard({
           </ul>
         )}
       </section>
+
+      {/* Contracts — signed by contracting company (super-admin only) */}
+      {isSuperAdmin && (
+        <section className="mt-8 rounded-xl border border-border bg-background p-5">
+          <div className="mb-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <FileCheck2 className="h-4 w-4 text-muted-foreground" />
+              <h3 className="text-sm font-bold uppercase tracking-wider">Signed contract</h3>
+            </div>
+            <TimesheetUploader
+              projectId={id}
+              defaultEmployerName={project.employer?.name}
+              kind="contract"
+              label="Upload contract"
+            />
+          </div>
+          {contracts.length === 0 ? (
+            <p className="rounded-md border border-dashed border-border bg-muted/30 px-4 py-6 text-center text-xs text-muted-foreground">
+              No signed contract yet — usually the invoice signed by the contractor or a DocuSign export.
+            </p>
+          ) : (
+            <ul className="space-y-2">
+              {contracts.map((c) => (
+                <li
+                  key={c.id}
+                  className="flex items-center justify-between rounded-md border border-border bg-muted/30 px-3 py-2 text-sm"
+                >
+                  <div className="min-w-0">
+                    <div className="truncate font-medium">{c.filename}</div>
+                    <div className="text-[10px] text-muted-foreground">
+                      Uploaded {new Date(c.uploaded_at).toLocaleDateString()}
+                    </div>
+                  </div>
+                  {c.signedUrl && (
+                    <a
+                      href={c.signedUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-xs text-accent underline-offset-4 hover:underline"
+                    >
+                      Open ↗
+                    </a>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
 
       {/* Timesheets — proof-of-hours sent by hiring company */}
       <section className="mt-8 rounded-xl border border-border bg-background p-5">

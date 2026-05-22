@@ -546,3 +546,38 @@ export async function addManualTimeEntry(formData: FormData) {
   if (project_id) revalidatePath(`/admin/projects/${project_id}`);
   revalidatePath("/admin/timesheet");
 }
+
+export async function updateTimeEntry(formData: FormData) {
+  const id = String(formData.get("id"));
+  const employer_id = String(formData.get("employer_id") || "");
+  const week = String(formData.get("week") || "");
+  const dateStr = String(formData.get("date") || "");
+  const clockInRaw = String(formData.get("clock_in") || "");
+  const clockOutRaw = String(formData.get("clock_out") || "");
+  const breakMinutes = Number(formData.get("break_minutes")) || 0;
+  if (!id || !dateStr) throw new Error("id and date are required");
+  const clockIn = clockInRaw
+    ? new Date(`${dateStr}T${clockInRaw}:00`).toISOString()
+    : null;
+  const clockOut = clockOutRaw
+    ? new Date(`${dateStr}T${clockOutRaw}:00`).toISOString()
+    : null;
+  const supabase = await getSupabaseServer();
+  const payload: Record<string, unknown> = { break_minutes: breakMinutes };
+  if (clockIn) payload.clock_in_at = clockIn;
+  if (clockOut) payload.clock_out_at = clockOut;
+  const { error } = await supabase.from("time_entries").update(payload).eq("id", id);
+  if (error) throw new Error(error.message);
+  if (employer_id) {
+    revalidatePath(`/admin/employers/${employer_id}/weekly`);
+    if (week) revalidatePath(`/admin/employers/${employer_id}/weekly?week=${week}`);
+  }
+}
+
+export async function deleteTimeEntry(formData: FormData) {
+  const id = String(formData.get("id"));
+  const employer_id = String(formData.get("employer_id") || "");
+  const supabase = await getSupabaseServer();
+  await supabase.from("time_entries").delete().eq("id", id);
+  if (employer_id) revalidatePath(`/admin/employers/${employer_id}/weekly`);
+}

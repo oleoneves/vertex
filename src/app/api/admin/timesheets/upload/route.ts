@@ -20,6 +20,7 @@ const ACCEPTED_MIME = new Set([
 
 const Schema = z.object({
   project_id: z.string().uuid(),
+  kind: z.enum(["timesheet", "contract"]).optional(),
   period_start: z.string().optional().nullable(),
   period_end: z.string().optional().nullable(),
   source_company: z.string().max(120).optional().nullable(),
@@ -54,6 +55,7 @@ export async function POST(req: Request) {
 
   const parsed = Schema.safeParse({
     project_id: form.get("project_id"),
+    kind: form.get("kind") || undefined,
     period_start: form.get("period_start") || null,
     period_end: form.get("period_end") || null,
     source_company: form.get("source_company") || null,
@@ -109,6 +111,7 @@ export async function POST(req: Request) {
     .insert({
       project_id: project.id,
       employer_id: project.employer_id,
+      kind: parsed.data.kind ?? "timesheet",
       filename: file.name,
       storage_path: storagePath,
       mime_type: file.type || null,

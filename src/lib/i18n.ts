@@ -289,7 +289,7 @@ const dict = {
   "a.nav.shifts":       { en: "Shifts",       es: "Turnos",        pt: "Turnos" },
   "a.nav.timesheet":    { en: "Timesheet",    es: "Horas",         pt: "Folha de horas" },
   "a.nav.documents":    { en: "Documents",    es: "Documentos",    pt: "Documentos" },
-  "a.nav.invoices":     { en: "Invoices",     es: "Facturas",      pt: "Faturas" },
+  "a.nav.invoices":     { en: "Invoices",     es: "Invoices",      pt: "Invoices" },
   "a.nav.payroll":      { en: "Payroll",      es: "Nómina",        pt: "Folha" },
   "a.nav.payments":     { en: "Payments",     es: "Pagos",         pt: "Pagamentos" },
   "a.nav.reports":      { en: "Reports",      es: "Reportes",      pt: "Relatórios" },
@@ -388,7 +388,7 @@ const dict = {
     pt: "estados",
   },
 
-  "a.invoices.title":     { en: "Invoices",     es: "Facturas",     pt: "Faturas" },
+  "a.invoices.title":     { en: "Invoices",     es: "Invoices",     pt: "Invoices" },
   "a.invoices.subtitle":  { en: "Billing to employers.", es: "Facturación a empleadores.", pt: "Faturas para as empresas." },
   "a.invoices.generate":  { en: "Generate",     es: "Generar",      pt: "Gerar" },
   "a.invoices.paid_all":  { en: "Paid (all time)", es: "Pagado (total)", pt: "Pago (total)" },

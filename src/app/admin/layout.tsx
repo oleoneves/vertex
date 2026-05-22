@@ -45,9 +45,7 @@ const WORKFORCE: NavItem[] = [
   { href: "/admin/workers", labelKey: "a.nav.workers", Icon: HardHat },
   { href: "/admin/employers", labelKey: "a.nav.employers", Icon: Building2 },
   { href: "/admin/placements", labelKey: "a.nav.placements", Icon: Link2 },
-  { href: "/admin/shifts", labelKey: "a.nav.shifts", Icon: CalendarDays },
   { href: "/admin/timesheet", labelKey: "a.nav.timesheet", Icon: Clock },
-  { href: "/admin/documents", labelKey: "a.nav.documents", Icon: ShieldCheck },
 ];
 
 const MONEY: NavItem[] = [

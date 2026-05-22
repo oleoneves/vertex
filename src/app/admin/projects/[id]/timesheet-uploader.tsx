@@ -7,10 +7,20 @@ import { Upload, FileCheck2 } from "lucide-react";
 export function TimesheetUploader({
   projectId,
   defaultEmployerName,
+  kind = "timesheet",
+  label,
 }: {
   projectId: string;
   defaultEmployerName?: string;
+  kind?: "timesheet" | "contract";
+  label?: string;
 }) {
+  const buttonLabel = label ?? (kind === "contract" ? "Upload contract" : "Upload timesheet");
+  const headline = kind === "contract" ? "Upload signed contract" : "Upload signed timesheet";
+  const hint =
+    kind === "contract"
+      ? "Signed contract (DocuSign export, signed PDF, scan). Super-admin only."
+      : "Proof-of-hours document from the hiring company. PDF, image, or spreadsheet.";
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -24,6 +34,7 @@ export function TimesheetUploader({
     try {
       const fd = new FormData(e.currentTarget);
       fd.set("project_id", projectId);
+      fd.set("kind", kind);
       const res = await fetch("/api/admin/timesheets/upload", {
         method: "POST",
         body: fd,
@@ -49,7 +60,7 @@ export function TimesheetUploader({
         onClick={() => setOpen(true)}
         className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border bg-background px-3 text-sm font-medium hover:bg-muted"
       >
-        <Upload className="h-3.5 w-3.5" /> Upload timesheet
+        <Upload className="h-3.5 w-3.5" /> {buttonLabel}
       </button>
     );
   }
@@ -60,10 +71,10 @@ export function TimesheetUploader({
         <div className="mb-4 flex items-start justify-between">
           <div>
             <h3 className="flex items-center gap-2 text-base font-bold">
-              <FileCheck2 className="h-4 w-4" /> Upload signed timesheet
+              <FileCheck2 className="h-4 w-4" /> {headline}
             </h3>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              Proof-of-hours document from the hiring company. PDF, image, or spreadsheet.
+              {hint}
             </p>
           </div>
           <button

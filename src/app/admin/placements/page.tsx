@@ -4,6 +4,7 @@ import { PageHeader } from "../_components/page-header";
 import { EmptyState } from "../_components/empty-state";
 import { DataTable, Th, Tr, Td, StatusPill } from "../_components/data-table";
 import { endPlacement } from "../_actions";
+import { getCurrentAdminRole, can } from "@/lib/auth";
 
 import { fmtUsd, fmtNum, fmtHours } from "@/lib/format";
 import { t } from "@/lib/i18n";
@@ -12,7 +13,8 @@ export const dynamic = "force-dynamic";
 
 export default async function PlacementsPage() {
   const locale = await getLocale();
-  const placements = await listPlacements();
+  const [placements, role] = await Promise.all([listPlacements(), getCurrentAdminRole()]);
+  const showMoney = can(role, "view_financials");
   return (
     <div>
       <PageHeader
@@ -34,8 +36,8 @@ export default async function PlacementsPage() {
               <Th>Worker</Th>
               <Th>Employer</Th>
               <Th>Role</Th>
-              <Th>Pay / Bill</Th>
-              <Th className="text-right">Margin</Th>
+              {showMoney && <Th>Pay / Bill</Th>}
+              {showMoney && <Th className="text-right">Margin</Th>}
               <Th>Period</Th>
               <Th>Status</Th>
               <Th></Th>
@@ -49,15 +51,19 @@ export default async function PlacementsPage() {
                 <Td className="font-medium">{p.worker?.full_name ?? "—"}</Td>
                 <Td>{p.employer?.name ?? "—"}</Td>
                 <Td className="text-muted-foreground">{p.role_title}</Td>
-                <Td className="tabular-nums">
-                  {fmtUsd(p.pay_rate, { decimals: 2 })}{" "}
-                  <span className="text-muted-foreground">
-                    / {fmtUsd(p.bill_rate, { decimals: 2 })}
-                  </span>
-                </Td>
-                <Td className="text-right font-mono tabular-nums font-semibold text-accent">
-                  +{fmtUsd(margin, { decimals: 2 })}/hr
-                </Td>
+                {showMoney && (
+                  <Td className="tabular-nums">
+                    {fmtUsd(p.pay_rate, { decimals: 2 })}{" "}
+                    <span className="text-muted-foreground">
+                      / {fmtUsd(p.bill_rate, { decimals: 2 })}
+                    </span>
+                  </Td>
+                )}
+                {showMoney && (
+                  <Td className="text-right font-mono tabular-nums font-semibold text-accent">
+                    +{fmtUsd(margin, { decimals: 2 })}/hr
+                  </Td>
+                )}
                 <Td className="text-xs text-muted-foreground">
                   {p.start_date} → {p.end_date ?? "ongoing"}
                 </Td>

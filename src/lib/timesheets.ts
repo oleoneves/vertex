@@ -5,6 +5,7 @@ export type ProjectTimesheet = {
   id: string;
   project_id: string;
   employer_id: string;
+  kind: "timesheet" | "contract";
   filename: string;
   storage_path: string;
   mime_type: string | null;
@@ -24,13 +25,15 @@ export type ProjectTimesheetWithUrl = ProjectTimesheet & {
 
 export async function listProjectTimesheets(
   projectId: string,
+  kind?: "timesheet" | "contract",
 ): Promise<ProjectTimesheetWithUrl[]> {
   const supabase = await getSupabaseServer();
-  const { data } = await supabase
+  let q = supabase
     .from("project_timesheets")
     .select("*")
-    .eq("project_id", projectId)
-    .order("uploaded_at", { ascending: false });
+    .eq("project_id", projectId);
+  if (kind) q = q.eq("kind", kind);
+  const { data } = await q.order("uploaded_at", { ascending: false });
   const rows = (data as ProjectTimesheet[]) ?? [];
   const signed = await Promise.all(
     rows.map((r) => signedTimesheetUrl(r.storage_path)),
