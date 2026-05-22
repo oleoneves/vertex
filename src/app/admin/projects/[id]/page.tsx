@@ -32,11 +32,24 @@ export default async function ProjectDashboard({
 }) {
   const { id } = await params;
   const locale = await getLocale();
-  const [raw, timesheets, contracts, role] = await Promise.all([
+  const _sb = await getSupabaseServer();
+  const [raw, timesheets, contracts, role, incidentsRes, photosRes] = await Promise.all([
     getProjectDetail(id),
     listProjectTimesheets(id, "timesheet"),
     listProjectTimesheets(id, "contract"),
     getCurrentAdminRole(),
+    _sb
+      .from("incident_reports")
+      .select("id, title, severity, status, created_at, worker:workers(full_name)")
+      .eq("project_id", id)
+      .order("created_at", { ascending: false })
+      .limit(10),
+    _sb
+      .from("time_entries")
+      .select("id, before_photo_paths, after_photo_paths, clock_in_at, worker:workers(full_name), placement:placements!inner(project_id)")
+      .eq("placement.project_id", id)
+      .order("clock_in_at", { ascending: false })
+      .limit(200),
   ]);
   if (!raw) notFound();
   const showMoney = can(role, "view_financials");
@@ -691,6 +704,103 @@ export default async function ProjectDashboard({
           )}
         </section>
       )}
+
+      {/* Incident reports linked to this project */}
+      {(() => {
+        type IncRow = {
+          id: string;
+          title: string;
+          severity: string;
+          status: string;
+          created_at: string;
+          worker: { full_name: string } | null;
+        };
+        const incidents = (incidentsRes.data as unknown as IncRow[]) ?? [];
+        if (incidents.length === 0) return null;
+        return (
+          <section className="mt-8 rounded-xl border border-red-400/30 bg-red-500/5 p-5">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-red-700 dark:text-red-400">
+              ⚠ Incidents neste projeto ({incidents.length})
+            </h3>
+            <ul className="mt-3 divide-y divide-border/40">
+              {incidents.map((i) => (
+                <li key={i.id} className="flex items-center justify-between py-2 text-sm">
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-medium">{i.title}</p>
+                    <p className="text-[11px] text-muted-foreground">
+                      {i.worker?.full_name ?? "—"} · {new Date(i.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <span
+                    className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
+                      i.severity === "critical" || i.severity === "high"
+                        ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
+                        : i.severity === "medium"
+                        ? "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
+                        : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                    }`}
+                  >
+                    {i.severity}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-3 text-xs text-muted-foreground">
+              <Link href="/admin/incidents" className="text-accent underline-offset-4 hover:underline">
+                Ver todos os incidents →
+              </Link>
+            </p>
+          </section>
+        );
+      })()}
+
+      {/* Before/after photos from job entries */}
+      {(() => {
+        type PhotoRow = {
+          id: string;
+          before_photo_paths: string[] | null;
+          after_photo_paths: string[] | null;
+          clock_in_at: string;
+          worker: { full_name: string } | null;
+        };
+        const rows = (photosRes.data as unknown as PhotoRow[]) ?? [];
+        const withPhotos = rows.filter(
+          (r) => (r.before_photo_paths?.length ?? 0) > 0 || (r.after_photo_paths?.length ?? 0) > 0,
+        );
+        const totalBefore = withPhotos.reduce((s, r) => s + (r.before_photo_paths?.length ?? 0), 0);
+        const totalAfter = withPhotos.reduce((s, r) => s + (r.after_photo_paths?.length ?? 0), 0);
+        if (withPhotos.length === 0) return null;
+        return (
+          <section className="mt-8 rounded-xl border border-border bg-background p-5">
+            <h3 className="text-sm font-bold uppercase tracking-wider">
+              📷 Fotos do trabalho — {totalBefore} antes / {totalAfter} depois
+            </h3>
+            <ul className="mt-3 space-y-2 text-sm">
+              {withPhotos.slice(0, 8).map((r) => (
+                <li
+                  key={r.id}
+                  className="flex items-center justify-between rounded-md border border-border bg-muted/20 px-3 py-2"
+                >
+                  <div className="min-w-0">
+                    <p className="font-medium">{r.worker?.full_name ?? "—"}</p>
+                    <p className="text-[11px] text-muted-foreground">
+                      {new Date(r.clock_in_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div className="flex gap-2 text-xs text-muted-foreground">
+                    {(r.before_photo_paths?.length ?? 0) > 0 && (
+                      <span>📷 {r.before_photo_paths!.length}</span>
+                    )}
+                    {(r.after_photo_paths?.length ?? 0) > 0 && (
+                      <span>📸 {r.after_photo_paths!.length}</span>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </section>
+        );
+      })()}
 
       {/* Contracts — signed by contracting company (super-admin only) */}
       {isSuperAdmin && (
