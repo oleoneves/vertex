@@ -115,6 +115,8 @@ const SECTIONS: Section[] = [
       "**`/worker/report`** — reportar incidente (acidente, conflito, problema) com fotos + arquivos + severidade",
       "**`/worker/sign`** — assinatura digital de PPE + Termos (bloqueia clock-in se não assinou)",
       "**`/worker/profile`** — editar Zelle, telefone, viagem + alterar senha",
+      "**`/worker/time-off`** — solicitar folga/férias/atestado com data início + fim, tipo, motivo + ver histórico com status + resposta do admin",
+      "**`/worker/help`** — FAQ em PT com 10 perguntas + contato direto (tel/email/incident)",
       "PWA pronto pra instalar no celular (manifest + shortcuts Clock/Hoje/Reportar/Disponibilidade)",
     ],
   },
@@ -123,11 +125,14 @@ const SECTIONS: Section[] = [
     title: "Admin vê tudo que o worker faz",
     subtitle: "Páginas dedicadas para revisão e resposta",
     items: [
+      "**`/admin/inbox`** — unificado · pending hours + incidents + draft invoices + shifts pra responder + referrals + timesheet uploads + pedidos de folga, tudo num lugar só com contadores",
       "**`/admin/incidents`** — todos os reportes com preview de foto, severidade, status (open/reviewing/resolved/dismissed) + caixa de resposta do admin (visível pro worker)",
       "**`/admin/availability`** — board: workers × 7 dias com slots morning/afternoon/evening · totais por dia · navegação prev/next-week",
+      "**`/admin/time-off`** — aprovar/recusar pedidos de folga · com filtro de status + caixa de resposta",
       "**`/admin/referrals`** — leaderboard top 10 referrers + lista completa com inline status + reward $",
       "**`/admin/ratings`** — 4 KPIs (média por kind: job/supervisor/peer/project) + top 10 colegas mais bem avaliados + feed de todas as avaliações filtráveis",
       "**`/admin/messages`** — composer pra contratantes/workers/email custom · Resend · log completo",
+      "**Badges vermelhas na sidebar** com contadores de Inbox / Incidents / Folgas pendentes",
     ],
   },
   {
@@ -184,10 +189,10 @@ const SECTIONS: Section[] = [
 ];
 
 const NUMBERS = [
-  { value: "65+", label: "deploys nesta sessão" },
-  { value: "24", label: "migrations no banco" },
-  { value: "15", label: "áreas do produto entregues" },
-  { value: "15.000+", label: "registros de teste populados" },
+  { value: "75+", label: "deploys nesta sessão" },
+  { value: "25", label: "migrations no banco" },
+  { value: "16", label: "áreas do produto entregues" },
+  { value: "16.000+", label: "registros de teste populados" },
 ];
 
 export default function ResumoPage() {
