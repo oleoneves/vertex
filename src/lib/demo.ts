@@ -1215,11 +1215,18 @@ export function demoReports() {
       { employer: "ClearWave Facility Services", hours: 1680, revenue: 42000, cost: 26880, margin: 15120 },
       { employer: "Westlake Builders", hours: 880, revenue: 22000, cost: 15840, margin: 6160 },
     ],
-    byWorker: demoWorkers().slice(0, 25).map((w, i) => ({
-      worker: w.full_name,
-      hours: 240 - (i * 4) % 60,
-      pay: (240 - (i * 4) % 60) * 15,
-    })),
+    byWorker: demoWorkers().slice(0, 25).map((w, i) => {
+      const hours = 240 - ((i * 4) % 60);
+      const pay = hours * 15;
+      const revenue = hours * 25;
+      return {
+        worker: w.full_name,
+        hours,
+        pay,
+        revenue,
+        margin: revenue - pay,
+      };
+    }),
     totals: total,
   };
 }

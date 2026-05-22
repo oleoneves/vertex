@@ -3,6 +3,7 @@ import { PrintButton } from "./print-button";
 import { loadReports } from "@/lib/reports";
 import { loadDashboard } from "@/lib/dashboard";
 import { PageHeader } from "../_components/page-header";
+import { FilterBar } from "../_components/filter-bar";
 import { fmtUsd, fmtNum } from "@/lib/format";
 import { t } from "@/lib/i18n";
 import { getLocale } from "@/lib/i18n-server";
@@ -26,10 +27,29 @@ function monthLabel(key: string): string {
   return `${MONTH_LABELS[m - 1]} ${String(y).slice(2)}`;
 }
 
-export default async function ReportsPage() {
+const RANGE_OPTIONS = {
+  "7d":   { months: 0,  label: "Last 7 days",   labelPt: "Últimos 7 dias" },
+  "30d":  { months: 1,  label: "Last 30 days",  labelPt: "Últimos 30 dias" },
+  "3mo":  { months: 3,  label: "Last 3 months", labelPt: "Últimos 3 meses" },
+  "6mo":  { months: 6,  label: "Last 6 months", labelPt: "Últimos 6 meses" },
+  "12mo": { months: 12, label: "Last 12 months", labelPt: "Últimos 12 meses" },
+  "24mo": { months: 24, label: "Last 24 months", labelPt: "Últimos 24 meses" },
+} as const;
+type RangeKey = keyof typeof RANGE_OPTIONS;
+
+export default async function ReportsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ range?: string }>;
+}) {
   const locale = await getLocale();
+  const sp = await searchParams;
+  const range: RangeKey = (Object.keys(RANGE_OPTIONS) as RangeKey[]).includes(sp.range as RangeKey)
+    ? (sp.range as RangeKey)
+    : "6mo";
+  const months = Math.max(1, RANGE_OPTIONS[range].months);
   const [r, dash] = await Promise.all([
-    loadReports({ months: 6 }),
+    loadReports({ months }),
     loadDashboard(),
   ]);
   const last = r.monthly[r.monthly.length - 1];
@@ -68,6 +88,20 @@ export default async function ReportsPage() {
         </a>
         <PrintButton />
       </PageHeader>
+
+      <FilterBar
+        filters={[
+          {
+            name: "range",
+            label: "Period",
+            value: range,
+            options: (Object.keys(RANGE_OPTIONS) as RangeKey[]).map((k) => ({
+              value: k,
+              label: locale === "pt" ? RANGE_OPTIONS[k].labelPt : RANGE_OPTIONS[k].label,
+            })),
+          },
+        ]}
+      />
 
       {/* Totals */}
       <section className="grid gap-4 sm:grid-cols-4">
@@ -244,7 +278,8 @@ export default async function ReportsPage() {
               <tr>
                 <th className="pb-2">{t(locale, "a.col.worker")}</th>
                 <th className="pb-2 text-right">{t(locale, "a.col.hours")}</th>
-                <th className="pb-2 text-right">{t(locale, "a.col.pay_earned")}</th>
+                <th className="pb-2 text-right">Worker earned</th>
+                <th className="pb-2 text-right">Vertex margin</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/60">
@@ -253,6 +288,9 @@ export default async function ReportsPage() {
                   <td className="py-2 font-medium">{w.worker}</td>
                   <td className="py-2 text-right font-mono tabular-nums">{fmtNum(w.hours, { decimals: 1 })}</td>
                   <td className="py-2 text-right font-mono tabular-nums">{fmtUsd(w.pay)}</td>
+                  <td className="py-2 text-right font-mono tabular-nums font-bold text-accent">
+                    {fmtUsd(w.margin)}
+                  </td>
                 </tr>
               ))}
             </tbody>

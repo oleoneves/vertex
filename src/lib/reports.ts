@@ -22,6 +22,8 @@ export type ByWorkerRow = {
   worker: string;
   hours: number;
   pay: number;
+  revenue: number;
+  margin: number;
 };
 
 export type ReportsData = {
@@ -116,11 +118,13 @@ export async function loadReports(opts: { months?: number } = {}): Promise<Repor
   for (const r of rows) {
     let w = wkMap.get(r.worker);
     if (!w) {
-      w = { worker: r.worker, hours: 0, pay: 0 };
+      w = { worker: r.worker, hours: 0, pay: 0, revenue: 0, margin: 0 };
       wkMap.set(r.worker, w);
     }
     w.hours += r.hrs;
     w.pay += r.hrs * r.pay;
+    w.revenue += r.hrs * r.bill;
+    w.margin = w.revenue - w.pay;
   }
 
   const totals = rows.reduce(
