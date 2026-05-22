@@ -297,6 +297,8 @@ const dict = {
   "a.nav.timesheet":    { en: "Timesheet",    es: "Horas",         pt: "Folha de horas" },
   "a.nav.messages":     { en: "Messages",     es: "Mensajes",      pt: "Mensagens" },
   "a.nav.incidents":    { en: "Incidents",    es: "Incidentes",    pt: "Incidentes" },
+  "a.nav.availability": { en: "Availability", es: "Disponibilidad", pt: "Disponibilidade" },
+  "a.nav.referrals":    { en: "Referrals",    es: "Referidos",     pt: "Indicações" },
 
   // New-page titles + subtitles
   "a.new.employer.title":    { en: "New employer",    es: "Nueva empresa",   pt: "Nova empresa" },

@@ -708,3 +708,14 @@ export async function updateIncident(formData: FormData) {
   await supabase.from("incident_reports").update(payload).eq("id", id);
   revalidatePath("/admin/incidents");
 }
+
+// ============ Referrals (admin manage) ============
+
+export async function updateReferralStatus(formData: FormData) {
+  const id = String(formData.get("id"));
+  const status = String(formData.get("status") || "pending");
+  const reward = Number(formData.get("reward_amount")) || null;
+  const supabase = await getSupabaseServer();
+  await supabase.from("worker_referrals").update({ status, reward_amount: reward }).eq("id", id);
+  revalidatePath("/admin/referrals");
+}
