@@ -246,3 +246,36 @@ export async function signDocument(formData: FormData) {
   revalidatePath("/worker/sign");
   revalidatePath("/worker");
 }
+
+// ============ Time off requests ============
+export async function requestTimeOff(formData: FormData) {
+  const worker = await getCurrentWorker();
+  if (!worker) redirect("/worker/login");
+  const start = String(formData.get("start_date") || "");
+  const end = String(formData.get("end_date") || "");
+  const kind = String(formData.get("kind") || "unpaid");
+  if (!start || !end) throw new Error("Datas obrigatórias");
+  if (new Date(end) < new Date(start)) throw new Error("End date < start date");
+  const supabase = await getSupabaseServer();
+  await supabase.from("time_off_requests").insert({
+    worker_id: worker.id,
+    start_date: start,
+    end_date: end,
+    kind,
+    reason: String(formData.get("reason") || "").trim() || null,
+  });
+  revalidatePath("/worker/time-off");
+}
+
+export async function cancelTimeOff(formData: FormData) {
+  const id = String(formData.get("id"));
+  const worker = await getCurrentWorker();
+  if (!worker) redirect("/worker/login");
+  const supabase = await getSupabaseServer();
+  await supabase
+    .from("time_off_requests")
+    .update({ status: "cancelled" })
+    .eq("id", id)
+    .eq("worker_id", worker.id);
+  revalidatePath("/worker/time-off");
+}

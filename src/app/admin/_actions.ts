@@ -719,3 +719,24 @@ export async function updateReferralStatus(formData: FormData) {
   await supabase.from("worker_referrals").update({ status, reward_amount: reward }).eq("id", id);
   revalidatePath("/admin/referrals");
 }
+
+// ============ Time off requests (admin) ============
+
+export async function updateTimeOff(formData: FormData) {
+  const id = String(formData.get("id"));
+  const action = String(formData.get("action") || "");
+  const status = action === "approve" ? "approved" : action === "decline" ? "declined" : "pending";
+  const adminNotes = String(formData.get("admin_notes") || "").trim() || null;
+  const supabase = await getSupabaseServer();
+  const { data: { user } } = await supabase.auth.getUser();
+  await supabase
+    .from("time_off_requests")
+    .update({
+      status,
+      admin_notes: adminNotes,
+      reviewed_by: user?.id ?? null,
+      reviewed_at: new Date().toISOString(),
+    })
+    .eq("id", id);
+  revalidatePath("/admin/time-off");
+}

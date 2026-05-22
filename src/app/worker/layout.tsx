@@ -7,6 +7,7 @@ const TABS: { href: string; key: TKey }[] = [
   { href: "/worker", key: "w.nav.today" },
   { href: "/worker/clock", key: "w.nav.clock" },
   { href: "/worker/availability", key: "w.nav.availability" },
+  { href: "/worker/time-off", key: "w.nav.timeoff" },
   { href: "/worker/shifts", key: "w.nav.shifts" },
   { href: "/worker/hours", key: "w.nav.hours" },
   { href: "/worker/paystubs", key: "w.nav.pay" },

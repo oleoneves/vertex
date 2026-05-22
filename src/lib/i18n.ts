@@ -158,6 +158,7 @@ const dict = {
   "w.nav.refer":    { en: "Refer",    es: "Indicar",   pt: "Indicar" },
   "w.nav.rate":     { en: "Rate",     es: "Calificar", pt: "Avaliar" },
   "w.nav.sign":     { en: "Sign",     es: "Firmar",    pt: "Assinar" },
+  "w.nav.timeoff":  { en: "Time off", es: "Días libres", pt: "Folga" },
   "w.nav.help":     { en: "Help",     es: "Ayuda",     pt: "Ajuda" },
   "w.nav.docs":     { en: "Docs",     es: "Documentos", pt: "Documentos" },
   "w.nav.profile":  { en: "Profile",  es: "Perfil",    pt: "Perfil" },
@@ -301,6 +302,7 @@ const dict = {
   "a.nav.availability": { en: "Availability", es: "Disponibilidad", pt: "Disponibilidade" },
   "a.nav.referrals":    { en: "Referrals",    es: "Referidos",     pt: "Indicações" },
   "a.nav.ratings":      { en: "Ratings",      es: "Calificaciones", pt: "Avaliações" },
+  "a.nav.timeoff":      { en: "Time off",     es: "Días libres",   pt: "Folgas" },
   "a.nav.inbox":        { en: "Inbox",        es: "Bandeja",       pt: "Inbox" },
 
   // New-page titles + subtitles
