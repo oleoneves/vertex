@@ -84,15 +84,10 @@ insert into public.placements (
 )
 select
   w.id, emp.id, proj.id,
-  case (parsed.n % 8)
-    when 0 then 'Water Extraction Tech'
-    when 1 then 'Mold Remediation Tech'
-    when 2 then 'Structural Drying Tech'
-    when 3 then 'Content Cleaning'
-    when 4 then 'Demolition Crew'
-    when 5 then 'Carpet & Floor Tech'
-    when 6 then 'Board-Up Crew'
-    else 'Restoration Helper'
+  case
+    when parsed.n % 10 = 0 then 'Supervisor'
+    when parsed.n % 3 = 0 then 'Skilled Labor'
+    else 'Unskilled Labor'
   end,
   15.00, 25.00,
   current_date - 15, 'active',

@@ -28,6 +28,10 @@ async function createProject(formData: FormData) {
     end_date: String(formData.get("end_date") || "") || null,
     budget_hours: Number(formData.get("budget_hours")) || null,
     budget_amount: Number(formData.get("budget_amount")) || null,
+    estimate_people: Number(formData.get("estimate_people")) || null,
+    estimate_hours_per_day: Number(formData.get("estimate_hours_per_day")) || null,
+    estimate_travel_hours_per_person:
+      Number(formData.get("estimate_travel_hours_per_person")) || null,
     status: String(formData.get("status") || "active"),
     notes: String(formData.get("notes") || "") || null,
   };
@@ -70,21 +74,45 @@ export default async function NewProjectPage() {
           </FormGrid>
         </FormSection>
 
-        <FormSection title="Dates & budget">
+        <FormSection title="Dates">
           <FormGrid>
             <FormField label="Start date" name="start_date" type="date" />
             <FormField label="End date" name="end_date" type="date" />
+          </FormGrid>
+        </FormSection>
+
+        <FormSection
+          title="Estimate inputs"
+          description="Used to generate the contract estimate (English). Rates come from the employer's profile."
+        >
+          <FormGrid>
             <FormField
-              label="Budget hours"
-              name="budget_hours"
+              label="People"
+              name="estimate_people"
               type="number"
-              hint="Optional cap — track consumption on the dashboard."
+              placeholder="e.g. 10"
+              hint="Headcount the contractor requested."
             />
             <FormField
-              label="Budget amount ($)"
-              name="budget_amount"
+              label="Hours per day per person"
+              name="estimate_hours_per_day"
               type="number"
-              hint="Optional ceiling on billable amount."
+              step="0.25"
+              placeholder="e.g. 10"
+            />
+            <FormField
+              label="Travel time hours per person (total)"
+              name="estimate_travel_hours_per_person"
+              type="number"
+              step="0.25"
+              placeholder="optional"
+              hint="Round-trip travel hours billed per person over the whole project."
+            />
+            <FormField
+              label="Approved hours (override)"
+              name="budget_hours"
+              type="number"
+              hint="Leave blank to compute from People × Hours/day × Days."
             />
           </FormGrid>
         </FormSection>

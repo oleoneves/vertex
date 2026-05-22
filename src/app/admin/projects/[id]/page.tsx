@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, MapPin, Calendar, FileCheck2 } from "lucide-react";
 import { getProjectDetail } from "@/lib/projects";
 import { listProjectTimesheets } from "@/lib/timesheets";
+import { getCurrentAdminRole, can } from "@/lib/auth";
 import { TimesheetUploader } from "./timesheet-uploader";
 import { PageHeader } from "../../_components/page-header";
 import { StatusPill } from "../../_components/data-table";
@@ -29,11 +30,13 @@ export default async function ProjectDashboard({
 }) {
   const { id } = await params;
   const locale = await getLocale();
-  const [raw, timesheets] = await Promise.all([
+  const [raw, timesheets, role] = await Promise.all([
     getProjectDetail(id),
     listProjectTimesheets(id),
+    getCurrentAdminRole(),
   ]);
   if (!raw) notFound();
+  const showMoney = can(role, "view_financials");
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const data = raw as any;
   const { project, placements, activeWorkers, totalWorkers, totals, days, roleRows, recentEntries } = data as {
@@ -112,13 +115,44 @@ export default async function ProjectDashboard({
       {/* KPI row */}
       <section className="grid gap-3 sm:grid-cols-4">
         <Kpi label="Active workers" value={String(activeWorkers)} subValue={`${totalWorkers} placed total`} />
-        <Kpi label={t(locale, "a.proj.approved_hours")} value={fmtNum(totals.hours)} unit="hrs" subValue={totals.pendingHours > 0 ? `+${fmtNum(totals.pendingHours)} ${t(locale, "a.proj.pending_hours")}` : undefined} />
-        <Kpi label={t(locale, "a.dash.revenue")} value={fmtUsd(totals.revenue)} accent />
-        <Kpi label={t(locale, "a.dash.margin")} value={fmtUsd(totals.margin)} subValue={`${totals.revenue > 0 ? Math.round((totals.margin / totals.revenue) * 100) : 0}% ${t(locale, "a.proj.of_revenue")}`} />
+        <Kpi
+          label="Approved hours"
+          value={project.budget_hours ? fmtNum(Number(project.budget_hours)) : "—"}
+          unit={project.budget_hours ? "hrs" : undefined}
+          subValue="contracted / estimate"
+        />
+        <Kpi
+          label="Used hours (so far)"
+          value={fmtNum(totals.hours)}
+          unit="hrs"
+          accent
+          subValue={
+            project.budget_hours
+              ? `${Math.round((totals.hours / Number(project.budget_hours)) * 100)}% of approved`
+              : totals.pendingHours > 0
+              ? `+${fmtNum(totals.pendingHours)} pending`
+              : undefined
+          }
+        />
+        {showMoney ? (
+          <Kpi
+            label={t(locale, "a.dash.revenue")}
+            value={fmtUsd(totals.revenue)}
+            accent
+            subValue={`${fmtUsd(totals.margin)} margin`}
+          />
+        ) : (
+          <Kpi
+            label="Pending hours"
+            value={fmtNum(totals.pendingHours)}
+            unit="hrs"
+            subValue="awaiting approval"
+          />
+        )}
       </section>
 
-      {/* Budgets */}
-      {(project.budget_hours || project.budget_amount) && (
+      {/* Budgets — only if super_admin sees financials, or just hours when not */}
+      {(project.budget_hours || (showMoney && project.budget_amount)) && (
         <section className="mt-6 grid gap-4 sm:grid-cols-2">
           {project.budget_hours && (
             <Budget
@@ -129,7 +163,7 @@ export default async function ProjectDashboard({
               unit="hrs"
             />
           )}
-          {project.budget_amount && (
+          {showMoney && project.budget_amount && (
             <Budget
               label={t(locale, "a.proj.dollar_budget")}
               used={totals.revenue}
@@ -164,7 +198,7 @@ export default async function ProjectDashboard({
           </div>
         </div>
 
-        {project.budget_amount && (
+        {showMoney && project.budget_amount && (
           <div className="rounded-xl border border-border bg-background p-5">
             <div className="flex items-baseline justify-between">
               <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">

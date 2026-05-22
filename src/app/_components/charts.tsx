@@ -1,7 +1,9 @@
-// Pure-SVG chart primitives — no client JS, no dependencies.
-// All components are server-rendered. Tooltips use native <title>.
+"use client";
 
-import type { ReactNode } from "react";
+// SVG chart primitives. AreaChart + ForecastChart use client state for
+// interactive hover tooltips; others remain effectively static.
+
+import { useState, type ReactNode } from "react";
 
 const ACCENT = "var(--color-accent, #EDB23E)";
 const ACCENT_DARK = "var(--color-accent-dark, #CA9F0C)";
@@ -144,13 +146,15 @@ export function AreaChart({
         );
 
   const gradientId = `area-grad-${Math.random().toString(36).slice(2, 8)}`;
+  const [hoverIdx, setHoverIdx] = useState<number | null>(null);
 
   return (
+    <div className="relative" style={{ maxHeight: height }}>
     <svg
       viewBox={`0 0 ${width} ${height}`}
       width="100%"
       preserveAspectRatio="none"
-      style={{ maxHeight: height }}
+      style={{ maxHeight: height, display: "block" }}
       role="img"
     >
       <defs>
@@ -202,14 +206,31 @@ export function AreaChart({
       {/* Dots */}
       {points.map((p, i) => (
         <g key={i}>
-          <circle cx={p.x} cy={p.y} r={2.5} fill={color} />
-          <circle cx={p.x} cy={p.y} r={10} fill="transparent">
-            <title>
-              {p.label}: {yFormatter ? yFormatter(p.value) : p.value}
-            </title>
-          </circle>
+          <circle cx={p.x} cy={p.y} r={hoverIdx === i ? 4.5 : 2.5} fill={color} />
+          <circle
+            cx={p.x}
+            cy={p.y}
+            r={Math.max(12, stepX / 2)}
+            fill="transparent"
+            style={{ cursor: "pointer" }}
+            onMouseEnter={() => setHoverIdx(i)}
+            onMouseLeave={() => setHoverIdx((v) => (v === i ? null : v))}
+          />
         </g>
       ))}
+
+      {/* Crosshair on hover */}
+      {hoverIdx !== null && (
+        <line
+          x1={points[hoverIdx].x}
+          x2={points[hoverIdx].x}
+          y1={padding.top}
+          y2={padding.top + innerH}
+          stroke={color}
+          strokeOpacity={0.35}
+          strokeDasharray="3 3"
+        />
+      )}
 
       {/* X labels */}
       {xLabelIdxs.map((i) => (
@@ -226,6 +247,21 @@ export function AreaChart({
         </text>
       ))}
     </svg>
+    {hoverIdx !== null && (
+      <div
+        className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-full rounded-md border border-border bg-background px-2.5 py-1.5 text-xs shadow-lg"
+        style={{
+          left: `${(points[hoverIdx].x / width) * 100}%`,
+          top: `${((points[hoverIdx].y - 8) / height) * 100}%`,
+        }}
+      >
+        <div className="font-medium">{points[hoverIdx].label}</div>
+        <div className="font-mono tabular-nums" style={{ color }}>
+          {yFormatter ? yFormatter(points[hoverIdx].value) : points[hoverIdx].value}
+        </div>
+      </div>
+    )}
+    </div>
   );
 }
 

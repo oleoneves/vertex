@@ -34,16 +34,7 @@ const LAST_NAMES = [
   "Cardoso","Araujo","Nascimento","Correia","Moreira","Cunha","Pinto","Teixeira","Ribeiro","Machado",
 ];
 
-const PROJECT_ROLES = [
-  "Welder Helper",
-  "Pipefitter Helper",
-  "Scaffolder",
-  "Painter",
-  "Insulator",
-  "General Laborer",
-  "Equipment Operator",
-  "Construction Laborer",
-];
+const PROJECT_ROLES = ["Skilled Labor", "Unskilled Labor", "Supervisor"];
 
 // ============== Stable IDs ==============
 const ID = {
@@ -58,16 +49,7 @@ const ID = {
   projectRestoration: "proj-restoration",
 };
 
-const RESTORATION_ROLES = [
-  "Water Extraction Tech",
-  "Mold Remediation Tech",
-  "Structural Drying Tech",
-  "Content Cleaning",
-  "Demolition Crew",
-  "Carpet & Floor Tech",
-  "Board-Up Crew",
-  "Restoration Helper",
-];
+const RESTORATION_ROLES = ["Skilled Labor", "Unskilled Labor", "Supervisor"];
 
 // ============== Time helpers ==============
 function isoNow(offsetMs: number = 0): string {
@@ -246,6 +228,9 @@ export function demoProjects(): (Project & { employer: { name: string } })[] {
       end_date: dateAddDays(new Date(), 60),
       budget_hours: 20000,
       budget_amount: 500000,
+      estimate_people: null,
+      estimate_hours_per_day: null,
+      estimate_travel_hours_per_person: null,
       status: "active",
       notes: "100-headcount refinery expansion. Mon-Sun 7am-3pm shifts.",
       created_at: isoDaysAgo(31),
@@ -261,6 +246,9 @@ export function demoProjects(): (Project & { employer: { name: string } })[] {
       end_date: dateAddDays(new Date(), 45),
       budget_hours: 30000,
       budget_amount: 750000,
+      estimate_people: null,
+      estimate_hours_per_day: null,
+      estimate_travel_hours_per_person: null,
       status: "active",
       notes: "Emergency restoration following hurricane impact. 24/7 response, 7-day-a-week ops.",
       created_at: isoDaysAgo(15),

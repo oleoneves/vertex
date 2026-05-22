@@ -138,6 +138,9 @@ export type Project = {
   end_date: string | null;
   budget_hours: number | null;
   budget_amount: number | null;
+  estimate_people: number | null;
+  estimate_hours_per_day: number | null;
+  estimate_travel_hours_per_person: number | null;
   status: ProjectStatus;
   notes: string | null;
   created_at: string;
