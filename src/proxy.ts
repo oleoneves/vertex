@@ -1,11 +1,13 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { type NextRequest } from "next/server";
+import { updateSession } from "@/lib/supabase/proxy";
 
-// TEMP: open access — auth disabled, every visitor treated as super_admin.
-// Re-enable login by restoring the previous cookie-based check.
-export function proxy(_request: NextRequest) {
-  return NextResponse.next();
+export async function proxy(request: NextRequest) {
+  return await updateSession(request);
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/worker/:path*", "/employer/:path*"],
+  matcher: [
+    // Run on all routes except static assets and image optimizer.
+    "/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
+  ],
 };

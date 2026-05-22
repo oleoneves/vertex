@@ -1,22 +1,11 @@
 import { redirect } from "next/navigation";
-import { getSupabaseServer } from "./supabase/server";
 
 export type AdminRole = "super_admin" | "assistant";
 
 export async function getCurrentAdminRole(): Promise<AdminRole | null> {
-  const supabase = await getSupabaseServer();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  // TEMP: open-access mode — no signed-in user → treat as super_admin so full UI renders.
-  if (!user) return "super_admin";
-  const { data } = await supabase
-    .from("admin_users")
-    .select("role")
-    .eq("user_id", user.id)
-    .maybeSingle();
-  if (!data) return null;
-  return (data.role as AdminRole) ?? null;
+  // TEMP: dev open-access — treat every visitor as super_admin so the full UI
+  // renders without login, regardless of any leftover Supabase session cookies.
+  return "super_admin";
 }
 
 export type Capability =

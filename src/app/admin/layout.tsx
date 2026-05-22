@@ -19,6 +19,7 @@ import {
   Mail,
 } from "lucide-react";
 import { CommandPalette } from "./_components/command-palette";
+import { LogoutButton } from "./_components/logout-button";
 import { NotificationsBell } from "./_components/notifications-bell";
 import { listRecentEvents } from "@/lib/activity";
 import { loadDashboard } from "@/lib/dashboard";
@@ -149,6 +150,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
             {t(locale, it.labelKey)}
           </Link>
         ))}
+        <div className="shrink-0"><LogoutButton /></div>
       </nav>
 
       {/* Desktop: grouped sidebar with its own scroll */}
@@ -193,6 +195,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
                 dAgo: t(locale, "a.bell.day_short"),
               }}
             />
+            <LogoutButton variant="icon" />
           </div>
           {todaySpark.length > 1 && (
             <div className="mx-2 mb-3 rounded-lg border border-border bg-accent/5 p-3">
@@ -238,6 +241,9 @@ export default async function AdminLayout({ children }: { children: ReactNode })
           {showMoney && (
             <Group label={t(locale, "a.group.money")} items={MONEY} locale={locale} />
           )}
+          <div className="mt-3 border-t border-border pt-2">
+            <LogoutButton />
+          </div>
         </nav>
       </aside>
 
