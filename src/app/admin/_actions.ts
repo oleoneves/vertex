@@ -618,3 +618,67 @@ export async function deleteProjectExpense(formData: FormData) {
   await supabase.from("project_expenses").delete().eq("id", id);
   revalidatePath(`/admin/projects/${project_id}`);
 }
+
+// ============ Email composer ============
+
+export async function sendComposedEmail(formData: FormData) {
+  const { getEmailClient, emailReady, fromAddress } = await import("@/lib/email");
+  const supabase = await getSupabaseServer();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const kindRaw = String(formData.get("kind") || "custom");
+  const allowedKinds = ["contractor", "worker", "custom"] as const;
+  const kind = (allowedKinds as readonly string[]).includes(kindRaw)
+    ? kindRaw
+    : "custom";
+  const subject = String(formData.get("subject") || "").trim();
+  const body = String(formData.get("body") || "").trim();
+  const toRaw = formData.getAll("to").map(String).filter(Boolean);
+
+  if (!subject || !body) throw new Error("Subject and body are required");
+  if (toRaw.length === 0) throw new Error("Pick at least one recipient");
+
+  const html = `<!DOCTYPE html><html><body style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif;color:#1F2A3D;padding:24px;background:#fafafa">
+    <div style="max-width:560px;margin:0 auto;background:white;border:1px solid #e5e5e5;border-radius:12px;padding:24px;">
+      <div style="font-weight:900;letter-spacing:2px;font-size:14px;color:#1F2A3D;margin-bottom:16px;">VERTEX RESTORATION</div>
+      <div style="white-space:pre-line;line-height:1.55;">${body.replace(/</g, "&lt;")}</div>
+      <hr style="border:none;border-top:1px solid #eee;margin:24px 0 12px;" />
+      <div style="font-size:11px;color:#888;">Sent from Vertex Restoration · vertexlaborservice.com</div>
+    </div></body></html>`;
+
+  if (!emailReady()) {
+    await supabase.from("sent_emails").insert({
+      kind,
+      to_emails: toRaw,
+      subject,
+      body,
+      sent_by: user?.id ?? null,
+      status: "failed",
+      error: "Email service not configured (RESEND_API_KEY missing)",
+    });
+    throw new Error("Email service not configured. Set RESEND_API_KEY.");
+  }
+
+  const resend = getEmailClient()!;
+  const { error } = await resend.emails.send({
+    from: fromAddress(),
+    to: toRaw,
+    subject,
+    html,
+  });
+
+  await supabase.from("sent_emails").insert({
+    kind,
+    to_emails: toRaw,
+    subject,
+    body,
+    sent_by: user?.id ?? null,
+    status: error ? "failed" : "sent",
+    error: error?.message ?? null,
+  });
+
+  if (error) throw new Error(`Failed to send: ${error.message}`);
+  revalidatePath("/admin/messages");
+}

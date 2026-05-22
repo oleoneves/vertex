@@ -288,6 +288,7 @@ const dict = {
   "a.nav.placements":   { en: "Placements",   es: "Asignaciones",  pt: "Alocações" },
   "a.nav.shifts":       { en: "Shifts",       es: "Turnos",        pt: "Turnos" },
   "a.nav.timesheet":    { en: "Timesheet",    es: "Horas",         pt: "Folha de horas" },
+  "a.nav.messages":     { en: "Messages",     es: "Mensajes",      pt: "Mensagens" },
   "a.nav.documents":    { en: "Documents",    es: "Documentos",    pt: "Documentos" },
   "a.nav.invoices":     { en: "Invoices",     es: "Invoices",      pt: "Invoices" },
   "a.nav.payroll":      { en: "Payroll",      es: "Nómina",        pt: "Folha" },

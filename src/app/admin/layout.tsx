@@ -16,6 +16,7 @@ import {
   ClipboardList,
   ShieldCheck,
   Radio,
+  Mail,
 } from "lucide-react";
 import { CommandPalette } from "./_components/command-palette";
 import { NotificationsBell } from "./_components/notifications-bell";
@@ -46,6 +47,7 @@ const WORKFORCE: NavItem[] = [
   { href: "/admin/employers", labelKey: "a.nav.employers", Icon: Building2 },
   { href: "/admin/placements", labelKey: "a.nav.placements", Icon: Link2 },
   { href: "/admin/timesheet", labelKey: "a.nav.timesheet", Icon: Clock },
+  { href: "/admin/messages", labelKey: "a.nav.messages", Icon: Mail },
 ];
 
 const MONEY: NavItem[] = [
