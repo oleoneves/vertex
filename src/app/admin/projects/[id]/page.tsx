@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, MapPin, Calendar } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, FileCheck2 } from "lucide-react";
 import { getProjectDetail } from "@/lib/projects";
+import { listProjectTimesheets } from "@/lib/timesheets";
+import { TimesheetUploader } from "./timesheet-uploader";
 import { PageHeader } from "../../_components/page-header";
 import { StatusPill } from "../../_components/data-table";
 import { fmtUsd, fmtNum, fmtHours } from "@/lib/format";
@@ -27,7 +29,10 @@ export default async function ProjectDashboard({
 }) {
   const { id } = await params;
   const locale = await getLocale();
-  const raw = await getProjectDetail(id);
+  const [raw, timesheets] = await Promise.all([
+    getProjectDetail(id),
+    listProjectTimesheets(id),
+  ]);
   if (!raw) notFound();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const data = raw as any;
@@ -86,6 +91,7 @@ export default async function ProjectDashboard({
         >
           + Invoice
         </Link>
+        <TimesheetUploader projectId={id} defaultEmployerName={project.employer?.name} />
       </PageHeader>
 
       {/* Meta strip */}
@@ -302,6 +308,90 @@ export default async function ProjectDashboard({
               </li>
             ))}
           </ul>
+        )}
+      </section>
+
+      {/* Timesheets — proof-of-hours sent by hiring company */}
+      <section className="mt-8 rounded-xl border border-border bg-background p-5">
+        <div className="mb-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <FileCheck2 className="h-4 w-4 text-muted-foreground" />
+            <h3 className="text-sm font-bold uppercase tracking-wider">Timesheets</h3>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {timesheets.length} {timesheets.length === 1 ? "document" : "documents"}
+          </p>
+        </div>
+        {timesheets.length === 0 ? (
+          <p className="rounded-md border border-dashed border-border bg-muted/30 px-4 py-6 text-center text-xs text-muted-foreground">
+            No timesheets yet — use the <strong>Upload timesheet</strong> button above to attach proof-of-hours sent by the hiring company.
+          </p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border text-left text-[10px] uppercase tracking-wider text-muted-foreground">
+                  <th className="px-3 py-2 font-bold">File</th>
+                  <th className="px-3 py-2 font-bold">Period</th>
+                  <th className="px-3 py-2 font-bold">Source</th>
+                  <th className="px-3 py-2 text-right font-bold">Hours claimed</th>
+                  <th className="px-3 py-2 font-bold">Status</th>
+                  <th className="px-3 py-2 font-bold">Uploaded</th>
+                  <th className="px-3 py-2"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {timesheets.map((t, i) => (
+                  <tr
+                    key={t.id}
+                    className={`border-b border-border/60 ${i % 2 === 1 ? "bg-muted/30" : ""}`}
+                  >
+                    <td className="px-3 py-2 font-medium">{t.filename}</td>
+                    <td className="px-3 py-2 text-xs text-muted-foreground">
+                      {t.period_start && t.period_end
+                        ? `${t.period_start} → ${t.period_end}`
+                        : "—"}
+                    </td>
+                    <td className="px-3 py-2 text-xs">{t.source_company ?? "—"}</td>
+                    <td className="px-3 py-2 text-right font-mono tabular-nums">
+                      {t.total_hours_claimed != null
+                        ? Number(t.total_hours_claimed).toLocaleString("en-US")
+                        : "—"}
+                    </td>
+                    <td className="px-3 py-2">
+                      <StatusPill
+                        status={t.status}
+                        variant={
+                          t.status === "reconciled"
+                            ? "green"
+                            : t.status === "disputed"
+                            ? "red"
+                            : t.status === "archived"
+                            ? "muted"
+                            : "amber"
+                        }
+                      />
+                    </td>
+                    <td className="px-3 py-2 text-xs text-muted-foreground">
+                      {new Date(t.uploaded_at).toLocaleDateString()}
+                    </td>
+                    <td className="px-3 py-2 text-right">
+                      {t.signedUrl && (
+                        <a
+                          href={t.signedUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-xs text-accent underline-offset-4 hover:underline"
+                        >
+                          Open ↗
+                        </a>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </section>
     </div>

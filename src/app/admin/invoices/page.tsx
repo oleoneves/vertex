@@ -19,7 +19,14 @@ export default async function InvoicesPage({
   const locale = await getLocale();
   const sp = await searchParams;
   const all = await listInvoices();
-  const invoices = sp.status ? all.filter((i) => i.status === sp.status) : all;
+  const openOnly = sp.status === "open";
+  const invoices = openOnly
+    ? all
+        .filter((i) => i.status === "sent" || i.status === "overdue")
+        .sort((a, b) => (a.due_date ?? "").localeCompare(b.due_date ?? ""))
+    : sp.status
+    ? all.filter((i) => i.status === sp.status)
+    : all;
   const totals = all.reduce(
     (acc, i) => {
       if (i.status === "paid") acc.paid += Number(i.total);
@@ -71,6 +78,7 @@ export default async function InvoicesPage({
             label: t(locale, "a.filter.status"),
             value: sp.status,
             options: [
+              { value: "open", label: t(locale, "a.status.open") },
               { value: "draft", label: t(locale, "a.status.draft") },
               { value: "sent", label: t(locale, "a.status.sent") },
               { value: "paid", label: t(locale, "a.status.paid") },
@@ -94,18 +102,54 @@ export default async function InvoicesPage({
               <Th>{t(locale, "a.col.number")}</Th>
               <Th>{t(locale, "a.col.employer")}</Th>
               <Th>{t(locale, "a.col.period")}</Th>
+              <Th>{t(locale, "a.col.due_date")}</Th>
               <Th className="text-right">{t(locale, "a.col.total")}</Th>
               <Th>{t(locale, "a.filter.status")}</Th>
               <Th></Th>
             </>
           }
         >
-          {invoices.map((i) => (
+          {invoices.map((i) => {
+            const today = new Date().toISOString().slice(0, 10);
+            const isOpen = i.status === "sent" || i.status === "overdue";
+            const daysLeft = i.due_date
+              ? Math.round(
+                  (new Date(i.due_date).getTime() - new Date(today).getTime()) /
+                    86400000,
+                )
+              : null;
+            return (
             <Tr key={i.id}>
               <Td className="font-mono text-xs font-medium">{i.invoice_number}</Td>
               <Td>{i.employer?.name ?? "—"}</Td>
               <Td className="text-xs text-muted-foreground">
                 {i.period_start} → {i.period_end}
+              </Td>
+              <Td className="text-xs">
+                {i.due_date ? (
+                  <span className="flex flex-col">
+                    <span className="font-medium tabular-nums">{i.due_date}</span>
+                    {isOpen && daysLeft !== null && (
+                      <span
+                        className={
+                          daysLeft < 0
+                            ? "text-red-600 dark:text-red-400"
+                            : daysLeft <= 3
+                            ? "text-amber-600 dark:text-amber-400"
+                            : "text-muted-foreground"
+                        }
+                      >
+                        {daysLeft < 0
+                          ? `${Math.abs(daysLeft)}d overdue`
+                          : daysLeft === 0
+                          ? "due today"
+                          : `in ${daysLeft}d`}
+                      </span>
+                    )}
+                  </span>
+                ) : (
+                  <span className="text-muted-foreground">—</span>
+                )}
               </Td>
               <Td className="text-right font-mono tabular-nums">
                 {fmtUsd(i.total, { decimals: 2 })}
@@ -145,7 +189,8 @@ export default async function InvoicesPage({
                 </div>
               </Td>
             </Tr>
-          ))}
+            );
+          })}
         </DataTable>
       )}
     </div>

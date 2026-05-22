@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { ArrowLeft, Download, ExternalLink, Receipt } from "lucide-react";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { getInvoiceDetail, listInvoicePayments, supabaseReady } from "@/lib/workforce";
+import { groupInvoiceLines } from "@/lib/invoice-grouping";
 import { emailReady } from "@/lib/email";
 import { SendInvoiceButton } from "./send-button";
 import { RecordPaymentForm } from "./record-payment-form";
@@ -283,19 +284,19 @@ export default async function InvoiceDetailPage({
         </div>
       </div>
 
-      {/* Line items */}
+      {/* Line items — grouped by category */}
+      {(() => {
+        const categories = groupInvoiceLines(inv.lines, inv.period_start, inv.period_end);
+        return (
       <div className="rounded-lg border border-border bg-background overflow-hidden">
         <div className="flex items-center justify-between border-b border-border px-5 py-3">
           <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
             {t(locale, "a.inv.services")}
           </p>
-          <p className="text-xs text-muted-foreground">
-            {inv.lines.length} {inv.lines.length === 1 ? t(locale, "a.inv.line") : t(locale, "a.inv.lines")}
-          </p>
         </div>
-        <div className="max-h-96 overflow-y-auto">
+        <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="sticky top-0 bg-background">
+            <thead className="bg-background">
               <tr className="border-b border-border text-left text-[10px] uppercase tracking-wider text-muted-foreground">
                 <th className="px-5 py-2 font-bold">{t(locale, "a.inv.service")}</th>
                 <th className="px-5 py-2 text-right font-bold">{t(locale, "a.inv.qty")}</th>
@@ -304,33 +305,24 @@ export default async function InvoiceDetailPage({
               </tr>
             </thead>
             <tbody>
-              {inv.lines.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="px-5 py-6 text-center text-muted-foreground">
-                    {t(locale, "a.inv.no_services")}
+              {categories.map((c, i) => (
+                <tr
+                  key={c.key}
+                  className={`border-b border-border/60 ${i % 2 === 1 ? "bg-muted/30" : ""} ${!c.hasData ? "opacity-50" : ""}`}
+                >
+                  <td className="px-5 py-3">
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                      {c.label}
+                    </div>
+                    <div className="mt-0.5 font-medium">{c.description}</div>
+                  </td>
+                  <td className="px-5 py-3 text-right font-mono tabular-nums">{c.qtyText}</td>
+                  <td className="px-5 py-3 text-right font-mono tabular-nums">{c.rateText}</td>
+                  <td className="px-5 py-3 text-right font-mono font-bold tabular-nums">
+                    {c.hasData ? fmtMoney(c.amount) : "—"}
                   </td>
                 </tr>
-              ) : (
-                inv.lines.map((l, i) => (
-                  <tr
-                    key={l.id}
-                    className={`border-b border-border/60 ${i % 2 === 1 ? "bg-muted/30" : ""}`}
-                  >
-                    <td className="px-5 py-2.5">
-                      <div className="font-medium">{l.description}</div>
-                    </td>
-                    <td className="px-5 py-2.5 text-right font-mono tabular-nums">
-                      {Number(l.hours).toFixed(2)}
-                    </td>
-                    <td className="px-5 py-2.5 text-right font-mono tabular-nums">
-                      {fmtMoney(l.rate)}
-                    </td>
-                    <td className="px-5 py-2.5 text-right font-mono font-bold tabular-nums">
-                      {fmtMoney(l.amount)}
-                    </td>
-                  </tr>
-                ))
-              )}
+              ))}
             </tbody>
             <tfoot className="border-t border-border bg-muted/20">
               <tr>
@@ -361,6 +353,8 @@ export default async function InvoiceDetailPage({
           </table>
         </div>
       </div>
+        );
+      })()}
 
       {/* Payments received */}
       <div className="rounded-lg border border-border bg-background overflow-hidden">

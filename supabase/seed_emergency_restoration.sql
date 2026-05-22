@@ -165,8 +165,8 @@ declare
   emp_id uuid;
   payment_days int;
   inv_id uuid;
-  period_start date := current_date - 15;
-  period_end date := current_date - 1;
+  p_start date := current_date - 15;
+  p_end date := current_date - 1;
   subtotal_amt numeric;
 begin
   select id, payment_terms_days into emp_id, payment_days
@@ -176,7 +176,7 @@ begin
 
   if exists (
     select 1 from public.invoices
-    where employer_id = emp_id and period_start = period_start and period_end = period_end
+    where employer_id = emp_id and period_start = p_start and period_end = p_end
   ) then return; end if;
 
   select coalesce(sum(te.hours_worked * te.bill_rate_at_entry), 0)
@@ -185,7 +185,7 @@ begin
   join public.placements p on p.id = te.placement_id
   where p.employer_id = emp_id
     and te.approved
-    and te.clock_in_at::date between period_start and period_end;
+    and te.clock_in_at::date between p_start and p_end;
 
   if subtotal_amt = 0 then return; end if;
 
@@ -193,10 +193,10 @@ begin
     employer_id, period_start, period_end,
     subtotal, tax, total, status, due_date, sent_at, notes
   ) values (
-    emp_id, period_start, period_end,
+    emp_id, p_start, p_end,
     subtotal_amt, 0, subtotal_amt,
     'sent',
-    period_end + payment_days,
+    p_end + payment_days,
     now() - interval '1 day',
     'Hurricane Recovery — Tampa Bay · 15-day emergency response · 100 workers'
   ) returning id into inv_id;
@@ -215,7 +215,7 @@ begin
   join public.workers w on w.id = te.worker_id
   where p.employer_id = emp_id
     and te.approved
-    and te.clock_in_at::date between period_start and period_end
+    and te.clock_in_at::date between p_start and p_end
   group by te.worker_id, te.placement_id, w.full_name, p.role_title;
 end$$;
 

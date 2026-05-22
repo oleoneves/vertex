@@ -1,15 +1,16 @@
 import { notFound } from "next/navigation";
 import { getInvoiceDetail } from "@/lib/workforce";
 import { brand } from "@/lib/brand";
+import { groupInvoiceLines } from "@/lib/invoice-grouping";
 
 export const dynamic = "force-dynamic";
 
 const COMPANY = {
   legalName: brand.legalName,
-  addressLine1: "1209 N Orange St, Suite 100",
-  addressLine2: "Wilmington, DE 19801",
+  addressLine1: "2699 Jumping Jack Way",
+  addressLine2: "Clermont, FL 34714",
   ein: "EIN 33-4892177",
-  phone: "+1 (302) 555-0124",
+  phone: "+1 (689) 686-3236",
   email: brand.supportEmail,
   web: brand.domain,
 };
@@ -426,30 +427,25 @@ export default async function PrintInvoice({
               <thead>
                 <tr>
                   <th>Service</th>
-                  <th className="right" style={{ width: 80 }}>Qty</th>
+                  <th className="right" style={{ width: 100 }}>Qty</th>
                   <th className="right" style={{ width: 90 }}>Rate</th>
                   <th className="right" style={{ width: 110 }}>Amount</th>
                 </tr>
               </thead>
               <tbody>
-                {inv.lines.length === 0 ? (
-                  <tr>
-                    <td colSpan={4} style={{ textAlign: "center", color: "#5c5c5c" }}>
-                      No line items on this invoice.
+                {groupInvoiceLines(inv.lines, inv.period_start, inv.period_end).map((c) => (
+                  <tr key={c.key} style={!c.hasData ? { color: "#9a9a9a" } : undefined}>
+                    <td>
+                      <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: "#5c5c5c" }}>
+                        {c.label}
+                      </div>
+                      <div className="desc-primary">{c.description}</div>
                     </td>
+                    <td className="right">{c.qtyText}</td>
+                    <td className="right">{c.rateText}</td>
+                    <td className="right num-bold">{c.hasData ? fmtMoney(c.amount) : "—"}</td>
                   </tr>
-                ) : (
-                  inv.lines.map((l) => (
-                    <tr key={l.id}>
-                      <td>
-                        <div className="desc-primary">{l.description}</div>
-                      </td>
-                      <td className="right">{Number(l.hours).toFixed(2)}</td>
-                      <td className="right">{fmtMoney(l.rate)}</td>
-                      <td className="right num-bold">{fmtMoney(l.amount)}</td>
-                    </tr>
-                  ))
-                )}
+                ))}
               </tbody>
             </table>
 
@@ -458,7 +454,6 @@ export default async function PrintInvoice({
                 <div>
                   Service period: <strong>{fmtDate(inv.period_start)} → {fmtDate(inv.period_end)}</strong>
                 </div>
-                <div style={{ marginTop: 3 }}>Line items: {inv.lines.length}</div>
               </div>
               <div className="totals-rows">
                 <div className="row">

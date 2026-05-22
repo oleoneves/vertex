@@ -105,6 +105,7 @@ export default async function AdminDashboard() {
           delta={pctDelta(d.outstanding, d.prevPeriod.outstanding)}
           deltaLabel={t(locale, "a.delta.vs_last_week")}
           deltaInverted
+          link="/admin/invoices?status=open"
         />
         <KpiSpark
           label={t(locale, "a.dash.applications_24h")}

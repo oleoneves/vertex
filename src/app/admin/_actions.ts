@@ -242,34 +242,59 @@ export async function deleteJob(formData: FormData) {
 export async function reviewDocument(formData: FormData) {
   const id = String(formData.get("id"));
   const decision = String(formData.get("decision"));
-  if (!["approved", "rejected"].includes(decision)) return;
+  if (!["approved", "rejected"].includes(decision)) {
+    throw new Error(`reviewDocument: invalid decision "${decision}"`);
+  }
   const supabase = await getSupabaseServer();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  await supabase
+  if (!user) throw new Error("reviewDocument: not signed in");
+  const { error, count } = await supabase
     .from("documents")
-    .update({
-      status: decision,
-      reviewed_by: user?.id ?? null,
-      reviewed_at: new Date().toISOString(),
-    })
+    .update(
+      {
+        status: decision,
+        reviewed_by: user.id,
+        reviewed_at: new Date().toISOString(),
+      },
+      { count: "exact" },
+    )
     .eq("id", id);
+  if (error) throw new Error(`reviewDocument: ${error.message}`);
+  if (count === 0) {
+    throw new Error(
+      "reviewDocument: no row updated (check that you're in admin_users — RLS denied silently)",
+    );
+  }
   revalidatePath("/admin/documents");
 }
 
 export async function deleteDocument(formData: FormData) {
   const id = String(formData.get("id"));
   const supabase = await getSupabaseServer();
-  const { data: doc } = await supabase
+  const { data: doc, error: readErr } = await supabase
     .from("documents")
     .select("storage_path")
     .eq("id", id)
     .maybeSingle();
+  if (readErr) throw new Error(`deleteDocument: ${readErr.message}`);
   if (doc?.storage_path) {
-    await supabase.storage.from("documents").remove([doc.storage_path]);
+    const { error: storageErr } = await supabase.storage
+      .from("documents")
+      .remove([doc.storage_path]);
+    if (storageErr) throw new Error(`deleteDocument: storage ${storageErr.message}`);
   }
-  await supabase.from("documents").delete().eq("id", id);
+  const { error: delErr, count } = await supabase
+    .from("documents")
+    .delete({ count: "exact" })
+    .eq("id", id);
+  if (delErr) throw new Error(`deleteDocument: ${delErr.message}`);
+  if (count === 0) {
+    throw new Error(
+      "deleteDocument: no row deleted (check that you're in admin_users — RLS denied silently)",
+    );
+  }
   revalidatePath("/admin/documents");
 }
 

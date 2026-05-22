@@ -10,6 +10,7 @@ import {
 } from "@react-pdf/renderer";
 import type { Invoice, InvoiceLineItem, Worker, Employer } from "@/types/db";
 import { brand } from "./brand";
+import { groupInvoiceLines } from "./invoice-grouping";
 
 Font.registerHyphenationCallback((word) => [word]);
 
@@ -27,10 +28,10 @@ const COLORS = {
 
 const COMPANY = {
   legalName: brand.legalName,
-  addressLine1: "1209 N Orange St, Suite 100",
-  addressLine2: "Wilmington, DE 19801",
+  addressLine1: "2699 Jumping Jack Way",
+  addressLine2: "Clermont, FL 34714",
   ein: "EIN 33-4892177",
-  phone: "+1 (302) 555-0124",
+  phone: "+1 (689) 686-3236",
   email: brand.supportEmail,
   web: brand.domain,
 };
@@ -510,32 +511,25 @@ export function InvoicePDF({ data }: { data: InvoicePDFData }) {
             <Text style={[styles.th, styles.cAmount]}>Amount</Text>
           </View>
 
-          {lines.length === 0 ? (
-            <View style={[styles.tr, { justifyContent: "center" }]}>
-              <Text style={{ color: COLORS.muted, fontSize: 9 }}>
-                No line items on this invoice.
+          {groupInvoiceLines(lines, invoice.period_start, invoice.period_end).map((c, i) => (
+            <View
+              key={c.key}
+              style={[styles.tr, i % 2 === 1 ? styles.trZebra : {}, !c.hasData ? { opacity: 0.5 } : {}]}
+              wrap={false}
+            >
+              <View style={styles.cDescription}>
+                <Text style={{ fontSize: 7.5, color: COLORS.muted, letterSpacing: 0.8, fontWeight: 700 }}>
+                  {c.label.toUpperCase()}
+                </Text>
+                <Text style={styles.descPrimary}>{c.description}</Text>
+              </View>
+              <Text style={[styles.num, styles.cHours]}>{c.qtyText}</Text>
+              <Text style={[styles.num, styles.cRate]}>{c.rateText}</Text>
+              <Text style={[styles.numBold, styles.cAmount]}>
+                {c.hasData ? fmtMoney(c.amount) : "—"}
               </Text>
             </View>
-          ) : (
-            lines.map((l, i) => (
-              <View
-                key={l.id}
-                style={[styles.tr, i % 2 === 1 ? styles.trZebra : {}]}
-                wrap={false}
-              >
-                <View style={styles.cDescription}>
-                  <Text style={styles.descPrimary}>{l.description}</Text>
-                </View>
-                <Text style={[styles.num, styles.cHours]}>
-                  {Number(l.hours).toFixed(2)}
-                </Text>
-                <Text style={[styles.num, styles.cRate]}>{fmtMoney(l.rate)}</Text>
-                <Text style={[styles.numBold, styles.cAmount]}>
-                  {fmtMoney(l.amount)}
-                </Text>
-              </View>
-            ))
-          )}
+          ))}
 
           {/* Totals */}
           <View style={styles.totalsWrap}>
@@ -548,9 +542,6 @@ export function InvoicePDF({ data }: { data: InvoicePDFData }) {
               >
                 <Text style={{ fontSize: 8.5, color: COLORS.faint }}>
                   Service period: {fmtDate(invoice.period_start)} → {fmtDate(invoice.period_end)}
-                </Text>
-                <Text style={{ fontSize: 8.5, color: COLORS.faint, marginTop: 3 }}>
-                  Line items: {lines.length}
                 </Text>
               </View>
             </View>

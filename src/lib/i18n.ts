@@ -368,6 +368,7 @@ const dict = {
   "a.status.draft":      { en: "Draft",      es: "Borrador",   pt: "Rascunho" },
   "a.status.overdue":    { en: "Overdue",    es: "Vencido",    pt: "Vencido" },
   "a.status.void":       { en: "Void",       es: "Anulado",    pt: "Anulado" },
+  "a.status.open":       { en: "Open",       es: "Pendiente",  pt: "Em aberto" },
   "a.status.completed":  { en: "Completed",  es: "Completado", pt: "Concluído" },
   "a.status.scheduled":  { en: "Scheduled",  es: "Programado", pt: "Agendado" },
 
@@ -492,6 +493,7 @@ const dict = {
   "a.col.actions":   { en: "Actions",    es: "Acciones",    pt: "Ações" },
   "a.col.pay_earned":{ en: "Pay earned", es: "Pago ganho",   pt: "Salário ganho" },
   "a.col.score":     { en: "Score",      es: "Puntaje",     pt: "Pontuação" },
+  "a.col.due_date":  { en: "Due date",   es: "Vencimiento", pt: "Vencimento" },
 
   // Reports KPIs
   "a.reports.hours":         { en: "Hours",        es: "Horas",        pt: "Horas" },
