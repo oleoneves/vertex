@@ -14,6 +14,8 @@ type Row = {
   clock_out_at: string | null;
   hours_worked: number | null;
   approved: boolean;
+  before_photo_paths: string[] | null;
+  after_photo_paths: string[] | null;
   placement: { role_title: string; employer: { name: string } | null } | null;
 };
 
@@ -26,7 +28,7 @@ export default async function WorkerHoursPage() {
   const { data } = await supabase
     .from("time_entries")
     .select(
-      "id, clock_in_at, clock_out_at, hours_worked, approved, placement:placements(role_title, employer:employers(name))",
+      "id, clock_in_at, clock_out_at, hours_worked, approved, before_photo_paths, after_photo_paths, placement:placements(role_title, employer:employers(name))",
     )
     .eq("worker_id", worker.id)
     .order("clock_in_at", { ascending: false })
@@ -58,54 +60,112 @@ export default async function WorkerHoursPage() {
         </div>
       ) : (
         <ul className="mt-6 space-y-2">
-          {rows.map((r) => (
+          {rows.map((r) => {
+            const beforeCount = r.before_photo_paths?.length ?? 0;
+            const afterCount = r.after_photo_paths?.length ?? 0;
+            return (
             <li
               key={r.id}
-              className="flex items-center justify-between gap-3 rounded-xl border border-border bg-background p-4"
+              className="rounded-xl border border-border bg-background p-4"
             >
-              <div className="min-w-0 flex-1">
-                <div className="flex items-baseline gap-2 text-sm">
-                  <span className="font-semibold">
-                    {new Date(r.clock_in_at).toLocaleDateString(undefined, {
-                      month: "short",
-                      day: "numeric",
-                    })}
-                  </span>
-                  <span className="text-muted-foreground">
-                    {new Date(r.clock_in_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
-                    {" → "}
-                    {r.clock_out_at
-                      ? new Date(r.clock_out_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
-                      : "in progress"}
-                  </span>
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-baseline gap-2 text-sm">
+                    <span className="font-semibold">
+                      {new Date(r.clock_in_at).toLocaleDateString(undefined, {
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </span>
+                    <span className="text-muted-foreground">
+                      {new Date(r.clock_in_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+                      {" → "}
+                      {r.clock_out_at
+                        ? new Date(r.clock_out_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
+                        : "in progress"}
+                    </span>
+                  </div>
+                  <div className="mt-0.5 truncate text-xs text-muted-foreground">
+                    {r.placement?.employer?.name ?? "—"} · {r.placement?.role_title ?? "—"}
+                  </div>
                 </div>
-                <div className="mt-0.5 truncate text-xs text-muted-foreground">
-                  {r.placement?.employer?.name ?? "—"} · {r.placement?.role_title ?? "—"}
+                <div className="text-right">
+                  <div className="text-lg font-extrabold tabular-nums">
+                    {r.hours_worked != null ? Number(r.hours_worked).toFixed(2) : "—"}
+                    <span className="ml-1 text-xs font-medium text-muted-foreground">hrs</span>
+                  </div>
+                  <div className="mt-0.5">
+                    {r.approved ? (
+                      <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-green-800 dark:bg-green-900/40 dark:text-green-300">
+                        approved
+                      </span>
+                    ) : r.clock_out_at ? (
+                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
+                        pending
+                      </span>
+                    ) : (
+                      <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">
+                        open
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
-              <div className="text-right">
-                <div className="text-lg font-extrabold tabular-nums">
-                  {r.hours_worked != null ? Number(r.hours_worked).toFixed(2) : "—"}
-                  <span className="ml-1 text-xs font-medium text-muted-foreground">hrs</span>
+
+              {/* Before/after photo uploads */}
+              {r.clock_out_at && (
+                <div className="mt-3 grid gap-2 border-t border-border pt-3 sm:grid-cols-2">
+                  <form
+                    action="/api/worker/jobphoto"
+                    method="post"
+                    encType="multipart/form-data"
+                    className="flex items-center gap-2"
+                  >
+                    <input type="hidden" name="entry_id" value={r.id} />
+                    <input type="hidden" name="kind" value="before" />
+                    <input
+                      type="file"
+                      name="photos"
+                      accept="image/*"
+                      multiple
+                      capture="environment"
+                      className="block flex-1 text-xs file:mr-2 file:rounded-md file:border-0 file:bg-muted file:px-2 file:py-1 file:text-xs"
+                    />
+                    <button
+                      type="submit"
+                      className="h-9 shrink-0 rounded-md border border-border bg-background px-3 text-xs font-bold hover:bg-muted"
+                    >
+                      📷 Antes {beforeCount > 0 && <span className="text-accent">({beforeCount})</span>}
+                    </button>
+                  </form>
+                  <form
+                    action="/api/worker/jobphoto"
+                    method="post"
+                    encType="multipart/form-data"
+                    className="flex items-center gap-2"
+                  >
+                    <input type="hidden" name="entry_id" value={r.id} />
+                    <input type="hidden" name="kind" value="after" />
+                    <input
+                      type="file"
+                      name="photos"
+                      accept="image/*"
+                      multiple
+                      capture="environment"
+                      className="block flex-1 text-xs file:mr-2 file:rounded-md file:border-0 file:bg-muted file:px-2 file:py-1 file:text-xs"
+                    />
+                    <button
+                      type="submit"
+                      className="h-9 shrink-0 rounded-md border border-border bg-background px-3 text-xs font-bold hover:bg-muted"
+                    >
+                      📸 Depois {afterCount > 0 && <span className="text-accent">({afterCount})</span>}
+                    </button>
+                  </form>
                 </div>
-                <div className="mt-0.5">
-                  {r.approved ? (
-                    <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-green-800 dark:bg-green-900/40 dark:text-green-300">
-                      approved
-                    </span>
-                  ) : r.clock_out_at ? (
-                    <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
-                      pending
-                    </span>
-                  ) : (
-                    <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">
-                      open
-                    </span>
-                  )}
-                </div>
-              </div>
+              )}
             </li>
-          ))}
+            );
+          })}
         </ul>
       )}
     </div>
