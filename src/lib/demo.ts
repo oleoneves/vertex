@@ -86,6 +86,8 @@ function makeWorker(n: number, opts: { onboarding?: boolean } = {}): Worker {
     zelle_full_name: null,
     ssn: null,
     w9_document_id: null,
+    travel_available: n % 4 === 0,
+    travel_region: n % 4 === 0 ? "state" : null,
     notes: null,
     created_at: isoDaysAgo(40 + (n % 30)),
     // Rating distribution: ~70% 4.5-5.0, ~20% 3.5-4.5, ~10% under

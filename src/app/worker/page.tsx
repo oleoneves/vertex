@@ -33,7 +33,14 @@ export default async function WorkerDashboard() {
   const supabase = await getSupabaseServer();
 
   const since14d = new Date(Date.now() - 14 * 86400000).toISOString();
-  const [open, placements, week, projectsRes, entries14dRes, upcomingShiftsRes, stats] =
+  // Next-Monday week start (worker's availability page uses Monday)
+  const _nextMon = new Date();
+  _nextMon.setHours(0, 0, 0, 0);
+  const _dow = _nextMon.getDay();
+  _nextMon.setDate(_nextMon.getDate() + (_dow === 0 ? 1 : 8 - _dow));
+  const nextWeekStart = _nextMon.toISOString().slice(0, 10);
+
+  const [open, placements, week, projectsRes, entries14dRes, upcomingShiftsRes, stats, availRes] =
     await Promise.all([
       getOpenTimeEntry(worker.id),
       supabase
@@ -69,6 +76,11 @@ export default async function WorkerDashboard() {
         .order("scheduled_start", { ascending: true })
         .limit(5),
       loadWorkerStats(worker.id),
+      supabase
+        .from("worker_availability")
+        .select("day_of_week, morning, afternoon, evening")
+        .eq("worker_id", worker.id)
+        .eq("week_start", nextWeekStart),
     ]);
 
   const activePlacements =
@@ -146,6 +158,20 @@ export default async function WorkerDashboard() {
   const upcomingShifts = (upcomingShiftsRes.data as unknown as UpcomingShift[]) ?? [];
   const nextShift = upcomingShifts[0] ?? null;
 
+  // Availability summary for next week
+  type AvailRow = {
+    day_of_week: number;
+    morning: boolean;
+    afternoon: boolean;
+    evening: boolean;
+  };
+  const availability = (availRes.data as AvailRow[]) ?? [];
+  const availableSlots = availability.reduce(
+    (s, a) => s + (a.morning ? 1 : 0) + (a.afternoon ? 1 : 0) + (a.evening ? 1 : 0),
+    0,
+  );
+  const DAYS_PT = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+
   const firstName = worker.full_name.split(" ")[0];
   const greeting = greetingKeyFor(new Date());
 
@@ -220,6 +246,52 @@ export default async function WorkerDashboard() {
           </p>
         </div>
       </section>
+
+      {/* Your availability for next week */}
+      <Link
+        href="/worker/availability"
+        className="block rounded-2xl border border-border bg-background p-5 transition hover:border-accent/40"
+      >
+        <div className="flex items-baseline justify-between">
+          <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            <Calendar className="inline h-3 w-3" /> Sua disponibilidade · próxima semana
+          </p>
+          <span className="text-xs text-accent">
+            {availableSlots > 0 ? `${availableSlots} slots marcados` : "Marcar →"}
+          </span>
+        </div>
+        {availableSlots > 0 ? (
+          <ul className="mt-3 grid grid-cols-7 gap-1.5 text-center text-[10px]">
+            {Array.from({ length: 7 }, (_, i) => {
+              const a = availability.find((x) => x.day_of_week === i);
+              const any = a && (a.morning || a.afternoon || a.evening);
+              return (
+                <li
+                  key={i}
+                  className={`rounded-md px-1 py-2 ${
+                    any
+                      ? "bg-green-500/15 text-green-700 dark:text-green-300"
+                      : "bg-muted/40 text-muted-foreground"
+                  }`}
+                >
+                  <div className="font-bold">{DAYS_PT[i]}</div>
+                  {a && (
+                    <div className="mt-0.5 space-x-0.5">
+                      {a.morning && <span>☀</span>}
+                      {a.afternoon && <span>🌤</span>}
+                      {a.evening && <span>🌙</span>}
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          <p className="mt-2 text-xs text-muted-foreground">
+            Marque os dias e turnos que você pode trabalhar pra ser alocado em novos projetos.
+          </p>
+        )}
+      </Link>
 
       {/* Clock in/out CTA — actual form on /worker/clock */}
       <Link

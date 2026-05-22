@@ -26,6 +26,8 @@ async function createWorker(formData: FormData) {
     payment_method: String(formData.get("payment_method") || "check"),
     zelle_full_name: String(formData.get("zelle_full_name") || "").trim() || null,
     ssn: String(formData.get("ssn") || "").trim() || null,
+    travel_available: formData.get("travel_available") === "1",
+    travel_region: String(formData.get("travel_region") || "") || null,
     notes: String(formData.get("notes") || "") || null,
   };
   const { error } = await supabase.from("workers").insert(payload);
@@ -112,6 +114,31 @@ export default async function NewWorkerPage() {
           <p className="mt-2 text-xs text-muted-foreground">
             W-9 upload becomes available after the worker is created.
           </p>
+        </FormSection>
+
+        <FormSection title="Travel availability" description="Used when assigning out-of-town jobs.">
+          <FormGrid>
+            <label className="block">
+              <span className="text-xs font-medium">Available for travel?</span>
+              <div className="mt-1 flex gap-3">
+                <label className="inline-flex items-center gap-1.5">
+                  <input type="checkbox" name="travel_available" value="1" className="h-4 w-4 accent-yellow-400" />
+                  <span className="text-sm">Yes, I can travel</span>
+                </label>
+              </div>
+            </label>
+            <FormSelect
+              label="Max travel region"
+              name="travel_region"
+              options={[
+                { value: "", label: "— select —" },
+                { value: "local", label: "Local only (same city)" },
+                { value: "state", label: "Anywhere in the state" },
+                { value: "national", label: "Anywhere in the US" },
+                { value: "international", label: "International" },
+              ]}
+            />
+          </FormGrid>
         </FormSection>
 
         <FormSection title="Notes">

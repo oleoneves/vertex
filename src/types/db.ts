@@ -62,6 +62,8 @@ export type Worker = {
   zelle_full_name: string | null;
   ssn: string | null;
   w9_document_id: string | null;
+  travel_available: boolean;
+  travel_region: "local" | "state" | "national" | "international" | null;
   notes: string | null;
   created_at: string;
   // Reliability / rating (added 2026-05-13, inspired by Bluecrew/Instawork/Wonolo)

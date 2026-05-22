@@ -7,6 +7,7 @@ import { LocaleProvider } from "@/lib/i18n-client";
 import { getTheme } from "@/lib/theme-server";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { TimezoneDetector } from "@/app/_components/tz-detector";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -61,6 +62,7 @@ export default async function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <LocaleProvider locale={locale}>
+          <TimezoneDetector />
           <SiteHeader theme={theme} />
           <main className="flex-1">{children}</main>
           <SiteFooter />
