@@ -73,9 +73,28 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   const locale = await getLocale();
   const role = await getCurrentAdminRole();
   const showMoney = can(role, "view_financials");
-  const [events, dash] = await Promise.all([
+  const [events, dash, badges] = await Promise.all([
     listRecentEvents(12, locale),
     loadDashboard(),
+    (async () => {
+      const { getSupabaseServer } = await import("@/lib/supabase/server");
+      const sb = await getSupabaseServer();
+      const [inbox, incidents] = await Promise.all([
+        sb
+          .from("time_entries")
+          .select("id", { count: "exact", head: true })
+          .eq("approved", false)
+          .not("clock_out_at", "is", null),
+        sb
+          .from("incident_reports")
+          .select("id", { count: "exact", head: true })
+          .in("status", ["open", "reviewing"]),
+      ]);
+      return {
+        inbox: inbox.count ?? 0,
+        incidents: incidents.count ?? 0,
+      };
+    })(),
   ]);
   const todaySpark = dash.revenueByDay30.slice(-7).map((d) => d.value);
   const todayRevenue = dash.revenueByDay30.at(-1)?.value ?? 0;
@@ -192,8 +211,18 @@ export default async function AdminLayout({ children }: { children: ReactNode })
               </p>
             </div>
           )}
-          <Group label={t(locale, "a.group.recruitment")} items={RECRUIT} locale={locale} />
-          <Group label={t(locale, "a.group.workforce")} items={WORKFORCE} locale={locale} />
+          <Group
+            label={t(locale, "a.group.recruitment")}
+            items={RECRUIT}
+            locale={locale}
+            badges={{ "/admin/inbox": badges.inbox + badges.incidents }}
+          />
+          <Group
+            label={t(locale, "a.group.workforce")}
+            items={WORKFORCE}
+            locale={locale}
+            badges={{ "/admin/incidents": badges.incidents, "/admin/timesheet": badges.inbox }}
+          />
           {showMoney && (
             <Group label={t(locale, "a.group.money")} items={MONEY} locale={locale} />
           )}
@@ -209,26 +238,36 @@ function Group({
   label,
   items,
   locale,
+  badges,
 }: {
   label: string;
   items: NavItem[];
   locale: "en" | "es" | "pt";
+  badges?: Record<string, number>;
 }) {
   return (
     <div className="mb-3">
       <p className="px-3 pb-1 pt-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
         {label}
       </p>
-      {items.map((it) => (
-        <Link
-          key={it.href}
-          href={it.href}
-          className="flex items-center gap-2.5 rounded-md px-3 py-2 text-foreground/85 hover:bg-muted hover:text-foreground"
-        >
-          <it.Icon className="h-4 w-4 text-muted-foreground" />
-          {t(locale, it.labelKey)}
-        </Link>
-      ))}
+      {items.map((it) => {
+        const count = badges?.[it.href] ?? 0;
+        return (
+          <Link
+            key={it.href}
+            href={it.href}
+            className="flex items-center gap-2.5 rounded-md px-3 py-2 text-foreground/85 hover:bg-muted hover:text-foreground"
+          >
+            <it.Icon className="h-4 w-4 text-muted-foreground" />
+            <span className="flex-1">{t(locale, it.labelKey)}</span>
+            {count > 0 && (
+              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white">
+                {count > 99 ? "99+" : count}
+              </span>
+            )}
+          </Link>
+        );
+      })}
     </div>
   );
 }
