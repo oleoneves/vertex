@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Inbox, CheckCircle2, AlertTriangle, FileCheck2, Gift, MessageSquare, Receipt } from "lucide-react";
+import { Inbox, CheckCircle2, AlertTriangle, FileCheck2, Gift, MessageSquare, Receipt, CalendarOff } from "lucide-react";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { PageHeader } from "../_components/page-header";
 
@@ -9,7 +9,7 @@ export default async function InboxPage() {
   const supabase = await getSupabaseServer();
   const now = new Date().toISOString();
 
-  const [pendingHrs, openIncidents, pendingReferrals, draftInvoices, offeredShifts, pendingTimesheetUploads] = await Promise.all([
+  const [pendingHrs, openIncidents, pendingReferrals, draftInvoices, offeredShifts, pendingTimesheetUploads, pendingTimeOff] = await Promise.all([
     supabase
       .from("time_entries")
       .select("id", { count: "exact", head: true })
@@ -37,6 +37,10 @@ export default async function InboxPage() {
       .select("id", { count: "exact", head: true })
       .eq("status", "pending")
       .eq("kind", "timesheet"),
+    supabase
+      .from("time_off_requests")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "pending"),
   ]);
 
   const cards = [
@@ -87,6 +91,14 @@ export default async function InboxPage() {
       icon: <FileCheck2 className="h-5 w-5" />,
       color: "slate",
       cta: "Ver projetos →",
+    },
+    {
+      label: "Pedidos de folga pendentes",
+      count: pendingTimeOff.count ?? 0,
+      href: "/admin/time-off?status=pending",
+      icon: <CalendarOff className="h-5 w-5" />,
+      color: "blue",
+      cta: "Aprovar / recusar →",
     },
   ];
 

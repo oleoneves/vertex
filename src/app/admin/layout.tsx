@@ -80,7 +80,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     (async () => {
       const { getSupabaseServer } = await import("@/lib/supabase/server");
       const sb = await getSupabaseServer();
-      const [inbox, incidents] = await Promise.all([
+      const [inbox, incidents, timeOff] = await Promise.all([
         sb
           .from("time_entries")
           .select("id", { count: "exact", head: true })
@@ -90,10 +90,15 @@ export default async function AdminLayout({ children }: { children: ReactNode })
           .from("incident_reports")
           .select("id", { count: "exact", head: true })
           .in("status", ["open", "reviewing"]),
+        sb
+          .from("time_off_requests")
+          .select("id", { count: "exact", head: true })
+          .eq("status", "pending"),
       ]);
       return {
         inbox: inbox.count ?? 0,
         incidents: incidents.count ?? 0,
+        timeOff: timeOff.count ?? 0,
       };
     })(),
   ]);
@@ -216,13 +221,19 @@ export default async function AdminLayout({ children }: { children: ReactNode })
             label={t(locale, "a.group.recruitment")}
             items={RECRUIT}
             locale={locale}
-            badges={{ "/admin/inbox": badges.inbox + badges.incidents }}
+            badges={{
+              "/admin/inbox": badges.inbox + badges.incidents + badges.timeOff,
+            }}
           />
           <Group
             label={t(locale, "a.group.workforce")}
             items={WORKFORCE}
             locale={locale}
-            badges={{ "/admin/incidents": badges.incidents, "/admin/timesheet": badges.inbox }}
+            badges={{
+              "/admin/incidents": badges.incidents,
+              "/admin/timesheet": badges.inbox,
+              "/admin/time-off": badges.timeOff,
+            }}
           />
           {showMoney && (
             <Group label={t(locale, "a.group.money")} items={MONEY} locale={locale} />
