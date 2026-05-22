@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { t, type TKey } from "@/lib/i18n";
 import { getLocale } from "@/lib/i18n-server";
+import { LogoutButton } from "../admin/_components/logout-button";
 
 const TABS: { href: string; key: TKey }[] = [
   { href: "/worker", key: "w.nav.today" },
@@ -24,6 +25,13 @@ export default async function WorkerLayout({ children }: { children: ReactNode }
   const locale = await getLocale();
   return (
     <div className="mx-auto max-w-3xl px-4 pb-24 pt-4 sm:px-6 sm:pt-6 sm:pb-16">
+      {/* Mobile: tiny top bar so logout is always reachable */}
+      <div className="mb-3 flex items-center justify-between sm:hidden">
+        <span className="text-[10px] font-bold uppercase tracking-[2px] text-muted-foreground">
+          Worker
+        </span>
+        <LogoutButton variant="icon" redirectTo="/worker/login" />
+      </div>
       {/* Desktop: top horizontal scroll nav */}
       <nav
         aria-label="Worker"
@@ -35,6 +43,9 @@ export default async function WorkerLayout({ children }: { children: ReactNode }
             {t(locale, tab.key)}
           </WorkerLink>
         ))}
+        <div className="ml-auto shrink-0 self-center pl-2">
+          <LogoutButton variant="icon" redirectTo="/worker/login" />
+        </div>
       </nav>
       {children}
       {/* Mobile: bottom tab bar (5 most used) */}

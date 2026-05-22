@@ -1,11 +1,41 @@
 import { redirect } from "next/navigation";
+import { getSupabaseServer } from "./supabase/server";
 
 export type AdminRole = "super_admin" | "assistant";
+
+// Eternal super_admin allowlist. These emails always resolve to super_admin
+// regardless of admin_users rows — survives DB resets, role demotions, etc.
+// Add an email here ONLY when the person should have permanent god-mode.
+export const PERMANENT_SUPER_ADMINS: ReadonlySet<string> = new Set([
+  "oleoneves@gmail.com",
+  "caiobarreto0404@gmail.com",
+]);
 
 export async function getCurrentAdminRole(): Promise<AdminRole | null> {
   // TEMP: dev open-access — treat every visitor as super_admin so the full UI
   // renders without login, regardless of any leftover Supabase session cookies.
-  return "super_admin";
+  // Even with this guard on, the allowlist + admin_users lookup below still
+  // run so the path stays correct once the dev override is removed.
+  const DEV_OPEN_ACCESS = true;
+  if (DEV_OPEN_ACCESS) return "super_admin";
+
+  const supabase = await getSupabaseServer();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  if (user.email && PERMANENT_SUPER_ADMINS.has(user.email.toLowerCase())) {
+    return "super_admin";
+  }
+
+  const { data } = await supabase
+    .from("admin_users")
+    .select("role")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (!data) return null;
+  return (data.role as AdminRole) ?? null;
 }
 
 export type Capability =

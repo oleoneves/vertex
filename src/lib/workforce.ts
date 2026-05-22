@@ -221,13 +221,26 @@ export async function getCurrentWorker(): Promise<Worker | null> {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return null;
-  const { data } = await supabase
+
+  if (user) {
+    const { data } = await supabase
+      .from("workers")
+      .select("*")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (data) return data as Worker;
+  }
+
+  // TEMP: dev open-access — no signed-in user (or user not linked to a worker)
+  // → drop them into the first available worker so /worker renders end-to-end
+  // without login. Mirrors the admin + employer dev overrides.
+  const { data: first } = await supabase
     .from("workers")
     .select("*")
-    .eq("user_id", user.id)
+    .order("created_at", { ascending: true })
+    .limit(1)
     .maybeSingle();
-  return (data as Worker) ?? null;
+  return (first as Worker) ?? null;
 }
 
 export async function getOpenTimeEntry(workerId: string): Promise<TimeEntry | null> {

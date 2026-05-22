@@ -27,17 +27,29 @@ export async function getCurrentEmployer(): Promise<EmployerScope | null> {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return null;
 
-  const { data: link } = await supabase
-    .from("employer_users")
-    .select("employer:employers(*)")
-    .eq("user_id", user.id)
+  if (user) {
+    const { data: link } = await supabase
+      .from("employer_users")
+      .select("employer:employers(*)")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    const e = (link as unknown as { employer: Employer | null })?.employer;
+    if (e) return { employer: e, employerId: e.id };
+  }
+
+  // TEMP: dev open-access — no signed-in user (or user not linked to any
+  // employer) → drop them into the first available employer so /employer
+  // renders end-to-end without login. Mirrors the admin dev override.
+  const { data: first } = await supabase
+    .from("employers")
+    .select("*")
+    .order("created_at", { ascending: true })
+    .limit(1)
     .maybeSingle();
-
-  const e = (link as unknown as { employer: Employer | null })?.employer;
-  if (!e) return null;
-  return { employer: e, employerId: e.id };
+  const fallback = first as Employer | null;
+  if (!fallback) return null;
+  return { employer: fallback, employerId: fallback.id };
 }
 
 export type EmployerDashboardData = {

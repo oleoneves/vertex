@@ -5,7 +5,10 @@ import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { getSupabaseBrowser } from "@/lib/supabase/client";
 
-export function LogoutButton({ variant = "row" }: { variant?: "row" | "icon" } = {}) {
+export function LogoutButton({
+  variant = "row",
+  redirectTo = "/admin/login",
+}: { variant?: "row" | "icon"; redirectTo?: string } = {}) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
 
@@ -14,7 +17,7 @@ export function LogoutButton({ variant = "row" }: { variant?: "row" | "icon" } =
     setPending(true);
     const supabase = getSupabaseBrowser();
     await supabase.auth.signOut();
-    router.replace("/admin/login");
+    router.replace(redirectTo);
     router.refresh();
   }
 
