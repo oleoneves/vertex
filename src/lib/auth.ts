@@ -8,7 +8,8 @@ export async function getCurrentAdminRole(): Promise<AdminRole | null> {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return null;
+  // TEMP: open-access mode — no signed-in user → treat as super_admin so full UI renders.
+  if (!user) return "super_admin";
   const { data } = await supabase
     .from("admin_users")
     .select("role")

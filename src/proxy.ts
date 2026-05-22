@@ -1,61 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { createServerClient } from "@supabase/ssr";
 
-const PROTECTED = ["/admin", "/worker", "/employer"];
-const PUBLIC_LOGINS = new Set(["/admin/login", "/worker/login", "/employer/login"]);
-
-export async function proxy(request: NextRequest) {
-  const url = request.nextUrl;
-  const needsAuth = PROTECTED.some(
-    (p) => url.pathname === p || url.pathname.startsWith(p + "/"),
-  );
-  if (!needsAuth) return NextResponse.next();
-  if (PUBLIC_LOGINS.has(url.pathname)) {
-    return NextResponse.next();
-  }
-
-  // Skip gating entirely when Supabase isn't configured (dev convenience).
-  if (
-    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  ) {
-    return NextResponse.next();
-  }
-
-  let response = NextResponse.next();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    {
-      cookies: {
-        getAll: () => request.cookies.getAll(),
-        setAll: (toSet) => {
-          toSet.forEach(({ name, value }) => request.cookies.set(name, value));
-          response = NextResponse.next({ request });
-          toSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options),
-          );
-        },
-      },
-    },
-  );
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    const loginUrl = url.clone();
-    loginUrl.pathname = url.pathname.startsWith("/worker")
-      ? "/worker/login"
-      : url.pathname.startsWith("/employer")
-      ? "/employer/login"
-      : "/admin/login";
-    loginUrl.searchParams.set("next", url.pathname);
-    return NextResponse.redirect(loginUrl);
-  }
-
-  return response;
+// TEMP: open access — auth disabled, every visitor treated as super_admin.
+// Re-enable login by restoring the previous cookie-based check.
+export function proxy(_request: NextRequest) {
+  return NextResponse.next();
 }
 
 export const config = {
