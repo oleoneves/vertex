@@ -717,6 +717,7 @@ export function demoInvoices(): (Invoice & { employer: { name: string; billing_e
       sent_at: isoDaysAgo(21),
       paid_at: isoDaysAgo(5),
       pdf_url: null,
+      project_manager: null,
       notes: null,
       created_at: isoDaysAgo(21),
       employer: { name: "Sunbelt Industrial Group", billing_email: "ap@sunbeltindustrial.example" },
@@ -735,6 +736,7 @@ export function demoInvoices(): (Invoice & { employer: { name: string; billing_e
       sent_at: isoDaysAgo(14),
       paid_at: isoDaysAgo(2),
       pdf_url: null,
+      project_manager: null,
       notes: null,
       created_at: isoDaysAgo(14),
       employer: { name: "Hilton Orlando", billing_email: "ap@hiltonorlando.example" },
@@ -753,6 +755,7 @@ export function demoInvoices(): (Invoice & { employer: { name: string; billing_e
       sent_at: isoDaysAgo(7),
       paid_at: null,
       pdf_url: null,
+      project_manager: null,
       notes: null,
       created_at: isoDaysAgo(7),
       employer: { name: "Sunbelt Industrial Group", billing_email: "ap@sunbeltindustrial.example" },
@@ -771,6 +774,7 @@ export function demoInvoices(): (Invoice & { employer: { name: string; billing_e
       sent_at: null,
       paid_at: null,
       pdf_url: null,
+      project_manager: null,
       notes: null,
       created_at: isoDaysAgo(1),
       employer: { name: "Sunbelt Industrial Group", billing_email: "ap@sunbeltindustrial.example" },
@@ -1227,6 +1231,13 @@ export function demoReports() {
         margin: revenue - pay,
       };
     }),
+    byProjectManager: [
+      { project_manager: "Mark Hollister",  employer: "Sunbelt Industrial Group", invoice_count: 5, revenue: 88200 },
+      { project_manager: "Patricia Reyes",   employer: "Hilton Orlando",           invoice_count: 4, revenue: 38500 },
+      { project_manager: "Daniela Cardoso",  employer: "Restoration Pro USA",      invoice_count: 3, revenue: 31200 },
+      { project_manager: "Marcus Bell",      employer: "ClearWave Facility Services", invoice_count: 3, revenue: 26100 },
+      { project_manager: "Sam Ortiz",        employer: "Westlake Builders",        invoice_count: 2, revenue: 14800 },
+    ],
     totals: total,
   };
 }

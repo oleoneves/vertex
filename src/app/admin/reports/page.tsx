@@ -265,6 +265,40 @@ export default async function ReportsPage({
         )}
       </section>
 
+      {/* Top project managers (by employer) */}
+      {r.byProjectManager.length > 0 && (
+        <section className="rounded-xl border border-border bg-background p-5">
+          <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-muted-foreground">
+            <TrendingUp className="h-4 w-4" /> Top project managers
+          </h2>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Which contact at each contractor drove the most work + revenue in the selected period.
+          </p>
+          <table className="mt-4 w-full text-sm">
+            <thead className="text-left text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              <tr>
+                <th className="pb-2">Project manager</th>
+                <th className="pb-2">Employer</th>
+                <th className="pb-2 text-right">Invoices</th>
+                <th className="pb-2 text-right">Revenue billed</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border/60">
+              {r.byProjectManager.map((p) => (
+                <tr key={`${p.employer}-${p.project_manager}`}>
+                  <td className="py-2 font-medium">{p.project_manager}</td>
+                  <td className="py-2 text-muted-foreground">{p.employer}</td>
+                  <td className="py-2 text-right font-mono tabular-nums">{p.invoice_count}</td>
+                  <td className="py-2 text-right font-mono tabular-nums font-bold text-accent">
+                    {fmtUsd(p.revenue)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      )}
+
       {/* Top workers */}
       <section className="rounded-xl border border-border bg-background p-5">
         <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-muted-foreground">

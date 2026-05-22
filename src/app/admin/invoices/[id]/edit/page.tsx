@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Trash2 } from "lucide-react";
 import { getInvoiceDetail } from "@/lib/workforce";
+import { getSupabaseServer } from "@/lib/supabase/server";
 import {
   updateInvoiceMeta,
   updateInvoiceLine,
@@ -35,6 +36,18 @@ export default async function EditInvoicePage({
   const { id } = await params;
   const inv = await getInvoiceDetail(id);
   if (!inv) notFound();
+
+  // Load employer contacts to populate the PM datalist
+  const supabase = await getSupabaseServer();
+  const { data: contactsRaw } = inv.employer
+    ? await supabase
+        .from("employer_contacts")
+        .select("full_name, position")
+        .eq("employer_id", (inv as { employer_id: string }).employer_id)
+        .order("position", { ascending: true })
+    : { data: null };
+  const contacts =
+    (contactsRaw as { full_name: string; position: string }[] | null) ?? [];
 
   const linesByKind: Record<string, typeof inv.lines> = {
     labor: [],
@@ -106,16 +119,24 @@ export default async function EditInvoicePage({
             />
           </label>
           <label className="block text-sm">
-            <span className="text-xs text-muted-foreground">Tax ($)</span>
+            <span className="text-xs text-muted-foreground">Project manager</span>
             <input
-              name="tax"
-              type="number"
-              step="0.01"
-              defaultValue={inv.tax}
-              className="mt-1 block w-full rounded-md border border-border bg-background px-2.5 py-1.5 font-mono tabular-nums"
+              name="project_manager"
+              list="pm-list"
+              defaultValue={(inv as { project_manager?: string | null }).project_manager ?? ""}
+              placeholder="Name from contractor"
+              className="mt-1 block w-full rounded-md border border-border bg-background px-2.5 py-1.5"
             />
+            <datalist id="pm-list">
+              {contacts.map((c, i) => (
+                <option key={i} value={c.full_name}>
+                  {c.position.replace("_", " ")}
+                </option>
+              ))}
+            </datalist>
           </label>
         </div>
+        <input type="hidden" name="tax" value={inv.tax} />
         <label className="mt-3 block text-sm">
           <span className="text-xs text-muted-foreground">Notes</span>
           <textarea

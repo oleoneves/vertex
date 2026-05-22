@@ -409,12 +409,26 @@ export default async function InvoiceDetailPage({
         )}
       </div>
 
-      {inv.notes && (
-        <div className="rounded-lg border border-border bg-background p-5">
-          <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-            {t(locale, "a.inv.notes")}
-          </p>
-          <p className="mt-2 text-sm whitespace-pre-line">{inv.notes}</p>
+      {(inv.notes || (inv as { project_manager?: string | null }).project_manager) && (
+        <div className="rounded-lg border border-border bg-background p-5 space-y-3">
+          {(inv as { project_manager?: string | null }).project_manager && (
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Project manager
+              </p>
+              <p className="mt-1 text-sm font-medium">
+                {(inv as { project_manager?: string | null }).project_manager}
+              </p>
+            </div>
+          )}
+          {inv.notes && (
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                {t(locale, "a.inv.notes")}
+              </p>
+              <p className="mt-2 text-sm whitespace-pre-line">{inv.notes}</p>
+            </div>
+          )}
         </div>
       )}
     </div>

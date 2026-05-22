@@ -190,6 +190,7 @@ export type Invoice = {
   sent_at: string | null;
   paid_at: string | null;
   pdf_url: string | null;
+  project_manager: string | null;
   notes: string | null;
   created_at: string;
 };

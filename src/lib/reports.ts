@@ -26,10 +26,18 @@ export type ByWorkerRow = {
   margin: number;
 };
 
+export type ByProjectManagerRow = {
+  project_manager: string;
+  employer: string;
+  invoice_count: number;
+  revenue: number;
+};
+
 export type ReportsData = {
   monthly: MonthlyReport[];
   byEmployer: ByEmployerRow[];
   byWorker: ByWorkerRow[];
+  byProjectManager: ByProjectManagerRow[];
   totals: { hours: number; revenue: number; cost: number; margin: number };
 };
 
@@ -38,6 +46,7 @@ function emptyReport(): ReportsData {
     monthly: [],
     byEmployer: [],
     byWorker: [],
+    byProjectManager: [],
     totals: { hours: 0, revenue: 0, cost: 0, margin: 0 },
   };
 }
@@ -138,10 +147,39 @@ export async function loadReports(opts: { months?: number } = {}): Promise<Repor
     { hours: 0, revenue: 0, cost: 0, margin: 0 },
   );
 
+  // Project managers (from invoices in the same window, status != void)
+  type InvRow = {
+    project_manager: string | null;
+    total: number | string;
+    employer: { name: string } | null;
+  };
+  const { data: invsRaw } = await supabase
+    .from("invoices")
+    .select("project_manager, total, employer:employers(name)")
+    .neq("status", "void")
+    .gte("period_start", since.toISOString().slice(0, 10))
+    .limit(5000);
+  const pmMap = new Map<string, ByProjectManagerRow>();
+  for (const inv of ((invsRaw as unknown as InvRow[]) ?? [])) {
+    if (!inv.project_manager) continue;
+    const employer = inv.employer?.name ?? "—";
+    const key = `${employer}|${inv.project_manager}`;
+    const row = pmMap.get(key) ?? {
+      project_manager: inv.project_manager,
+      employer,
+      invoice_count: 0,
+      revenue: 0,
+    };
+    row.invoice_count += 1;
+    row.revenue += Number(inv.total ?? 0);
+    pmMap.set(key, row);
+  }
+
   return {
     monthly: Array.from(monthMap.values()),
     byEmployer: Array.from(empMap.values()).sort((a, b) => b.revenue - a.revenue),
     byWorker: Array.from(wkMap.values()).sort((a, b) => b.hours - a.hours).slice(0, 25),
+    byProjectManager: Array.from(pmMap.values()).sort((a, b) => b.revenue - a.revenue),
     totals,
   };
 }

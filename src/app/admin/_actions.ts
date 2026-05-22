@@ -390,6 +390,7 @@ export async function updateInvoiceMeta(formData: FormData) {
     period_end: String(formData.get("period_end") || ""),
     due_date: String(formData.get("due_date") || "") || null,
     tax: Number(formData.get("tax")) || 0,
+    project_manager: String(formData.get("project_manager") || "").trim() || null,
     notes: String(formData.get("notes") || "") || null,
   };
   if (!payload.period_start || !payload.period_end) {
