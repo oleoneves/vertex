@@ -5,6 +5,7 @@ import { getProjectDetail } from "@/lib/projects";
 import { listProjectTimesheets } from "@/lib/timesheets";
 import { getCurrentAdminRole, can } from "@/lib/auth";
 import { TimesheetUploader } from "./timesheet-uploader";
+import { updateProjectEstimate, addManualTimeEntry } from "../../_actions";
 import { PageHeader } from "../../_components/page-header";
 import { StatusPill } from "../../_components/data-table";
 import { fmtUsd, fmtNum, fmtHours } from "@/lib/format";
@@ -40,7 +41,7 @@ export default async function ProjectDashboard({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const data = raw as any;
   const { project, placements, activeWorkers, totalWorkers, totals, days, roleRows, recentEntries } = data as {
-    project: { name: string; budget_hours: number | null; budget_amount: number | null; status: string; employer: { name: string } | null; location: string | null; start_date: string | null; end_date: string | null };
+    project: { id: string; name: string; budget_hours: number | null; budget_amount: number | null; status: string; employer: { name: string } | null; location: string | null; start_date: string | null; end_date: string | null; estimate_people: number | null; estimate_hours_per_day: number | null; estimate_travel_hours_per_person: number | null };
     placements: Array<{ id: string; worker_id: string; status: string; role_title: string; worker: { full_name: string } | null }>;
     activeWorkers: number;
     totalWorkers: number;
@@ -148,6 +149,148 @@ export default async function ProjectDashboard({
             unit="hrs"
             subValue="awaiting approval"
           />
+        )}
+      </section>
+
+      {/* Estimate inputs — editable */}
+      <section className="mt-6 rounded-xl border border-border bg-background p-5">
+        <div className="mb-3 flex items-baseline justify-between">
+          <h2 className="text-sm font-bold uppercase tracking-wider">
+            Estimate inputs
+          </h2>
+          <span className="text-xs text-muted-foreground">
+            People × hours/day × days = approved hours. Adjust here as the work changes.
+          </span>
+        </div>
+        <form action={updateProjectEstimate} className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          <input type="hidden" name="id" value={project.id} />
+          <label className="block text-xs">
+            <span className="text-muted-foreground">People</span>
+            <input
+              type="number"
+              name="estimate_people"
+              defaultValue={project.estimate_people ?? ""}
+              className="mt-1 block w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm font-mono tabular-nums"
+            />
+          </label>
+          <label className="block text-xs">
+            <span className="text-muted-foreground">Hours / day</span>
+            <input
+              type="number"
+              step="0.25"
+              name="estimate_hours_per_day"
+              defaultValue={project.estimate_hours_per_day ?? ""}
+              className="mt-1 block w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm font-mono tabular-nums"
+            />
+          </label>
+          <label className="block text-xs">
+            <span className="text-muted-foreground">Travel hrs / person</span>
+            <input
+              type="number"
+              step="0.25"
+              name="estimate_travel_hours_per_person"
+              defaultValue={project.estimate_travel_hours_per_person ?? ""}
+              className="mt-1 block w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm font-mono tabular-nums"
+            />
+          </label>
+          <label className="block text-xs">
+            <span className="text-muted-foreground">Approved hours</span>
+            <input
+              type="number"
+              name="budget_hours"
+              defaultValue={project.budget_hours ?? ""}
+              className="mt-1 block w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm font-mono tabular-nums"
+            />
+          </label>
+          <label className="block text-xs">
+            <span className="text-muted-foreground">Start</span>
+            <input
+              type="date"
+              name="start_date"
+              defaultValue={project.start_date ?? ""}
+              className="mt-1 block w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm"
+            />
+          </label>
+          <label className="block text-xs">
+            <span className="text-muted-foreground">End</span>
+            <input
+              type="date"
+              name="end_date"
+              defaultValue={project.end_date ?? ""}
+              className="mt-1 block w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm"
+            />
+          </label>
+          <div className="sm:col-span-3 lg:col-span-6">
+            <button
+              type="submit"
+              className="rounded-md bg-accent px-3 py-1.5 text-sm font-bold text-accent-foreground hover:opacity-90"
+            >
+              Save estimate
+            </button>
+          </div>
+        </form>
+      </section>
+
+      {/* Manual hours entry (for offline projects without clock-in/out) */}
+      <section className="mt-6 rounded-xl border border-border bg-background p-5">
+        <div className="mb-3 flex items-baseline justify-between">
+          <h2 className="text-sm font-bold uppercase tracking-wider">
+            Add hours manually
+          </h2>
+          <span className="text-xs text-muted-foreground">
+            For offline projects without clock-in/out. Entry is auto-approved.
+          </span>
+        </div>
+        {placements.filter((p) => p.status === "active").length === 0 ? (
+          <p className="text-xs text-muted-foreground">
+            No active placements yet — assign workers first.
+          </p>
+        ) : (
+          <form
+            action={addManualTimeEntry}
+            className="grid gap-2 sm:grid-cols-4"
+          >
+            <input type="hidden" name="project_id" value={project.id} />
+            <select
+              required
+              name="placement_id"
+              className="rounded-md border border-border bg-background px-2 py-1.5 text-sm"
+              defaultValue=""
+            >
+              <option value="" disabled>
+                Pick worker…
+              </option>
+              {placements
+                .filter((p) => p.status === "active")
+                .map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.worker?.full_name ?? "(no name)"} · {p.role_title}
+                  </option>
+                ))}
+            </select>
+            <input
+              required
+              type="date"
+              name="date"
+              defaultValue={new Date().toISOString().slice(0, 10)}
+              className="rounded-md border border-border bg-background px-2 py-1.5 text-sm"
+            />
+            <input
+              required
+              type="number"
+              step="0.25"
+              min="0.25"
+              name="hours"
+              placeholder="Hours worked"
+              className="rounded-md border border-border bg-background px-2 py-1.5 text-sm font-mono tabular-nums"
+            />
+            <button
+              type="submit"
+              className="rounded-md bg-accent px-3 py-1.5 text-sm font-bold text-accent-foreground hover:opacity-90"
+            >
+              Log hours
+            </button>
+          </form>
         )}
       </section>
 

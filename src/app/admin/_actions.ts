@@ -494,3 +494,55 @@ async function recomputeInvoiceTotal(invoiceId: string) {
     })
     .eq("id", invoiceId);
 }
+
+// ============ Projects ============
+
+export async function updateProjectEstimate(formData: FormData) {
+  const id = String(formData.get("id"));
+  const supabase = await getSupabaseServer();
+  const payload = {
+    estimate_people: Number(formData.get("estimate_people")) || null,
+    estimate_hours_per_day: Number(formData.get("estimate_hours_per_day")) || null,
+    estimate_travel_hours_per_person:
+      Number(formData.get("estimate_travel_hours_per_person")) || null,
+    budget_hours: Number(formData.get("budget_hours")) || null,
+    start_date: String(formData.get("start_date") || "") || null,
+    end_date: String(formData.get("end_date") || "") || null,
+  };
+  const { error } = await supabase.from("projects").update(payload).eq("id", id);
+  if (error) throw new Error(error.message);
+  revalidatePath(`/admin/projects/${id}`);
+}
+
+export async function addManualTimeEntry(formData: FormData) {
+  const placement_id = String(formData.get("placement_id"));
+  const project_id = String(formData.get("project_id") || "");
+  const date = String(formData.get("date") || "");
+  const hours = Number(formData.get("hours")) || 0;
+  if (!placement_id || !date || hours <= 0) {
+    throw new Error("Placement, date and hours are required");
+  }
+  const supabase = await getSupabaseServer();
+  const { data: p, error: pErr } = await supabase
+    .from("placements")
+    .select("worker_id, pay_rate, bill_rate")
+    .eq("id", placement_id)
+    .single();
+  if (pErr || !p) throw new Error("Placement not found");
+  const clockIn = new Date(`${date}T08:00:00`);
+  const clockOut = new Date(clockIn.getTime() + hours * 3600 * 1000);
+  const { error } = await supabase.from("time_entries").insert({
+    placement_id,
+    worker_id: p.worker_id,
+    clock_in_at: clockIn.toISOString(),
+    clock_out_at: clockOut.toISOString(),
+    pay_rate_at_entry: p.pay_rate,
+    bill_rate_at_entry: p.bill_rate,
+    approved: true,
+    approved_at: new Date().toISOString(),
+    notes: "Manual entry — offline project",
+  });
+  if (error) throw new Error(error.message);
+  if (project_id) revalidatePath(`/admin/projects/${project_id}`);
+  revalidatePath("/admin/timesheet");
+}
