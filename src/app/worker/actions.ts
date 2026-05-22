@@ -18,6 +18,17 @@ export async function clockIn(formData: FormData) {
   if (open) throw new Error("You already have an open clock-in. Clock out first.");
 
   const supabase = await getSupabaseServer();
+
+  // Block clock-in until both PPE + terms are signed
+  const { data: sigs } = await supabase
+    .from("worker_signatures")
+    .select("document")
+    .eq("worker_id", worker.id);
+  const docsSigned = new Set(((sigs as { document: string }[]) ?? []).map((s) => s.document));
+  if (!docsSigned.has("ppe") || !docsSigned.has("terms")) {
+    throw new Error("Assine o Termo de EPI e os Termos de uso em /worker/sign antes de fazer clock-in.");
+  }
+
   const { data: placement } = await supabase
     .from("placements")
     .select(
@@ -212,4 +223,26 @@ export async function setAvailability(formData: FormData) {
       );
   }
   revalidatePath("/worker/availability");
+}
+
+// ============ E-signatures ============
+export async function signDocument(formData: FormData) {
+  const worker = await getCurrentWorker();
+  if (!worker) redirect("/worker/login");
+  const document = String(formData.get("document") || "");
+  if (!["ppe", "terms"].includes(document)) throw new Error("Documento inválido");
+  if (formData.get("agreed") !== "1") throw new Error("Você precisa marcar que leu e aceitou");
+  const supabase = await getSupabaseServer();
+  await supabase
+    .from("worker_signatures")
+    .upsert(
+      {
+        worker_id: worker.id,
+        document,
+        version: "v1",
+      },
+      { onConflict: "worker_id,document,version" },
+    );
+  revalidatePath("/worker/sign");
+  revalidatePath("/worker");
 }

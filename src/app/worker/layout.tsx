@@ -13,6 +13,7 @@ const TABS: { href: string; key: TKey }[] = [
   { href: "/worker/rate", key: "w.nav.rate" },
   { href: "/worker/report", key: "w.nav.report" },
   { href: "/worker/refer", key: "w.nav.refer" },
+  { href: "/worker/sign", key: "w.nav.sign" },
   { href: "/worker/documents", key: "w.nav.docs" },
   { href: "/worker/profile", key: "w.nav.profile" },
 ];

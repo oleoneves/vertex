@@ -27,15 +27,20 @@
     {
       "name": "Clock in / out",
       "short_name": "Clock",
+      "url": "/worker/clock"
+    },
+    {
+      "name": "Hoje",
       "url": "/worker"
     },
     {
-      "name": "My shifts",
-      "url": "/worker/shifts"
+      "name": "Reportar incidente",
+      "short_name": "Reportar",
+      "url": "/worker/report"
     },
     {
-      "name": "Browse jobs",
-      "url": "/jobs"
+      "name": "Disponibilidade",
+      "url": "/worker/availability"
     }
   ]
 }
