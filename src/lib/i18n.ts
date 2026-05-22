@@ -149,9 +149,14 @@ const dict = {
 
   // Worker portal
   "w.nav.today":    { en: "Today",    es: "Hoy",       pt: "Hoje" },
+  "w.nav.clock":    { en: "Clock",    es: "Reloj",     pt: "Ponto" },
+  "w.nav.availability": { en: "Availability", es: "Disponibilidad", pt: "Disponibilidade" },
   "w.nav.shifts":   { en: "Shifts",   es: "Turnos",    pt: "Turnos" },
   "w.nav.hours":    { en: "Hours",    es: "Horas",     pt: "Horas" },
   "w.nav.pay":      { en: "Pay",      es: "Pago",      pt: "Pagamento" },
+  "w.nav.report":   { en: "Report",   es: "Reportar",  pt: "Reportar" },
+  "w.nav.refer":    { en: "Refer",    es: "Indicar",   pt: "Indicar" },
+  "w.nav.rate":     { en: "Rate",     es: "Calificar", pt: "Avaliar" },
   "w.nav.docs":     { en: "Docs",     es: "Documentos", pt: "Documentos" },
   "w.nav.profile":  { en: "Profile",  es: "Perfil",    pt: "Perfil" },
 

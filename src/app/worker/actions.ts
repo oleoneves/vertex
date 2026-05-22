@@ -143,3 +143,73 @@ export async function declineShift(formData: FormData) {
   revalidatePath("/worker/shifts");
   revalidatePath("/worker");
 }
+
+// ============ Referrals ============
+export async function addReferral(formData: FormData) {
+  const worker = await getCurrentWorker();
+  if (!worker) redirect("/worker/login");
+  const supabase = await getSupabaseServer();
+  const name = String(formData.get("referred_name") || "").trim();
+  if (!name) throw new Error("Nome é obrigatório");
+  await supabase.from("worker_referrals").insert({
+    referrer_worker_id: worker.id,
+    referred_name: name,
+    referred_email: String(formData.get("referred_email") || "").trim() || null,
+    referred_phone: String(formData.get("referred_phone") || "").trim() || null,
+    notes: String(formData.get("notes") || "").trim() || null,
+  });
+  revalidatePath("/worker/refer");
+}
+
+// ============ Rating ============
+export async function addRating(formData: FormData) {
+  const worker = await getCurrentWorker();
+  if (!worker) redirect("/worker/login");
+  const kind = String(formData.get("target_kind") || "job");
+  if (!["job", "supervisor", "peer", "project"].includes(kind)) {
+    throw new Error("Tipo de avaliação inválido");
+  }
+  const stars = Number(formData.get("stars"));
+  if (!Number.isFinite(stars) || stars < 1 || stars > 5) {
+    throw new Error("Estrelas entre 1 e 5");
+  }
+  const supabase = await getSupabaseServer();
+  await supabase.from("worker_ratings_given").insert({
+    rater_worker_id: worker.id,
+    target_kind: kind,
+    project_id: String(formData.get("project_id") || "") || null,
+    target_worker_id: String(formData.get("target_worker_id") || "") || null,
+    target_name: String(formData.get("target_name") || "").trim() || null,
+    stars,
+    comment: String(formData.get("comment") || "").trim() || null,
+  });
+  revalidatePath("/worker/rate");
+}
+
+// ============ Availability ============
+export async function setAvailability(formData: FormData) {
+  const worker = await getCurrentWorker();
+  if (!worker) redirect("/worker/login");
+  const supabase = await getSupabaseServer();
+  const weekStart = String(formData.get("week_start") || "");
+  if (!weekStart) throw new Error("Semana obrigatória");
+  for (let dow = 0; dow < 7; dow++) {
+    const morning = formData.get(`d${dow}_morning`) === "on";
+    const afternoon = formData.get(`d${dow}_afternoon`) === "on";
+    const evening = formData.get(`d${dow}_evening`) === "on";
+    await supabase
+      .from("worker_availability")
+      .upsert(
+        {
+          worker_id: worker.id,
+          week_start: weekStart,
+          day_of_week: dow,
+          morning,
+          afternoon,
+          evening,
+        },
+        { onConflict: "worker_id,week_start,day_of_week" },
+      );
+  }
+  revalidatePath("/worker/availability");
+}

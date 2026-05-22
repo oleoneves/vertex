@@ -221,12 +221,27 @@ export default async function WorkerDashboard() {
         </div>
       </section>
 
-      {/* Clock in/out panel */}
-      {open ? (
-        <ClockedInPanel open={open} locale={locale} />
-      ) : (
-        <ClockInPanel placements={activePlacements} locale={locale} />
-      )}
+      {/* Clock in/out CTA — actual form on /worker/clock */}
+      <Link
+        href="/worker/clock"
+        className={`block rounded-2xl border-2 p-6 text-center transition hover:opacity-95 ${
+          open
+            ? "border-green-500/50 bg-green-500/10"
+            : "border-accent/50 bg-accent/10"
+        }`}
+      >
+        <p className="text-xs font-bold uppercase tracking-wider opacity-70">
+          {open ? "Você está clocado" : "Pronto para começar"}
+        </p>
+        <p className="mt-1 text-2xl font-extrabold">
+          {open ? "⏱  Ir para Clock Out" : "▶  Ir para Clock In"}
+        </p>
+        <p className="mt-1 text-xs opacity-70">
+          {open
+            ? `Desde ${new Date(open.clock_in_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`
+            : `${activePlacements.length} ${activePlacements.length === 1 ? "alocação ativa" : "alocações ativas"}`}
+        </p>
+      </Link>
 
       {/* Next shift card */}
       {nextShift && (

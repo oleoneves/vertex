@@ -5,9 +5,14 @@ import { getLocale } from "@/lib/i18n-server";
 
 const TABS: { href: string; key: TKey }[] = [
   { href: "/worker", key: "w.nav.today" },
+  { href: "/worker/clock", key: "w.nav.clock" },
+  { href: "/worker/availability", key: "w.nav.availability" },
   { href: "/worker/shifts", key: "w.nav.shifts" },
   { href: "/worker/hours", key: "w.nav.hours" },
   { href: "/worker/paystubs", key: "w.nav.pay" },
+  { href: "/worker/rate", key: "w.nav.rate" },
+  { href: "/worker/report", key: "w.nav.report" },
+  { href: "/worker/refer", key: "w.nav.refer" },
   { href: "/worker/documents", key: "w.nav.docs" },
   { href: "/worker/profile", key: "w.nav.profile" },
 ];
