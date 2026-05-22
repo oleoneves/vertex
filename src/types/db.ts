@@ -59,6 +59,9 @@ export type Worker = {
   pay_type: "hourly" | "salary";
   default_pay_rate: number | null;
   payment_method: "check" | "ach" | "zelle" | "cashapp";
+  zelle_full_name: string | null;
+  ssn: string | null;
+  w9_document_id: string | null;
   notes: string | null;
   created_at: string;
   // Reliability / rating (added 2026-05-13, inspired by Bluecrew/Instawork/Wonolo)

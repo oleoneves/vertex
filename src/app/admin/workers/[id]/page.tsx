@@ -226,6 +226,12 @@ export default async function WorkerDetail({
                     { value: "cashapp", label: "CashApp" },
                   ]}
                 />
+                <FormField
+                  label="Zelle full name"
+                  name="zelle_full_name"
+                  defaultValue={worker.zelle_full_name ?? ""}
+                  hint="Name on Zelle if different from full name."
+                />
               </FormGrid>
               <FormTextarea
                 label="Notes"
@@ -233,6 +239,17 @@ export default async function WorkerDetail({
                 rows={3}
                 defaultValue={worker.notes ?? ""}
               />
+            </FormSection>
+            <FormSection title="Tax & compliance" description="Sensitive — admin access only.">
+              <FormGrid>
+                <FormField
+                  label="Social Security Number"
+                  name="ssn"
+                  placeholder="XXX-XX-XXXX"
+                  defaultValue={worker.ssn ?? ""}
+                  hint="Used on W-2 / 1099 generation."
+                />
+              </FormGrid>
             </FormSection>
             <FormActions submitLabel="Save changes" cancelHref="/admin/workers" />
           </form>

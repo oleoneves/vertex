@@ -22,6 +22,8 @@ async function createWorker(formData: FormData) {
     pay_type: String(formData.get("pay_type") || "hourly"),
     default_pay_rate: Number(formData.get("default_pay_rate")) || null,
     payment_method: String(formData.get("payment_method") || "check"),
+    zelle_full_name: String(formData.get("zelle_full_name") || "").trim() || null,
+    ssn: String(formData.get("ssn") || "").trim() || null,
     notes: String(formData.get("notes") || "") || null,
   };
   const { error } = await supabase.from("workers").insert(payload);
@@ -87,7 +89,26 @@ export default function NewWorkerPage() {
                 { value: "cashapp", label: "CashApp" },
               ]}
             />
+            <FormField
+              label="Zelle full name"
+              name="zelle_full_name"
+              hint="Name registered on Zelle if it differs from full name above."
+            />
           </FormGrid>
+        </FormSection>
+
+        <FormSection title="Tax & compliance" description="Sensitive — admin access only.">
+          <FormGrid>
+            <FormField
+              label="Social Security Number"
+              name="ssn"
+              placeholder="XXX-XX-XXXX"
+              hint="Stored encrypted at rest by Supabase. Used on W-2 / 1099 generation."
+            />
+          </FormGrid>
+          <p className="mt-2 text-xs text-muted-foreground">
+            W-9 upload becomes available after the worker is created.
+          </p>
         </FormSection>
 
         <FormSection title="Notes">

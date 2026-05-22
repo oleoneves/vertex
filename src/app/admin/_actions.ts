@@ -131,6 +131,8 @@ export async function updateWorker(formData: FormData) {
     status: String(formData.get("status") || "active"),
     default_pay_rate: Number(formData.get("default_pay_rate")) || null,
     payment_method: String(formData.get("payment_method") || "check"),
+    zelle_full_name: String(formData.get("zelle_full_name") || "").trim() || null,
+    ssn: String(formData.get("ssn") || "").trim() || null,
     notes: String(formData.get("notes") || "") || null,
   };
   const { error } = await supabase.from("workers").update(payload).eq("id", id);

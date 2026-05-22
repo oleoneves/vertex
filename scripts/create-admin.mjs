@@ -21,6 +21,11 @@ const url = env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceKey = env.SUPABASE_SERVICE_ROLE_KEY;
 const email = process.env.ADMIN_EMAIL;
 const password = process.env.ADMIN_PASSWORD;
+const role = process.env.ADMIN_ROLE || "super_admin";
+if (!["super_admin", "assistant"].includes(role)) {
+  console.error(`Invalid ADMIN_ROLE "${role}". Must be super_admin or assistant.`);
+  process.exit(1);
+}
 
 if (!url || !serviceKey) {
   console.error("Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in .env.local");
@@ -62,10 +67,10 @@ if (createErr) {
 if (!userId) throw new Error("no userId after create/lookup");
 console.log(`  user_id: ${userId}`);
 
-console.log("Granting admin role ...");
+console.log(`Granting role: ${role} ...`);
 const { error: upsertErr } = await supabase
   .from("admin_users")
-  .upsert({ user_id: userId, role: "admin" }, { onConflict: "user_id" });
+  .upsert({ user_id: userId, role }, { onConflict: "user_id" });
 if (upsertErr) throw new Error(`admin_users upsert: ${upsertErr.message}`);
 
-console.log("Done. Sign in at /admin/login with this email + password.");
+console.log(`Done. Sign in at /admin/login as ${email} (role: ${role}).`);

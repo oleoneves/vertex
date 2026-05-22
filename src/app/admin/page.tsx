@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowUp, ArrowDown, Minus } from "lucide-react";
 import { loadDashboard } from "@/lib/dashboard";
+import { getCurrentAdminRole, can } from "@/lib/auth";
 import { fmtUsd, fmtNum, fmtHours, fmtPct } from "@/lib/format";
 import { t } from "@/lib/i18n";
 import { getLocale } from "@/lib/i18n-server";
@@ -18,7 +19,12 @@ import {
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboard() {
-  const [d, locale] = await Promise.all([loadDashboard(), getLocale()]);
+  const [d, locale, role] = await Promise.all([
+    loadDashboard(),
+    getLocale(),
+    getCurrentAdminRole(),
+  ]);
+  const showMoney = can(role, "view_financials");
 
   // Derive sparkline series from the new time-series
   const revenueSpark = d.revenueByDay30.map((p) => p.value);
@@ -81,6 +87,7 @@ export default async function AdminDashboard() {
       </section>
 
       {/* Money row with sparklines */}
+      {showMoney && (
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <KpiSpark
           label={t(locale, "a.dash.revenue_mtd")}
@@ -117,6 +124,7 @@ export default async function AdminDashboard() {
           link="/admin/applications"
         />
       </section>
+      )}
 
       {/* Ops row */}
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -194,7 +202,7 @@ export default async function AdminDashboard() {
       )}
 
       {/* Revenue trend (actual + forecast) */}
-      {d.revenueByDay30.length > 0 && (
+      {showMoney && d.revenueByDay30.length > 0 && (
         <section className="rounded-xl border border-border bg-background p-5">
           <div className="flex items-baseline justify-between">
             <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">

@@ -101,6 +101,9 @@ function makeWorker(n: number, opts: { onboarding?: boolean } = {}): Worker {
     pay_type: "hourly",
     default_pay_rate: 15,
     payment_method: n % 3 === 0 ? "check" : "ach",
+    zelle_full_name: null,
+    ssn: null,
+    w9_document_id: null,
     notes: null,
     created_at: isoDaysAgo(40 + (n % 30)),
     // Rating distribution: ~70% 4.5-5.0, ~20% 3.5-4.5, ~10% under

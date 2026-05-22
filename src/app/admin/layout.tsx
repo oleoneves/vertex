@@ -22,6 +22,7 @@ import { NotificationsBell } from "./_components/notifications-bell";
 import { listRecentEvents } from "@/lib/activity";
 import { loadDashboard } from "@/lib/dashboard";
 import { fmtUsd } from "@/lib/format";
+import { getCurrentAdminRole, can } from "@/lib/auth";
 import { Sparkline, CHART_COLORS } from "../_components/charts";
 import { t, type TKey } from "@/lib/i18n";
 import { getLocale } from "@/lib/i18n-server";
@@ -57,6 +58,7 @@ const MONEY: NavItem[] = [
 ];
 
 const ALL_ITEMS: NavItem[] = [...RECRUIT, ...WORKFORCE, ...MONEY];
+const ALL_ITEMS_NO_MONEY: NavItem[] = [...RECRUIT, ...WORKFORCE];
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {
   const demoMode =
@@ -64,6 +66,8 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   const locale = await getLocale();
+  const role = await getCurrentAdminRole();
+  const showMoney = can(role, "view_financials");
   const [events, dash] = await Promise.all([
     listRecentEvents(12, locale),
     loadDashboard(),
@@ -105,7 +109,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
         className="-mx-4 mb-4 flex gap-1.5 overflow-x-auto px-4 pb-2 sm:-mx-6 sm:px-6 lg:hidden"
         style={{ scrollbarWidth: "none" }}
       >
-        {ALL_ITEMS.map((it) => (
+        {(showMoney ? ALL_ITEMS : ALL_ITEMS_NO_MONEY).map((it) => (
           <Link
             key={it.href}
             href={it.href}
@@ -185,7 +189,9 @@ export default async function AdminLayout({ children }: { children: ReactNode })
           )}
           <Group label={t(locale, "a.group.recruitment")} items={RECRUIT} locale={locale} />
           <Group label={t(locale, "a.group.workforce")} items={WORKFORCE} locale={locale} />
-          <Group label={t(locale, "a.group.money")} items={MONEY} locale={locale} />
+          {showMoney && (
+            <Group label={t(locale, "a.group.money")} items={MONEY} locale={locale} />
+          )}
         </nav>
       </aside>
 
