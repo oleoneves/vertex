@@ -36,6 +36,7 @@ type NavItem = {
 
 const RECRUIT: NavItem[] = [
   { href: "/admin", labelKey: "a.nav.dashboard", Icon: LayoutDashboard },
+  { href: "/admin/inbox", labelKey: "a.nav.inbox", Icon: FileText },
   { href: "/admin/live", labelKey: "a.nav.live", Icon: Radio },
   { href: "/admin/applications", labelKey: "a.nav.applications", Icon: FileText },
   { href: "/admin/jobs", labelKey: "a.nav.jobs", Icon: Briefcase },
