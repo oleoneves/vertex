@@ -72,6 +72,7 @@ export async function loadReports(opts: { months?: number } = {}): Promise<Repor
     )
     .eq("approved", true)
     .gte("clock_in_at", since.toISOString())
+    .order("clock_in_at", { ascending: false })
     .limit(10000);
 
   type Row = {
@@ -161,6 +162,7 @@ export async function loadReports(opts: { months?: number } = {}): Promise<Repor
     .select("project_manager, total, employer:employers(name)")
     .neq("status", "void")
     .gte("period_start", since.toISOString().slice(0, 10))
+    .order("period_start", { ascending: false })
     .limit(5000);
   const pmMap = new Map<string, ByProjectManagerRow>();
   for (const inv of ((invsRaw as unknown as InvRow[]) ?? [])) {

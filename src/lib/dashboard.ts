@@ -256,6 +256,7 @@ export async function loadDashboard(): Promise<DashboardData> {
       .from("time_entries")
       .select("hours_worked, clock_in_at, pay_rate_at_entry, bill_rate_at_entry")
       .gte("clock_in_at", since30dStart)
+      .order("clock_in_at", { ascending: false })
       .limit(50000),
     supabase
       .from("time_entries")
@@ -317,17 +318,20 @@ export async function loadDashboard(): Promise<DashboardData> {
       .select("total, paid_at")
       .eq("status", "paid")
       .gte("paid_at", since30dStart)
+      .order("paid_at", { ascending: false })
       .limit(5000),
     supabase
       .from("invoices")
       .select("total, paid_at")
       .eq("status", "paid")
       .gte("paid_at", since6moStart)
+      .order("paid_at", { ascending: false })
       .limit(20000),
     supabase
       .from("applications")
       .select("created_at")
       .gte("created_at", since14dStart)
+      .order("created_at", { ascending: false })
       .limit(5000),
     supabase
       .from("invoices")
@@ -340,6 +344,7 @@ export async function loadDashboard(): Promise<DashboardData> {
       .select("hours_worked, pay_rate_at_entry, bill_rate_at_entry")
       .gte("clock_in_at", prevWeekStart)
       .lt("clock_in_at", weekStart)
+      .order("clock_in_at", { ascending: false })
       .limit(20000),
   ]);
 
