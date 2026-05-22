@@ -16,6 +16,7 @@ const TABS: { href: string; key: TKey }[] = [
   { href: "/worker/sign", key: "w.nav.sign" },
   { href: "/worker/documents", key: "w.nav.docs" },
   { href: "/worker/profile", key: "w.nav.profile" },
+  { href: "/worker/help", key: "w.nav.help" },
 ];
 
 export default async function WorkerLayout({ children }: { children: ReactNode }) {

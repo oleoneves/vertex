@@ -158,6 +158,7 @@ const dict = {
   "w.nav.refer":    { en: "Refer",    es: "Indicar",   pt: "Indicar" },
   "w.nav.rate":     { en: "Rate",     es: "Calificar", pt: "Avaliar" },
   "w.nav.sign":     { en: "Sign",     es: "Firmar",    pt: "Assinar" },
+  "w.nav.help":     { en: "Help",     es: "Ayuda",     pt: "Ajuda" },
   "w.nav.docs":     { en: "Docs",     es: "Documentos", pt: "Documentos" },
   "w.nav.profile":  { en: "Profile",  es: "Perfil",    pt: "Perfil" },
 
