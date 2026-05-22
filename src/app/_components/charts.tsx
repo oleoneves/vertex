@@ -517,14 +517,21 @@ export function BarChart({
     value: t * max,
   }));
 
+  const tipId = `bar-tip-${Math.random().toString(36).slice(2, 8)}`;
+
   return (
     <svg
       viewBox={`0 0 ${width} ${height}`}
       width="100%"
       preserveAspectRatio="none"
-      style={{ maxHeight: height }}
+      style={{ maxHeight: height, display: "block", overflow: "visible" }}
       role="img"
     >
+      <style>{`
+        .${tipId} { opacity: 0; transition: opacity .12s; pointer-events: none; }
+        .${tipId}-grp:hover .${tipId} { opacity: 1; }
+        .${tipId}-grp:hover .${tipId}-bar { filter: brightness(1.15); }
+      `}</style>
       {/* Grid */}
       {yTicks.map((t, i) => (
         <line
@@ -557,20 +564,25 @@ export function BarChart({
         const h = (d.value / max) * innerH;
         const x = padding.left + i * (barW + gap) + gap / 2;
         const y = padding.top + innerH - h;
+        const valueText = yFormatter ? yFormatter(d.value) : String(d.value);
+        const tipText = `${d.label} · ${valueText}`;
+        const tipW = Math.max(70, tipText.length * 6 + 14);
+        const tipX = Math.min(
+          Math.max(x + barW / 2 - tipW / 2, padding.left),
+          width - padding.right - tipW,
+        );
+        const tipY = Math.max(y - 36, padding.top);
         return (
-          <g key={i}>
+          <g key={i} className={`${tipId}-grp`}>
             <rect
+              className={`${tipId}-bar`}
               x={x}
               y={y}
               width={barW}
               height={Math.max(h, d.value > 0 ? 1 : 0)}
               rx={3}
               fill={color}
-            >
-              <title>
-                {d.label}: {yFormatter ? yFormatter(d.value) : d.value}
-              </title>
-            </rect>
+            />
             <text
               x={x + barW / 2}
               y={height - 8}
@@ -581,6 +593,15 @@ export function BarChart({
             >
               {d.label}
             </text>
+            <g className={tipId}>
+              <rect x={tipX} y={tipY} width={tipW} height={28} rx={4} fill="white" stroke={color} strokeOpacity={0.4} />
+              <text x={tipX + tipW / 2} y={tipY + 12} fontSize="9" textAnchor="middle" fill="#475569">
+                {d.label}
+              </text>
+              <text x={tipX + tipW / 2} y={tipY + 23} fontSize="11" fontWeight="700" textAnchor="middle" fill={color}>
+                {valueText}
+              </text>
+            </g>
           </g>
         );
       })}
@@ -620,14 +641,21 @@ export function StackedBarChart({
     value: t * max,
   }));
 
+  const tipId = `stk-${Math.random().toString(36).slice(2, 8)}`;
+
   return (
     <svg
       viewBox={`0 0 ${width} ${height}`}
       width="100%"
       preserveAspectRatio="none"
-      style={{ maxHeight: height }}
+      style={{ maxHeight: height, display: "block", overflow: "visible" }}
       role="img"
     >
+      <style>{`
+        .${tipId} { opacity: 0; transition: opacity .12s; pointer-events: none; }
+        .${tipId}-col:hover .${tipId} { opacity: 1; }
+        .${tipId}-col:hover rect[data-stk] { filter: brightness(1.1); }
+      `}</style>
       {yTicks.map((t, i) => (
         <line
           key={i}
@@ -656,26 +684,30 @@ export function StackedBarChart({
       {data.map((d, i) => {
         const x = padding.left + i * (barW + gap) + gap / 2;
         let cumY = padding.top + innerH;
+        const totalText = yFormatter ? yFormatter(totals[i]) : String(totals[i]);
+        const tipW = 140;
+        const tipX = Math.min(
+          Math.max(x + barW / 2 - tipW / 2, padding.left),
+          width - padding.right - tipW,
+        );
+        const colTopY = cumY - (totals[i] / max) * innerH;
+        const tipY = Math.max(colTopY - 14 - 16 * d.values.length, padding.top);
         return (
-          <g key={i}>
+          <g key={i} className={`${tipId}-col`}>
             {d.values.map((v, j) => {
               const h = (v / max) * innerH;
               cumY -= h;
               return (
                 <rect
                   key={j}
+                  data-stk="1"
                   x={x}
                   y={cumY}
                   width={barW}
                   height={Math.max(h, 0)}
                   fill={series[j]?.color ?? ACCENT}
                   rx={j === d.values.length - 1 ? 3 : 0}
-                >
-                  <title>
-                    {d.label} · {series[j]?.name}:{" "}
-                    {yFormatter ? yFormatter(v) : v}
-                  </title>
-                </rect>
+                />
               );
             })}
             <text
@@ -688,6 +720,34 @@ export function StackedBarChart({
             >
               {d.label}
             </text>
+            <g className={tipId}>
+              <rect
+                x={tipX}
+                y={tipY}
+                width={tipW}
+                height={16 * d.values.length + 18}
+                rx={4}
+                fill="white"
+                stroke="#cbd5e1"
+              />
+              <text x={tipX + 8} y={tipY + 12} fontSize="9" fontWeight="700" fill="#475569">
+                {d.label} · {totalText}
+              </text>
+              {d.values.map((v, j) => (
+                <g key={j}>
+                  <rect
+                    x={tipX + 8}
+                    y={tipY + 18 + j * 13}
+                    width={8}
+                    height={8}
+                    fill={series[j]?.color ?? ACCENT}
+                  />
+                  <text x={tipX + 22} y={tipY + 25 + j * 13} fontSize="9" fill="#1e293b">
+                    {series[j]?.name}: {yFormatter ? yFormatter(v) : v}
+                  </text>
+                </g>
+              ))}
+            </g>
           </g>
         );
       })}
