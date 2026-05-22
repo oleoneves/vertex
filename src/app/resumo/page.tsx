@@ -184,7 +184,7 @@ const SECTIONS: Section[] = [
 ];
 
 const NUMBERS = [
-  { value: "50+", label: "deploys nesta sessão" },
+  { value: "65+", label: "deploys nesta sessão" },
   { value: "24", label: "migrations no banco" },
   { value: "15", label: "áreas do produto entregues" },
   { value: "15.000+", label: "registros de teste populados" },
