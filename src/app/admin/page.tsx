@@ -86,6 +86,21 @@ export default async function AdminDashboard() {
         </div>
       </section>
 
+      {/* Pending review banner */}
+      {d.pendingTimesheets > 0 && (
+        <Link
+          href="/admin/inbox"
+          className="flex items-center justify-between rounded-xl border-2 border-amber-400/50 bg-amber-50 px-4 py-3 text-sm transition hover:bg-amber-100 dark:bg-amber-900/20"
+        >
+          <span className="flex items-center gap-2 text-amber-800 dark:text-amber-300">
+            ⚠ <strong>{d.pendingTimesheets}</strong> entries pendentes de aprovação. Toque pra abrir o Inbox.
+          </span>
+          <span className="text-xs font-bold text-amber-800 dark:text-amber-300">
+            Ver inbox →
+          </span>
+        </Link>
+      )}
+
       {/* Money row — month + week × revenue + margin */}
       {showMoney && (
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
