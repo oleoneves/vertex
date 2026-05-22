@@ -1,5 +1,6 @@
 import { MapPin, Shield } from "lucide-react";
-import { demoLiveBoard, type LiveShiftEntry } from "@/lib/demo";
+import { demoLiveBoard, type LiveShiftEntry, isDemoMode } from "@/lib/demo";
+import { loadLiveBoard } from "@/lib/live";
 import { t } from "@/lib/i18n";
 import { getLocale } from "@/lib/i18n-server";
 import { fmtNum } from "@/lib/format";
@@ -23,7 +24,7 @@ function elapsedFrom(iso: string): string {
 
 export default async function LiveBoardPage() {
   const [locale] = await Promise.all([getLocale()]);
-  const board = demoLiveBoard();
+  const board = isDemoMode() ? demoLiveBoard() : await loadLiveBoard();
 
   const scheduled = board.filter((e) => e.status === "scheduled");
   const enroute = board.filter((e) => e.status === "en_route");

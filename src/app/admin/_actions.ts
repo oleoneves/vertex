@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { requireCapability } from "@/lib/auth";
 
 async function inviteWorkerByEmail(email: string, workerId: string) {
   if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return { ok: false, reason: "service role not set" };
@@ -742,4 +743,76 @@ export async function updateTimeOff(formData: FormData) {
     })
     .eq("id", id);
   revalidatePath("/admin/time-off");
+}
+
+// ============ Access (super_admin only) ============
+
+async function ensureAuthUser(email: string, password: string, fullName: string) {
+  const admin = getSupabaseAdmin();
+  const { data: created, error } = await admin.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+    user_metadata: { full_name: fullName },
+  });
+  if (created?.user) return created.user.id;
+  if (error && (error.status === 422 || /already/i.test(error.message))) {
+    const { data: list } = await admin.auth.admin.listUsers({ perPage: 200 });
+    const found = list?.users?.find((u) => u.email?.toLowerCase() === email.toLowerCase());
+    if (!found) throw new Error("user said to exist but not found");
+    await admin.auth.admin.updateUserById(found.id, { password, email_confirm: true });
+    return found.id;
+  }
+  throw new Error(error?.message || "failed to create auth user");
+}
+
+export async function createAssistantCredential(formData: FormData) {
+  await requireCapability("manage_users");
+  const email = String(formData.get("email") || "").trim().toLowerCase();
+  const password = String(formData.get("password") || "");
+  const fullName = String(formData.get("full_name") || email.split("@")[0]).trim();
+  if (!email || password.length < 8) throw new Error("Email + password (8+ chars) required.");
+  const userId = await ensureAuthUser(email, password, fullName);
+  const admin = getSupabaseAdmin();
+  const { error } = await admin
+    .from("admin_users")
+    .upsert({ user_id: userId, role: "assistant" }, { onConflict: "user_id" });
+  if (error) throw new Error(`admin_users upsert: ${error.message}`);
+  revalidatePath("/admin/access");
+}
+
+export async function createEmployerCredential(formData: FormData) {
+  await requireCapability("manage_users");
+  const email = String(formData.get("email") || "").trim().toLowerCase();
+  const password = String(formData.get("password") || "");
+  const fullName = String(formData.get("full_name") || email.split("@")[0]).trim();
+  const employerId = String(formData.get("employer_id") || "");
+  if (!email || password.length < 8 || !employerId) {
+    throw new Error("Email, password (8+ chars), and employer required.");
+  }
+  const userId = await ensureAuthUser(email, password, fullName);
+  const admin = getSupabaseAdmin();
+  const { error } = await admin
+    .from("employer_users")
+    .upsert({ user_id: userId, employer_id: employerId }, { onConflict: "user_id" });
+  if (error) throw new Error(`employer_users upsert: ${error.message}`);
+  revalidatePath("/admin/access");
+}
+
+export async function revokeAssistantCredential(formData: FormData) {
+  await requireCapability("manage_users");
+  const userId = String(formData.get("user_id") || "");
+  if (!userId) throw new Error("user_id required");
+  const admin = getSupabaseAdmin();
+  await admin.from("admin_users").delete().eq("user_id", userId).eq("role", "assistant");
+  revalidatePath("/admin/access");
+}
+
+export async function revokeEmployerCredential(formData: FormData) {
+  await requireCapability("manage_users");
+  const userId = String(formData.get("user_id") || "");
+  if (!userId) throw new Error("user_id required");
+  const admin = getSupabaseAdmin();
+  await admin.from("employer_users").delete().eq("user_id", userId);
+  revalidatePath("/admin/access");
 }

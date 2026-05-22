@@ -332,6 +332,7 @@ const dict = {
   "a.nav.payroll":      { en: "Payroll",      es: "Nómina",        pt: "Folha" },
   "a.nav.payments":     { en: "Payments",     es: "Pagos",         pt: "Pagamentos" },
   "a.nav.reports":      { en: "Reports",      es: "Reportes",      pt: "Relatórios" },
+  "a.nav.access":       { en: "Access",       es: "Acceso",        pt: "Acessos" },
 
   // Sidebar UI
   "a.sidebar.search":          { en: "Search…",        es: "Buscar…",        pt: "Buscar…" },

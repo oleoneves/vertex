@@ -17,6 +17,7 @@ import {
   ShieldCheck,
   Radio,
   Mail,
+  KeyRound,
 } from "lucide-react";
 import { CommandPalette } from "./_components/command-palette";
 import { LogoutButton } from "./_components/logout-button";
@@ -63,6 +64,12 @@ const MONEY: NavItem[] = [
   { href: "/admin/payments", labelKey: "a.nav.payments", Icon: DollarSign },
   { href: "/admin/reports", labelKey: "a.nav.reports", Icon: BarChart3 },
 ];
+
+const ACCESS: NavItem = {
+  href: "/admin/access",
+  labelKey: "a.nav.access",
+  Icon: KeyRound,
+};
 
 const ALL_ITEMS: NavItem[] = [...RECRUIT, ...WORKFORCE, ...MONEY];
 const ALL_ITEMS_NO_MONEY: NavItem[] = [...RECRUIT, ...WORKFORCE];
@@ -240,6 +247,9 @@ export default async function AdminLayout({ children }: { children: ReactNode })
           />
           {showMoney && (
             <Group label={t(locale, "a.group.money")} items={MONEY} locale={locale} />
+          )}
+          {showMoney && (
+            <Group label="Settings" items={[ACCESS]} locale={locale} />
           )}
           <div className="mt-3 border-t border-border pt-2">
             <LogoutButton />

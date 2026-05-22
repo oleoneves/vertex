@@ -45,7 +45,8 @@ export type Capability =
   | "view_payroll"
   | "view_reports"
   | "create_project"
-  | "edit_project";
+  | "edit_project"
+  | "manage_users";
 
 const ASSISTANT_DENIED: Capability[] = [
   "view_financials",
@@ -55,6 +56,7 @@ const ASSISTANT_DENIED: Capability[] = [
   "view_reports",
   "create_project",
   "edit_project",
+  "manage_users",
 ];
 
 export function can(role: AdminRole | null, action: Capability): boolean {
