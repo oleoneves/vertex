@@ -267,7 +267,28 @@ export default async function WorkerDetail({
                   name="ssn"
                   placeholder="XXX-XX-XXXX"
                   defaultValue={worker.ssn ?? ""}
-                  hint="Used on W-2 / 1099 generation."
+                  hint="For W-2 employees and US-citizen 1099 contractors."
+                />
+                <FormField
+                  label="ITIN"
+                  name="itin"
+                  placeholder="9XX-XX-XXXX"
+                  defaultValue={worker.itin ?? ""}
+                  hint="For contractors without SSN."
+                />
+                <FormField
+                  label="Business name"
+                  name="business_name"
+                  placeholder="e.g. Barreto Services LLC"
+                  defaultValue={worker.business_name ?? ""}
+                  hint="If the worker is paid as a registered company."
+                />
+                <FormField
+                  label="EIN"
+                  name="ein"
+                  placeholder="XX-XXXXXXX"
+                  defaultValue={worker.ein ?? ""}
+                  hint="Federal EIN of the business. Used on 1099-NEC."
                 />
               </FormGrid>
             </FormSection>

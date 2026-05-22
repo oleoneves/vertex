@@ -26,6 +26,9 @@ async function createWorker(formData: FormData) {
     payment_method: String(formData.get("payment_method") || "check"),
     zelle_full_name: String(formData.get("zelle_full_name") || "").trim() || null,
     ssn: String(formData.get("ssn") || "").trim() || null,
+    itin: String(formData.get("itin") || "").trim() || null,
+    business_name: String(formData.get("business_name") || "").trim() || null,
+    ein: String(formData.get("ein") || "").trim() || null,
     travel_available: formData.get("travel_available") === "1",
     travel_region: String(formData.get("travel_region") || "") || null,
     notes: String(formData.get("notes") || "") || null,
@@ -108,7 +111,25 @@ export default async function NewWorkerPage() {
               label="Social Security Number"
               name="ssn"
               placeholder="XXX-XX-XXXX"
-              hint="Stored encrypted at rest by Supabase. Used on W-2 / 1099 generation."
+              hint="For W-2 employees and US-citizen 1099 contractors."
+            />
+            <FormField
+              label="ITIN"
+              name="itin"
+              placeholder="9XX-XX-XXXX"
+              hint="For contractors without SSN (non-resident, dependent, etc.)."
+            />
+            <FormField
+              label="Business name"
+              name="business_name"
+              placeholder="e.g. Barreto Services LLC"
+              hint="If the worker is paid as a registered company."
+            />
+            <FormField
+              label="EIN"
+              name="ein"
+              placeholder="XX-XXXXXXX"
+              hint="Federal EIN of the business above. Used on 1099-NEC."
             />
           </FormGrid>
           <p className="mt-2 text-xs text-muted-foreground">

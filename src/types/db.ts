@@ -61,6 +61,9 @@ export type Worker = {
   payment_method: "check" | "ach" | "zelle" | "cashapp";
   zelle_full_name: string | null;
   ssn: string | null;
+  itin: string | null;
+  business_name: string | null;
+  ein: string | null;
   w9_document_id: string | null;
   travel_available: boolean;
   travel_region: "local" | "state" | "national" | "international" | null;
