@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { HardHat } from "lucide-react";
+import { Pagination } from "../_components/pagination";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import type { Worker } from "@/types/db";
 import { isDemoMode, demoWorkers, demoWorkersByState } from "@/lib/demo";
@@ -74,18 +75,21 @@ async function load(filters: {
 export default async function WorkersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; q?: string; favorite?: string; tier?: string }>;
+  searchParams: Promise<{ status?: string; q?: string; favorite?: string; tier?: string; page?: string }>;
 }) {
   const sp = await searchParams;
-  const [workers, locale] = await Promise.all([load(sp), getLocale()]);
+  const [allWorkers, locale] = await Promise.all([load(sp), getLocale()]);
   const byState = isDemoMode() ? demoWorkersByState() : [];
+  const PAGE_SIZE = 50;
+  const page = Math.max(1, Number(sp.page) || 1);
+  const workers = allWorkers.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <div>
       <PageHeader
         title={t(locale, "a.workers.title")}
         subtitle={t(locale, "a.workers.subtitle")}
-        count={workers.length}
+        count={allWorkers.length}
         action={{ href: "/admin/workers/new", label: t(locale, "a.workers.new") }}
       />
 
@@ -231,6 +235,13 @@ export default async function WorkersPage({
           ))}
         </DataTable>
       )}
+      <Pagination
+        page={page}
+        pageSize={PAGE_SIZE}
+        total={allWorkers.length}
+        basePath="/admin/workers"
+        preservedParams={{ status: sp.status, q: sp.q, favorite: sp.favorite, tier: sp.tier }}
+      />
     </div>
   );
 }

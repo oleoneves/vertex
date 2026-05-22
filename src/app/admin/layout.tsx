@@ -121,9 +121,9 @@ export default async function AdminLayout({ children }: { children: ReactNode })
         ))}
       </nav>
 
-      {/* Desktop: grouped sidebar */}
+      {/* Desktop: grouped sidebar with its own scroll */}
       <aside className="hidden lg:block lg:w-60 lg:shrink-0">
-        <nav className="sticky top-24 flex flex-col gap-1 text-sm">
+        <nav className="sticky top-24 flex max-h-[calc(100vh-7rem)] flex-col gap-1 overflow-y-auto pr-2 text-sm [scrollbar-width:thin]">
           {/* Vertex brand mark + wordmark */}
           <Link
             href="/admin"

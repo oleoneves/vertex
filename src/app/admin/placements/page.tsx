@@ -3,6 +3,7 @@ import { listPlacements } from "@/lib/workforce";
 import { PageHeader } from "../_components/page-header";
 import { EmptyState } from "../_components/empty-state";
 import { DataTable, Th, Tr, Td, StatusPill } from "../_components/data-table";
+import { Pagination } from "../_components/pagination";
 import { endPlacement } from "../_actions";
 import { getCurrentAdminRole, can } from "@/lib/auth";
 
@@ -11,16 +12,24 @@ import { t } from "@/lib/i18n";
 import { getLocale } from "@/lib/i18n-server";
 export const dynamic = "force-dynamic";
 
-export default async function PlacementsPage() {
+export default async function PlacementsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
   const locale = await getLocale();
-  const [placements, role] = await Promise.all([listPlacements(), getCurrentAdminRole()]);
+  const [allPlacements, role] = await Promise.all([listPlacements(), getCurrentAdminRole()]);
   const showMoney = can(role, "view_financials");
+  const sp = await searchParams;
+  const PAGE_SIZE = 50;
+  const page = Math.max(1, Number(sp.page) || 1);
+  const placements = allPlacements.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   return (
     <div>
       <PageHeader
         title={t(locale, "a.placements.title")}
         subtitle={t(locale, "a.placements.subtitle")}
-        count={placements.length}
+        count={allPlacements.length}
         action={{ href: "/admin/placements/new", label: "New placement" }}
       />
       {placements.length === 0 ? (
@@ -93,6 +102,12 @@ export default async function PlacementsPage() {
           })}
         </DataTable>
       )}
+      <Pagination
+        page={page}
+        pageSize={PAGE_SIZE}
+        total={allPlacements.length}
+        basePath="/admin/placements"
+      />
     </div>
   );
 }

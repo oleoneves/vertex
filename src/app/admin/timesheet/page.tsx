@@ -10,6 +10,7 @@ import { fmtHours, fmtNum } from "@/lib/format";
 import { Heatmap, CHART_COLORS } from "../../_components/charts";
 import { updateTimeEntry, deleteTimeEntry } from "../_actions";
 import { PrintButton } from "../_components/print-button";
+import { Pagination } from "../_components/pagination";
 
 import { t } from "@/lib/i18n";
 import { getLocale } from "@/lib/i18n-server";
@@ -37,7 +38,7 @@ async function bulkApprove(formData: FormData) {
 export default async function TimesheetPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; from?: string; to?: string }>;
+  searchParams: Promise<{ status?: string; from?: string; to?: string; page?: string }>;
 }) {
   const locale = await getLocale();
   const sp = await searchParams;
@@ -47,12 +48,15 @@ export default async function TimesheetPage({
   if (sp.to) filterArgs.to = new Date(new Date(sp.to).getTime() + 86400000 - 1).toISOString();
 
   const entries = await listTimeEntries(filterArgs);
-  const filtered =
+  const allFiltered =
     sp.status === "approved"
       ? entries.filter((e) => e.approved)
       : sp.status === "open"
       ? entries.filter((e) => !e.clock_out_at)
       : entries;
+  const PAGE_SIZE = 100;
+  const page = Math.max(1, Number(sp.page) || 1);
+  const filtered = allFiltered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const pending = entries.filter((e) => !e.approved && e.clock_out_at).length;
   const approvable = filtered.filter((e) => !e.approved && e.clock_out_at);
 
@@ -271,6 +275,13 @@ export default async function TimesheetPage({
               );
             })}
           </DataTable>
+          <Pagination
+            page={page}
+            pageSize={PAGE_SIZE}
+            total={allFiltered.length}
+            basePath="/admin/timesheet"
+            preservedParams={{ status: sp.status, from: sp.from, to: sp.to }}
+          />
         </>
       )}
     </div>
