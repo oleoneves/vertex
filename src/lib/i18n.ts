@@ -160,6 +160,7 @@ const dict = {
   "w.greeting.evening":   { en: "Good evening",   es: "Buenas noches", pt: "Boa noite" },
 
   "w.today.on_the_clock":    { en: "You're on the clock",      es: "Estás trabajando",     pt: "Você está no horário" },
+  "w.today.clocked_in":      { en: "Clocked in at",            es: "Entró a",              pt: "Entrou às" },
   "w.today.ready":           { en: "Ready to start your day?", es: "¿Listo para empezar?", pt: "Pronto para começar?" },
   "w.today.on_clock_since":  { en: "On the clock since",       es: "Trabajando desde",     pt: "No turno desde" },
   "w.today.break_minutes":   { en: "Break minutes today",      es: "Minutos de descanso hoy", pt: "Minutos de pausa hoje" },
