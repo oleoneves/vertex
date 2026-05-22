@@ -91,7 +91,7 @@ export default async function AdminDashboard() {
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <KpiSpark
           label={t(locale, "a.dash.revenue_mtd")}
-          value={fmtUsd(d.revenueMtd)}
+          value={fmtUsd(d.revenueMtd, { decimals: 0, compact: true })}
           delta={pctDelta(d.revenueMtd, d.prevPeriod.revenueMtd)}
           deltaLabel={t(locale, "a.delta.vs_last_month")}
           spark={revenueSpark}
@@ -100,15 +100,15 @@ export default async function AdminDashboard() {
         />
         <Kpi
           label="Margin MTD"
-          value={fmtUsd(d.marginMtd)}
+          value={fmtUsd(d.marginMtd, { decimals: 0, compact: true })}
         />
         <Kpi
           label="Revenue this week"
-          value={fmtUsd(d.revenueThisWeek)}
+          value={fmtUsd(d.revenueThisWeek, { decimals: 0, compact: true })}
         />
         <KpiSpark
           label={t(locale, "a.dash.margin_week")}
-          value={fmtUsd(d.marginThisWeek)}
+          value={fmtUsd(d.marginThisWeek, { decimals: 0, compact: true })}
           delta={pctDelta(d.marginThisWeek, d.prevPeriod.marginThisWeek)}
           deltaLabel={t(locale, "a.delta.vs_last_week")}
           spark={marginSpark}
@@ -116,7 +116,7 @@ export default async function AdminDashboard() {
         />
         <Kpi
           label={t(locale, "a.dash.outstanding")}
-          value={fmtUsd(d.outstanding)}
+          value={fmtUsd(d.outstanding, { decimals: 0, compact: true })}
           delta={pctDelta(d.outstanding, d.prevPeriod.outstanding)}
           deltaLabel={t(locale, "a.delta.vs_last_week")}
           deltaInverted
@@ -513,7 +513,7 @@ function Kpi({
       } ${link ? "transition hover:border-foreground/30" : ""}`}
     >
       <p className="text-xs uppercase tracking-wider text-muted-foreground">{label}</p>
-      <p className="mt-2 text-2xl font-extrabold tracking-tight tabular-nums">
+      <p className="mt-2 text-xl font-extrabold tracking-tight tabular-nums xl:text-2xl">
         {value}
         {unit && <span className="ml-1 text-sm font-medium text-muted-foreground">{unit}</span>}
       </p>
@@ -556,7 +556,7 @@ function KpiSpark({
       } ${link ? "transition hover:border-foreground/30" : ""}`}
     >
       <p className="text-xs uppercase tracking-wider text-muted-foreground">{label}</p>
-      <p className="mt-2 text-2xl font-extrabold tracking-tight tabular-nums">{value}</p>
+      <p className="mt-2 text-xl font-extrabold tracking-tight tabular-nums xl:text-2xl">{value}</p>
       {hint && <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>}
       {delta !== undefined && (
         <Delta pct={delta} label={deltaLabel} inverted={deltaInverted} />
