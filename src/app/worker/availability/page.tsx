@@ -1,5 +1,6 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
-import { CalendarCheck } from "lucide-react";
+import { CalendarCheck, ChevronLeft, ChevronRight } from "lucide-react";
 import { getCurrentWorker } from "@/lib/workforce";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { setAvailability } from "../actions";
@@ -17,7 +18,16 @@ function nextMonday(): string {
   return d.toISOString().slice(0, 10);
 }
 
+function mondayOf(iso: string): Date {
+  const d = new Date(iso);
+  d.setHours(0, 0, 0, 0);
+  const dow = d.getDay();
+  d.setDate(d.getDate() - ((dow + 6) % 7));
+  return d;
+}
+
 type AvailRow = {
+  week_start: string;
   day_of_week: number;
   morning: boolean;
   afternoon: boolean;
@@ -27,35 +37,163 @@ type AvailRow = {
 export default async function AvailabilityPage({
   searchParams,
 }: {
-  searchParams: Promise<{ week?: string }>;
+  searchParams: Promise<{ week?: string; view?: string }>;
 }) {
   const worker = await getCurrentWorker();
   if (!worker) redirect("/worker/login?next=/worker/availability");
   const sp = await searchParams;
+  const view = sp.view === "month" ? "month" : "week";
   const weekStart = sp.week || nextMonday();
 
+  // For month view, fetch ALL weeks of the month containing weekStart
   const supabase = await getSupabaseServer();
-  const { data } = await supabase
+  let monthQuery = supabase
     .from("worker_availability")
-    .select("day_of_week, morning, afternoon, evening")
-    .eq("worker_id", worker.id)
-    .eq("week_start", weekStart);
+    .select("week_start, day_of_week, morning, afternoon, evening")
+    .eq("worker_id", worker.id);
+  if (view === "month") {
+    // Get current month range from weekStart
+    const ws = new Date(weekStart);
+    const monthStart = new Date(ws.getFullYear(), ws.getMonth(), 1);
+    const monthEnd = new Date(ws.getFullYear(), ws.getMonth() + 1, 0);
+    monthQuery = monthQuery
+      .gte("week_start", new Date(monthStart.getTime() - 7 * 86400000).toISOString().slice(0, 10))
+      .lte("week_start", new Date(monthEnd.getTime() + 7 * 86400000).toISOString().slice(0, 10));
+  } else {
+    monthQuery = monthQuery.eq("week_start", weekStart);
+  }
+  const { data } = await monthQuery;
   const byDay = new Map<number, AvailRow>();
-  for (const r of ((data as AvailRow[]) ?? [])) byDay.set(r.day_of_week, r);
+  const allRows = (data as AvailRow[]) ?? [];
+  for (const r of allRows) {
+    if (r.week_start === weekStart) byDay.set(r.day_of_week, r);
+  }
+
+  // Build month grid (5 or 6 weeks, Sunday-first to match DB day_of_week)
+  const monthCells: { date: Date; iso: string; weekStart: string; dow: number; inMonth: boolean; slotCount: number }[] = [];
+  if (view === "month") {
+    const ws = new Date(weekStart);
+    const monthStart = new Date(ws.getFullYear(), ws.getMonth(), 1);
+    const firstCell = new Date(monthStart);
+    firstCell.setDate(monthStart.getDate() - monthStart.getDay()); // back to Sunday
+    for (let i = 0; i < 42; i++) {
+      const d = new Date(firstCell);
+      d.setDate(firstCell.getDate() + i);
+      // weekStart = Monday of this week (matches our DB convention)
+      const cellWeekStart = mondayOf(d.toISOString().slice(0, 10)).toISOString().slice(0, 10);
+      const cellDow = d.getDay(); // 0=Sun .. 6=Sat (matches DB)
+      const cellRow = allRows.find(
+        (r) => r.week_start === cellWeekStart && r.day_of_week === cellDow,
+      );
+      const slotCount =
+        (cellRow?.morning ? 1 : 0) +
+        (cellRow?.afternoon ? 1 : 0) +
+        (cellRow?.evening ? 1 : 0);
+      monthCells.push({
+        date: d,
+        iso: d.toISOString().slice(0, 10),
+        weekStart: cellWeekStart,
+        dow: cellDow,
+        inMonth: d.getMonth() === ws.getMonth(),
+        slotCount,
+      });
+      if (i >= 27 && d.getMonth() !== ws.getMonth()) break;
+    }
+  }
+
+  const ws = new Date(weekStart);
+  const monthLabel = ws.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+  const prevMonth = new Date(ws.getFullYear(), ws.getMonth() - 1, 1).toISOString().slice(0, 10);
+  const nextMonthDate = new Date(ws.getFullYear(), ws.getMonth() + 1, 1).toISOString().slice(0, 10);
 
   return (
     <div className="space-y-6">
       <header>
         <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
-          <CalendarCheck className="inline h-6 w-6 text-accent" /> Disponibilidade da semana
+          <CalendarCheck className="inline h-6 w-6 text-accent" /> Disponibilidade
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Marque os dias e turnos que você pode trabalhar. A Vertex usa isso pra alocar serviços novos.
         </p>
-        <p className="mt-2 text-xs text-muted-foreground">
-          Semana iniciando em <strong>{weekStart}</strong>
-        </p>
       </header>
+
+      {/* View toggle */}
+      <div className="flex gap-1 rounded-lg border border-border bg-muted/30 p-1 text-sm">
+        <Link
+          href={`/worker/availability?view=week&week=${weekStart}`}
+          className={`flex-1 rounded-md px-3 py-1.5 text-center font-medium ${
+            view === "week" ? "bg-background shadow-sm" : "text-muted-foreground"
+          }`}
+        >
+          Semanal (detalhe)
+        </Link>
+        <Link
+          href={`/worker/availability?view=month&week=${weekStart}`}
+          className={`flex-1 rounded-md px-3 py-1.5 text-center font-medium ${
+            view === "month" ? "bg-background shadow-sm" : "text-muted-foreground"
+          }`}
+        >
+          Mês inteiro
+        </Link>
+      </div>
+
+      {view === "month" && (
+        <section className="rounded-xl border border-border bg-background p-5">
+          <div className="mb-3 flex items-center justify-between">
+            <Link
+              href={`/worker/availability?view=month&week=${prevMonth}`}
+              className="inline-flex h-8 items-center gap-1 rounded-md border border-border bg-background px-2 text-sm hover:bg-muted"
+            >
+              <ChevronLeft className="h-3.5 w-3.5" />
+            </Link>
+            <h2 className="text-lg font-extrabold capitalize">{monthLabel}</h2>
+            <Link
+              href={`/worker/availability?view=month&week=${nextMonthDate}`}
+              className="inline-flex h-8 items-center gap-1 rounded-md border border-border bg-background px-2 text-sm hover:bg-muted"
+            >
+              <ChevronRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+          <div className="grid grid-cols-7 gap-1 text-[10px] uppercase tracking-wider text-muted-foreground">
+            {["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].map((d) => (
+              <div key={d} className="text-center font-bold">
+                {d}
+              </div>
+            ))}
+          </div>
+          <div className="mt-1 grid grid-cols-7 gap-1">
+            {monthCells.map((c) => (
+              <Link
+                key={c.iso}
+                href={`/worker/availability?view=week&week=${c.weekStart}`}
+                className={`aspect-square rounded-md border p-1 text-center text-xs transition ${
+                  !c.inMonth
+                    ? "border-transparent text-muted-foreground/40"
+                    : c.slotCount === 3
+                    ? "border-green-500/40 bg-green-500/20 text-green-700 dark:text-green-300"
+                    : c.slotCount > 0
+                    ? "border-green-500/30 bg-green-500/10 text-green-700 dark:text-green-300"
+                    : "border-border bg-muted/20 hover:bg-muted"
+                }`}
+              >
+                <div className="font-bold">{c.date.getDate()}</div>
+                {c.slotCount > 0 && c.inMonth && (
+                  <div className="mt-0.5 text-[9px]">{c.slotCount}/3</div>
+                )}
+              </Link>
+            ))}
+          </div>
+          <p className="mt-3 text-xs text-muted-foreground">
+            Clique em um dia pra editar os turnos daquela semana. Verde = pelo menos 1 turno marcado.
+          </p>
+        </section>
+      )}
+
+      {view === "week" && (
+      <p className="text-xs text-muted-foreground">
+        Semana iniciando em <strong>{weekStart}</strong>
+      </p>
+      )}
 
       <form
         action={setAvailability}

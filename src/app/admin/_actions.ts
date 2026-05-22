@@ -695,3 +695,16 @@ export async function sendComposedEmail(formData: FormData) {
   if (error) throw new Error(`Failed to send: ${error.message}`);
   revalidatePath("/admin/messages");
 }
+
+// ============ Incidents (admin review) ============
+
+export async function updateIncident(formData: FormData) {
+  const id = String(formData.get("id"));
+  const status = String(formData.get("status") || "open");
+  const adminNotes = String(formData.get("admin_notes") || "").trim() || null;
+  const supabase = await getSupabaseServer();
+  const payload: Record<string, unknown> = { status, admin_notes: adminNotes };
+  if (status === "resolved") payload.resolved_at = new Date().toISOString();
+  await supabase.from("incident_reports").update(payload).eq("id", id);
+  revalidatePath("/admin/incidents");
+}
