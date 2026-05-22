@@ -134,6 +134,45 @@ export default async function AdminDashboard() {
       </section>
       )}
 
+      {/* Quick actions */}
+      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <Link
+          href="/admin/inbox"
+          className="rounded-xl border border-border bg-background p-4 text-center transition hover:border-accent/40"
+        >
+          <div className="text-2xl">📥</div>
+          <div className="mt-1 text-xs font-bold uppercase tracking-wider">Inbox</div>
+        </Link>
+        <Link
+          href="/admin/timesheet?status=pending"
+          className="rounded-xl border border-border bg-background p-4 text-center transition hover:border-accent/40"
+        >
+          <div className="text-2xl">✅</div>
+          <div className="mt-1 text-xs font-bold uppercase tracking-wider">Aprovar horas</div>
+        </Link>
+        <Link
+          href="/admin/invoices/new"
+          className="rounded-xl border border-border bg-background p-4 text-center transition hover:border-accent/40"
+        >
+          <div className="text-2xl">📄</div>
+          <div className="mt-1 text-xs font-bold uppercase tracking-wider">+ Invoice</div>
+        </Link>
+        <Link
+          href="/admin/workers/new"
+          className="rounded-xl border border-border bg-background p-4 text-center transition hover:border-accent/40"
+        >
+          <div className="text-2xl">👷</div>
+          <div className="mt-1 text-xs font-bold uppercase tracking-wider">+ Worker</div>
+        </Link>
+        <Link
+          href="/admin/projects/new"
+          className="rounded-xl border border-border bg-background p-4 text-center transition hover:border-accent/40"
+        >
+          <div className="text-2xl">🏗</div>
+          <div className="mt-1 text-xs font-bold uppercase tracking-wider">+ Projeto</div>
+        </Link>
+      </section>
+
       {/* Ops row */}
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Kpi
