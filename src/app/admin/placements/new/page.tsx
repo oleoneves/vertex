@@ -27,6 +27,9 @@ async function createPlacement(formData: FormData) {
     bill_rate: billRate,
     start_date: String(formData.get("start_date")),
     end_date: String(formData.get("end_date") || "") || null,
+    max_hours_per_day: Number(formData.get("max_hours_per_day")) || null,
+    earliest_clock_in: String(formData.get("earliest_clock_in") || "") || null,
+    latest_clock_out: String(formData.get("latest_clock_out") || "") || null,
     status: "active",
   };
   const { error } = await supabase.from("placements").insert(payload);
@@ -125,6 +128,36 @@ export default async function NewPlacementPage() {
           <FormGrid>
             <FormField label="Start date" name="start_date" type="date" required />
             <FormField label="End date" name="end_date" type="date" hint="Leave blank for ongoing." />
+          </FormGrid>
+        </FormSection>
+
+        <FormSection
+          title="Clock-in limits (optional)"
+          description="Worker portal enforces these — refuses clock-in outside the window or after the daily cap."
+        >
+          <FormGrid>
+            <FormField
+              label="Max hours per day"
+              name="max_hours_per_day"
+              type="number"
+              step="0.25"
+              placeholder="e.g. 10"
+              hint="Daily cap on this placement."
+            />
+            <FormField
+              label="Earliest clock-in"
+              name="earliest_clock_in"
+              type="time"
+              placeholder="06:00"
+              hint="Worker can't clock-in before this time."
+            />
+            <FormField
+              label="Latest clock-out"
+              name="latest_clock_out"
+              type="time"
+              placeholder="22:00"
+              hint="Worker can't clock-in after this time."
+            />
           </FormGrid>
         </FormSection>
 

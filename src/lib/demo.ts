@@ -276,6 +276,9 @@ export function demoPlacements(): Placement[] {
       status: "active",
       notes: "Sunbelt refinery expansion",
       created_at: isoDaysAgo(30),
+      max_hours_per_day: null,
+      earliest_clock_in: null,
+      latest_clock_out: null,
     });
   }
   // 12 housekeepers @ Hilton
@@ -295,6 +298,9 @@ export function demoPlacements(): Placement[] {
       status: "active",
       notes: null,
       created_at: isoDaysAgo(46),
+      max_hours_per_day: null,
+      earliest_clock_in: null,
+      latest_clock_out: null,
     });
   }
   // 10 janitors @ ClearWave
@@ -314,6 +320,9 @@ export function demoPlacements(): Placement[] {
       status: "active",
       notes: null,
       created_at: isoDaysAgo(60),
+      max_hours_per_day: null,
+      earliest_clock_in: null,
+      latest_clock_out: null,
     });
   }
   // 8 construction @ Westlake
@@ -333,6 +342,9 @@ export function demoPlacements(): Placement[] {
       status: "active",
       notes: null,
       created_at: isoDaysAgo(50),
+      max_hours_per_day: null,
+      earliest_clock_in: null,
+      latest_clock_out: null,
     });
   }
   // 50 restoration crew @ Restoration Pro project (workers 131..180)
@@ -352,6 +364,9 @@ export function demoPlacements(): Placement[] {
       status: "active",
       notes: "Hurricane Recovery · Tampa Bay",
       created_at: isoDaysAgo(15),
+      max_hours_per_day: null,
+      earliest_clock_in: null,
+      latest_clock_out: null,
     });
   }
   return out;
@@ -1322,6 +1337,9 @@ export function demoWorkerWeek() {
     shifts,
     entries: [],
     hours: 32,
+    earnings: 32 * 15,
+    daysWorked: 4,
+    daysMissed: 0,
   };
 }
 

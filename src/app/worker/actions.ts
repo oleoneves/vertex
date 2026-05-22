@@ -20,11 +20,45 @@ export async function clockIn(formData: FormData) {
   const supabase = await getSupabaseServer();
   const { data: placement } = await supabase
     .from("placements")
-    .select("pay_rate, bill_rate, worker_id")
+    .select(
+      "pay_rate, bill_rate, worker_id, max_hours_per_day, earliest_clock_in, latest_clock_out",
+    )
     .eq("id", placementId)
     .maybeSingle();
   if (!placement || placement.worker_id !== worker.id) {
     throw new Error("Placement not found or not yours");
+  }
+
+  const now = new Date();
+  const nowHHMM = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+  if (placement.earliest_clock_in && nowHHMM < String(placement.earliest_clock_in).slice(0, 5)) {
+    throw new Error(
+      `Too early — clock-in opens at ${String(placement.earliest_clock_in).slice(0, 5)} for this placement.`,
+    );
+  }
+  if (placement.latest_clock_out && nowHHMM > String(placement.latest_clock_out).slice(0, 5)) {
+    throw new Error(
+      `Too late — clock-in closed at ${String(placement.latest_clock_out).slice(0, 5)} for this placement.`,
+    );
+  }
+  if (placement.max_hours_per_day) {
+    const todayStart = new Date(now);
+    todayStart.setHours(0, 0, 0, 0);
+    const { data: todayEntries } = await supabase
+      .from("time_entries")
+      .select("hours_worked")
+      .eq("placement_id", placementId)
+      .gte("clock_in_at", todayStart.toISOString());
+    const todayHours = (todayEntries ?? []).reduce(
+      (s: number, e: { hours_worked: number | null }) =>
+        s + Number(e.hours_worked ?? 0),
+      0,
+    );
+    if (todayHours >= Number(placement.max_hours_per_day)) {
+      throw new Error(
+        `Daily cap reached: ${todayHours}h / ${placement.max_hours_per_day}h for this placement.`,
+      );
+    }
   }
 
   const { error } = await supabase.from("time_entries").insert({

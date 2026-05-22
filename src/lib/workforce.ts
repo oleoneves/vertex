@@ -249,13 +249,16 @@ export async function getWorkerWeek(workerId: string): Promise<{
   shifts: ShiftWithRefs[];
   entries: TimeEntry[];
   hours: number;
+  earnings: number;
+  daysWorked: number;
+  daysMissed: number;
 }> {
   if (isDemoMode()) {
     const { demoWorkerWeek } = await import("./demo");
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return demoWorkerWeek() as any;
   }
-  if (!supabaseReady()) return { shifts: [], entries: [], hours: 0 };
+  if (!supabaseReady()) return { shifts: [], entries: [], hours: 0, earnings: 0, daysWorked: 0, daysMissed: 0 };
   const supabase = await getSupabaseServer();
   const now = new Date();
   const day = now.getUTCDay();
@@ -293,10 +296,32 @@ export async function getWorkerWeek(workerId: string): Promise<{
 
   const entriesData = (entries.data as TimeEntry[]) ?? [];
   const hours = entriesData.reduce((acc, e) => acc + (Number(e.hours_worked) || 0), 0);
+  const earnings = entriesData.reduce(
+    (acc, e) => acc + (Number(e.hours_worked) || 0) * (Number(e.pay_rate_at_entry) || 0),
+    0,
+  );
+  const workedDates = new Set(
+    entriesData.map((e) => new Date(e.clock_in_at).toISOString().slice(0, 10)),
+  );
+  const daysWorked = workedDates.size;
+  // Compute weekday count from week start up to today (don't count future days)
+  const todayMs = Date.now();
+  let weekdaysSoFar = 0;
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(weekStart);
+    d.setUTCDate(weekStart.getUTCDate() + i);
+    if (d.getTime() <= todayMs && d.getUTCDay() !== 0 && d.getUTCDay() !== 6) {
+      weekdaysSoFar++;
+    }
+  }
+  const daysMissed = Math.max(0, weekdaysSoFar - daysWorked);
 
   return {
     shifts: (shifts.data as unknown as ShiftWithRefs[]) ?? [],
     entries: entriesData,
     hours,
+    earnings,
+    daysWorked,
+    daysMissed,
   };
 }

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Clock, Calendar, TrendingUp, AlertCircle } from "lucide-react";
+import { Clock, Calendar, TrendingUp, AlertCircle, DollarSign, CheckCircle2, XCircle } from "lucide-react";
 import { getCurrentWorker, getOpenTimeEntry, getWorkerWeek } from "@/lib/workforce";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { t, type TKey } from "@/lib/i18n";
@@ -8,7 +8,7 @@ import { getLocale } from "@/lib/i18n-server";
 import { clockIn, clockOut } from "./actions";
 import { ClockForm } from "./clock-form";
 
-import { fmtNum } from "@/lib/format";
+import { fmtNum, fmtUsd } from "@/lib/format";
 export const dynamic = "force-dynamic";
 
 export default async function WorkerDashboard() {
@@ -19,14 +19,24 @@ export default async function WorkerDashboard() {
   const locale = await getLocale();
   const supabase = await getSupabaseServer();
 
-  const [open, placements, week] = await Promise.all([
+  const [open, placements, week, projectsRes] = await Promise.all([
     getOpenTimeEntry(worker.id),
     supabase
       .from("placements")
-      .select("id, role_title, employer:employers(name)")
+      .select(
+        "id, role_title, employer:employers(name), project:projects(name)",
+      )
       .eq("worker_id", worker.id)
       .eq("status", "active"),
     getWorkerWeek(worker.id),
+    supabase
+      .from("time_entries")
+      .select(
+        "hours_worked, approved, placement:placements!inner(project:projects(id, name), employer:employers(name), role_title)",
+      )
+      .eq("worker_id", worker.id)
+      .order("clock_in_at", { ascending: false })
+      .limit(1000),
   ]);
 
   const activePlacements =
@@ -34,7 +44,41 @@ export default async function WorkerDashboard() {
       id: string;
       role_title: string;
       employer: { name: string } | null;
+      project: { name: string } | null;
     }>) ?? [];
+
+  // Aggregate hours per project across all (approved + pending)
+  type EntryWithRel = {
+    hours_worked: number | null;
+    approved: boolean;
+    placement: {
+      project: { id: string; name: string } | null;
+      employer: { name: string } | null;
+      role_title: string;
+    } | null;
+  };
+  const projectAgg = new Map<
+    string,
+    { name: string; employer: string | null; approved: number; pending: number }
+  >();
+  for (const e of ((projectsRes.data as unknown as EntryWithRel[]) ?? [])) {
+    const proj = e.placement?.project;
+    const key = proj?.id ?? `noproject-${e.placement?.employer?.name ?? "—"}`;
+    const name = proj?.name ?? e.placement?.employer?.name ?? "Unassigned";
+    const row = projectAgg.get(key) ?? {
+      name,
+      employer: e.placement?.employer?.name ?? null,
+      approved: 0,
+      pending: 0,
+    };
+    const h = Number(e.hours_worked ?? 0);
+    if (e.approved) row.approved += h;
+    else row.pending += h;
+    projectAgg.set(key, row);
+  }
+  const myProjects = Array.from(projectAgg.values()).sort(
+    (a, b) => b.approved + b.pending - (a.approved + a.pending),
+  );
 
   const firstName = worker.full_name.split(" ")[0];
   const greeting = greetingKeyFor(new Date());
@@ -56,7 +100,36 @@ export default async function WorkerDashboard() {
         <ClockInPanel placements={activePlacements} locale={locale} />
       )}
 
-      <section className="grid gap-3 sm:grid-cols-3">
+      {/* Big earnings card */}
+      <section className="rounded-2xl border-2 border-green-500/30 bg-gradient-to-br from-green-500/10 to-emerald-500/5 p-6">
+        <div className="flex items-baseline justify-between">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wider text-green-700 dark:text-green-400">
+              <DollarSign className="inline h-3 w-3" /> Você ganhou esta semana
+            </p>
+            <p className="mt-2 font-mono text-4xl font-extrabold tabular-nums text-green-700 dark:text-green-400">
+              {fmtUsd(week.earnings)}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {fmtNum(week.hours, { decimals: 2 })} hrs trabalhadas
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="grid gap-3 sm:grid-cols-4">
+        <StatCard
+          icon={<CheckCircle2 className="h-4 w-4 text-green-600" />}
+          label="Dias trabalhados"
+          value={String(week.daysWorked)}
+          unit="esta semana"
+        />
+        <StatCard
+          icon={<XCircle className="h-4 w-4 text-red-500" />}
+          label="Dias não trabalhados"
+          value={String(week.daysMissed)}
+          unit="dias úteis"
+        />
         <StatCard
           icon={<Clock className="h-4 w-4" />}
           label={t(locale, "w.today.hours_week")}
@@ -64,16 +137,47 @@ export default async function WorkerDashboard() {
           unit="hrs"
         />
         <StatCard
-          icon={<Calendar className="h-4 w-4" />}
-          label={t(locale, "w.today.shifts_week")}
-          value={String(week.shifts.length)}
-        />
-        <StatCard
           icon={<TrendingUp className="h-4 w-4" />}
           label={t(locale, "w.today.active_placements")}
           value={String(activePlacements.length)}
         />
       </section>
+
+      {/* My projects with hours */}
+      {myProjects.length > 0 && (
+        <section className="rounded-xl border border-border bg-background p-5">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+            Meus projetos
+          </h2>
+          <ul className="mt-4 space-y-2">
+            {myProjects.map((p) => (
+              <li
+                key={p.name}
+                className="flex items-center justify-between rounded-lg border border-border bg-muted/20 px-4 py-3"
+              >
+                <div className="min-w-0">
+                  <div className="truncate font-medium">{p.name}</div>
+                  {p.employer && (
+                    <div className="truncate text-xs text-muted-foreground">
+                      {p.employer}
+                    </div>
+                  )}
+                </div>
+                <div className="text-right">
+                  <div className="font-mono text-sm font-bold tabular-nums">
+                    {fmtNum(p.approved, { decimals: 2 })} hrs
+                  </div>
+                  {p.pending > 0 && (
+                    <div className="text-[10px] text-amber-600 dark:text-amber-400">
+                      +{fmtNum(p.pending, { decimals: 2 })} pendente
+                    </div>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {week.shifts.length > 0 && (
         <section className="rounded-xl border border-border bg-background p-5">

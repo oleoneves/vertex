@@ -122,6 +122,9 @@ export type Placement = {
   start_date: string;
   end_date: string | null;
   status: PlacementStatus;
+  max_hours_per_day: number | null;
+  earliest_clock_in: string | null;
+  latest_clock_out: string | null;
   notes: string | null;
   created_at: string;
 };
