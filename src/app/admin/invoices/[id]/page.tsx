@@ -186,6 +186,12 @@ export default async function InvoiceDetailPage({
           >
             {t(locale, "a.inv.preview")}
           </a>
+          <Link
+            href={`/admin/invoices/${inv.id}/edit`}
+            className="inline-flex items-center gap-1 rounded-md border border-accent bg-accent/10 px-3 py-1.5 text-sm font-bold text-accent hover:bg-accent/20"
+          >
+            ✎ Edit
+          </Link>
           <SendInvoiceButton
             invoiceId={inv.id}
             billingEmail={billingEmail}

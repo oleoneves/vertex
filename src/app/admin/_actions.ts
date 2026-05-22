@@ -376,3 +376,118 @@ export async function deleteEmployerContact(formData: FormData) {
   await supabase.from("employer_contacts").delete().eq("id", id);
   revalidatePath(`/admin/employers/${employer_id}`);
 }
+
+// ============ Invoices (editable) ============
+
+export async function updateInvoiceMeta(formData: FormData) {
+  const id = String(formData.get("id"));
+  const supabase = await getSupabaseServer();
+  const payload = {
+    period_start: String(formData.get("period_start") || ""),
+    period_end: String(formData.get("period_end") || ""),
+    due_date: String(formData.get("due_date") || "") || null,
+    tax: Number(formData.get("tax")) || 0,
+    notes: String(formData.get("notes") || "") || null,
+  };
+  if (!payload.period_start || !payload.period_end) {
+    throw new Error("Period start and end are required");
+  }
+  const { error } = await supabase.from("invoices").update(payload).eq("id", id);
+  if (error) throw new Error(error.message);
+  await recomputeInvoiceTotal(id);
+  revalidatePath(`/admin/invoices/${id}`);
+}
+
+export async function updateInvoiceLine(formData: FormData) {
+  const id = String(formData.get("id"));
+  const invoice_id = String(formData.get("invoice_id"));
+  const supabase = await getSupabaseServer();
+  const hours = Number(formData.get("hours")) || 0;
+  const rate = Number(formData.get("rate")) || 0;
+  const amountInput = formData.get("amount");
+  const amount =
+    amountInput !== null && amountInput !== ""
+      ? Number(amountInput) || 0
+      : Number((hours * rate).toFixed(2));
+  const payload = {
+    description: String(formData.get("description") || ""),
+    hours,
+    rate,
+    amount,
+    unit: String(formData.get("unit") || "") || null,
+  };
+  const { error } = await supabase
+    .from("invoice_line_items")
+    .update(payload)
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+  await recomputeInvoiceTotal(invoice_id);
+  revalidatePath(`/admin/invoices/${invoice_id}`);
+}
+
+export async function addInvoiceLine(formData: FormData) {
+  const invoice_id = String(formData.get("invoice_id"));
+  const supabase = await getSupabaseServer();
+  const hours = Number(formData.get("hours")) || 0;
+  const rate = Number(formData.get("rate")) || 0;
+  const amountInput = formData.get("amount");
+  const amount =
+    amountInput !== null && amountInput !== ""
+      ? Number(amountInput) || 0
+      : Number((hours * rate).toFixed(2));
+  const kindRaw = String(formData.get("kind") || "labor");
+  const allowedKinds = ["labor", "per_diem", "travel", "hotel", "other"] as const;
+  const kind = (allowedKinds as readonly string[]).includes(kindRaw)
+    ? kindRaw
+    : "other";
+  const payload = {
+    invoice_id,
+    kind,
+    description: String(formData.get("description") || ""),
+    hours,
+    rate,
+    amount,
+    unit: String(formData.get("unit") || "") || null,
+    worker_id: null,
+    placement_id: null,
+  };
+  const { error } = await supabase.from("invoice_line_items").insert(payload);
+  if (error) throw new Error(error.message);
+  await recomputeInvoiceTotal(invoice_id);
+  revalidatePath(`/admin/invoices/${invoice_id}`);
+}
+
+export async function deleteInvoiceLine(formData: FormData) {
+  const id = String(formData.get("id"));
+  const invoice_id = String(formData.get("invoice_id"));
+  const supabase = await getSupabaseServer();
+  await supabase.from("invoice_line_items").delete().eq("id", id);
+  await recomputeInvoiceTotal(invoice_id);
+  revalidatePath(`/admin/invoices/${invoice_id}`);
+}
+
+async function recomputeInvoiceTotal(invoiceId: string) {
+  const supabase = await getSupabaseServer();
+  const { data: lines } = await supabase
+    .from("invoice_line_items")
+    .select("amount")
+    .eq("invoice_id", invoiceId);
+  const subtotal = (lines ?? []).reduce(
+    (s: number, l: { amount: number | string }) => s + Number(l.amount ?? 0),
+    0,
+  );
+  const { data: inv } = await supabase
+    .from("invoices")
+    .select("tax")
+    .eq("id", invoiceId)
+    .single();
+  const tax = Number(inv?.tax ?? 0);
+  const total = subtotal + tax;
+  await supabase
+    .from("invoices")
+    .update({
+      subtotal: Number(subtotal.toFixed(2)),
+      total: Number(total.toFixed(2)),
+    })
+    .eq("id", invoiceId);
+}

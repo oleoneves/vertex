@@ -188,15 +188,19 @@ export type Invoice = {
   created_at: string;
 };
 
+export type InvoiceLineKind = "labor" | "per_diem" | "travel" | "hotel" | "other";
+
 export type InvoiceLineItem = {
   id: string;
   invoice_id: string;
-  worker_id: string;
+  worker_id: string | null;
   placement_id: string | null;
   description: string;
   hours: number;
   rate: number;
   amount: number;
+  kind: InvoiceLineKind;
+  unit: string | null;
 };
 
 export type Payment = {

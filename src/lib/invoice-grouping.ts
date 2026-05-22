@@ -1,4 +1,4 @@
-import type { InvoiceLineItem } from "@/types/db";
+import type { InvoiceLineItem, InvoiceLineKind } from "@/types/db";
 
 export type InvoiceCategoryKey = "labor" | "per_diem" | "travel" | "hotel";
 
@@ -29,6 +29,43 @@ function fmtNumber(n: number, decimals = 0): string {
   });
 }
 
+function aggregateNonLabor(
+  lines: InvoiceLineItem[],
+  kind: Extract<InvoiceLineKind, "per_diem" | "travel" | "hotel">,
+  label: string,
+  defaultUnit: string,
+): InvoiceCategoryRow {
+  const matches = lines.filter((l) => l.kind === kind);
+  if (matches.length === 0) {
+    return {
+      key: kind,
+      label,
+      description: "—",
+      qtyText: "—",
+      rateText: "—",
+      amount: 0,
+      hasData: false,
+    };
+  }
+  const totalQty = matches.reduce((s, l) => s + Number(l.hours ?? 0), 0);
+  const totalAmount = matches.reduce((s, l) => s + Number(l.amount ?? 0), 0);
+  const avgRate = totalQty > 0 ? totalAmount / totalQty : 0;
+  const unit = matches[0]?.unit || defaultUnit;
+  const description =
+    matches.length === 1
+      ? matches[0].description
+      : `${matches.length} entries`;
+  return {
+    key: kind,
+    label,
+    description,
+    qtyText: totalQty > 0 ? `${fmtNumber(totalQty, 2)} ${unit}` : "—",
+    rateText: avgRate > 0 ? `${fmtUsd(avgRate)}/${unit.replace(/s$/, "")}` : "—",
+    amount: totalAmount,
+    hasData: true,
+  };
+}
+
 export function groupInvoiceLines(
   lines: InvoiceLineItem[],
   periodStart: string,
@@ -36,8 +73,10 @@ export function groupInvoiceLines(
 ): InvoiceCategoryRow[] {
   const days = daysBetween(periodStart, periodEnd);
 
-  const laborLines = lines.filter((l) => Number(l.hours) > 0);
-  const people = new Set(laborLines.map((l) => l.worker_id)).size;
+  const laborLines = lines.filter(
+    (l) => (l.kind ?? "labor") === "labor" && Number(l.hours) > 0,
+  );
+  const people = new Set(laborLines.map((l) => l.worker_id ?? l.id)).size;
   const totalHours = laborLines.reduce((s, l) => s + Number(l.hours), 0);
   const totalLabor = laborLines.reduce((s, l) => s + Number(l.amount), 0);
   const avgRate = totalHours > 0 ? totalLabor / totalHours : 0;
@@ -55,20 +94,10 @@ export function groupInvoiceLines(
     hasData: laborLines.length > 0,
   };
 
-  const placeholder = (key: InvoiceCategoryKey, label: string): InvoiceCategoryRow => ({
-    key,
-    label,
-    description: "—",
-    qtyText: "—",
-    rateText: "—",
-    amount: 0,
-    hasData: false,
-  });
-
   return [
     labor,
-    placeholder("per_diem", "Per Diem"),
-    placeholder("travel", "Travel Time"),
-    placeholder("hotel", "Hotel"),
+    aggregateNonLabor(lines, "per_diem", "Per Diem", "days"),
+    aggregateNonLabor(lines, "travel", "Travel Time", "hrs"),
+    aggregateNonLabor(lines, "hotel", "Hotel", "nights"),
   ];
 }

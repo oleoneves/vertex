@@ -824,6 +824,8 @@ export function demoInvoiceDetail(id: string): DemoInvoiceDetail | null {
       hours: laborHours,
       rate: billRate,
       amount: laborAmount,
+      kind: "labor",
+      unit: null,
       worker: null,
     });
     lines.push({
@@ -835,6 +837,8 @@ export function demoInvoiceDetail(id: string): DemoInvoiceDetail | null {
       hours: travelHours,
       rate: billRate,
       amount: travelAmount,
+      kind: "travel",
+      unit: "hrs",
       worker: null,
     });
     lines.push({
@@ -846,6 +850,8 @@ export function demoInvoiceDetail(id: string): DemoInvoiceDetail | null {
       hours: perDiemDays,
       rate: perDiemRate,
       amount: perDiemAmount,
+      kind: "per_diem",
+      unit: "days",
       worker: null,
     });
   } else {
@@ -860,6 +866,8 @@ export function demoInvoiceDetail(id: string): DemoInvoiceDetail | null {
       hours,
       rate: billRate,
       amount: subtotal,
+      kind: "labor",
+      unit: null,
       worker: null,
     });
   }
