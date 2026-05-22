@@ -1234,11 +1234,11 @@ export function demoReports() {
       };
     }),
     byProjectManager: [
-      { project_manager: "Mark Hollister",  employer: "Sunbelt Industrial Group", invoice_count: 5, revenue: 88200 },
-      { project_manager: "Patricia Reyes",   employer: "Hilton Orlando",           invoice_count: 4, revenue: 38500 },
-      { project_manager: "Daniela Cardoso",  employer: "Restoration Pro USA",      invoice_count: 3, revenue: 31200 },
-      { project_manager: "Marcus Bell",      employer: "ClearWave Facility Services", invoice_count: 3, revenue: 26100 },
-      { project_manager: "Sam Ortiz",        employer: "Westlake Builders",        invoice_count: 2, revenue: 14800 },
+      { project_manager: "Mark Hollister",   employer: "Sunbelt Industrial Group",     invoice_count: 5, revenue: 88200, cost: 52920, margin: 35280 },
+      { project_manager: "Patricia Reyes",    employer: "Hilton Orlando",               invoice_count: 4, revenue: 38500, cost: 23100, margin: 15400 },
+      { project_manager: "Daniela Cardoso",   employer: "Restoration Pro USA",          invoice_count: 3, revenue: 31200, cost: 18720, margin: 12480 },
+      { project_manager: "Marcus Bell",       employer: "ClearWave Facility Services",  invoice_count: 3, revenue: 26100, cost: 15660, margin: 10440 },
+      { project_manager: "Sam Ortiz",         employer: "Westlake Builders",            invoice_count: 2, revenue: 14800, cost: 8880,  margin: 5920 },
     ],
     totals: total,
   };

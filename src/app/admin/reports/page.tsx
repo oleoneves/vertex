@@ -56,17 +56,18 @@ export default async function ReportsPage({
   const prev = r.monthly[r.monthly.length - 2];
   const marginDelta = last && prev ? last.margin - prev.margin : 0;
 
-  // Use the richer monthlyRevenue from demo when available, else fallback to reports.monthly
+  // Charts respect the selected period filter — always use r.monthly (which is windowed)
+  // unless r.monthly is empty AND dashboard has its own 6mo series (legacy fallback).
   const monthly =
-    dash.monthlyRevenue.length > 0
-      ? dash.monthlyRevenue
-      : r.monthly.map((m) => ({
+    r.monthly.length > 0
+      ? r.monthly.map((m) => ({
           month: m.month,
           label: monthLabel(m.month),
           revenue: m.revenue,
           cost: m.cost,
           margin: m.margin,
-        }));
+        }))
+      : dash.monthlyRevenue;
 
   return (
     <div className="space-y-8">
@@ -265,13 +266,13 @@ export default async function ReportsPage({
         )}
       </section>
 
-      {/* Top project managers (by employer) */}
+      {/* Top 10 project managers (by employer) */}
       <section className="rounded-xl border border-border bg-background p-5">
         <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-muted-foreground">
-          <TrendingUp className="h-4 w-4" /> Top project managers
+          <TrendingUp className="h-4 w-4" /> Top 10 project managers
         </h2>
         <p className="mt-1 text-xs text-muted-foreground">
-          Which contact at each contractor drove the most work + revenue in the selected period.
+          Ranked by total invoice value in the selected period. Margin = invoice value − estimated labor cost (uses the employer's pay/bill ratio).
         </p>
         {r.byProjectManager.length === 0 ? (
           <p className="mt-4 rounded-md border border-dashed border-border bg-muted/30 px-4 py-6 text-center text-xs text-muted-foreground">
@@ -282,20 +283,32 @@ export default async function ReportsPage({
           <table className="mt-4 w-full text-sm">
             <thead className="text-left text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
               <tr>
+                <th className="pb-2">#</th>
                 <th className="pb-2">Project manager</th>
                 <th className="pb-2">Employer</th>
                 <th className="pb-2 text-right">Invoices</th>
-                <th className="pb-2 text-right">Revenue billed</th>
+                <th className="pb-2 text-right">Total invoiced</th>
+                <th className="pb-2 text-right">Est. cost</th>
+                <th className="pb-2 text-right">Vertex margin</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/60">
-              {r.byProjectManager.map((p) => (
+              {r.byProjectManager.slice(0, 10).map((p, i) => (
                 <tr key={`${p.employer}-${p.project_manager}`}>
+                  <td className="py-2 text-xs font-mono text-muted-foreground tabular-nums">
+                    {String(i + 1).padStart(2, "0")}
+                  </td>
                   <td className="py-2 font-medium">{p.project_manager}</td>
                   <td className="py-2 text-muted-foreground">{p.employer}</td>
                   <td className="py-2 text-right font-mono tabular-nums">{p.invoice_count}</td>
-                  <td className="py-2 text-right font-mono tabular-nums font-bold text-accent">
+                  <td className="py-2 text-right font-mono tabular-nums font-bold">
                     {fmtUsd(p.revenue)}
+                  </td>
+                  <td className="py-2 text-right font-mono tabular-nums text-muted-foreground">
+                    {fmtUsd(p.cost)}
+                  </td>
+                  <td className="py-2 text-right font-mono tabular-nums font-bold text-accent">
+                    {fmtUsd(p.margin)}
                   </td>
                 </tr>
               ))}

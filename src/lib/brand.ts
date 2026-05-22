@@ -6,8 +6,8 @@ export const brand = {
     es: "Servicios de restauración y recuperación",
     pt: "Serviços de restauração e recuperação",
   },
-  domain: "vertexlaborservice.com",
-  supportEmail: "hello@vertexlaborservice.com",
+  domain: "vertexrestoration.us",
+  supportEmail: "hello@vertexrestoration.us",
   colors: {
     primary: "#1F2A3D",        // navy
     accent: "#EDB23E",         // amber/yellow

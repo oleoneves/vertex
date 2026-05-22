@@ -31,6 +31,8 @@ export type ByProjectManagerRow = {
   employer: string;
   invoice_count: number;
   revenue: number;
+  cost: number;
+  margin: number;
 };
 
 export type ReportsData = {
@@ -148,6 +150,7 @@ export async function loadReports(opts: { months?: number } = {}): Promise<Repor
   );
 
   // Project managers (from invoices in the same window, status != void)
+  // Cost per invoice is estimated as invoice.total × (employer.cost / employer.revenue) using the byEmployer rollup.
   type InvRow = {
     project_manager: string | null;
     total: number | string;
@@ -163,15 +166,24 @@ export async function loadReports(opts: { months?: number } = {}): Promise<Repor
   for (const inv of ((invsRaw as unknown as InvRow[]) ?? [])) {
     if (!inv.project_manager) continue;
     const employer = inv.employer?.name ?? "—";
+    const empAgg = empMap.get(employer);
+    const costRatio =
+      empAgg && empAgg.revenue > 0 ? empAgg.cost / empAgg.revenue : 0.6; // 60% cost as fallback
+    const invTotal = Number(inv.total ?? 0);
+    const invCost = invTotal * costRatio;
     const key = `${employer}|${inv.project_manager}`;
     const row = pmMap.get(key) ?? {
       project_manager: inv.project_manager,
       employer,
       invoice_count: 0,
       revenue: 0,
+      cost: 0,
+      margin: 0,
     };
     row.invoice_count += 1;
-    row.revenue += Number(inv.total ?? 0);
+    row.revenue += invTotal;
+    row.cost += invCost;
+    row.margin = row.revenue - row.cost;
     pmMap.set(key, row);
   }
 
