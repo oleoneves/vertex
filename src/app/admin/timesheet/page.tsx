@@ -1,4 +1,4 @@
-import { Clock } from "lucide-react";
+import { Clock, Trash2 } from "lucide-react";
 import { revalidatePath } from "next/cache";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { listTimeEntries } from "@/lib/workforce";
@@ -8,6 +8,8 @@ import { DataTable, Th, Tr, Td, StatusPill } from "../_components/data-table";
 import { FilterBar } from "../_components/filter-bar";
 import { fmtHours, fmtNum } from "@/lib/format";
 import { Heatmap, CHART_COLORS } from "../../_components/charts";
+import { updateTimeEntry, deleteTimeEntry } from "../_actions";
+import { PrintButton } from "../_components/print-button";
 
 import { t } from "@/lib/i18n";
 import { getLocale } from "@/lib/i18n-server";
@@ -72,6 +74,18 @@ export default async function TimesheetPage({
 
   return (
     <div>
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+            @media print {
+              .no-print, nav, aside, header, .print-hide { display: none !important; }
+              body { background: white !important; }
+              input[type="time"], input[type="number"] { border: none !important; background: transparent !important; padding: 0 !important; }
+              button { display: none !important; }
+            }
+          `,
+        }}
+      />
       <PageHeader
         title={t(locale, "a.timesheet.title")}
         subtitle={t(locale, "a.timesheet.subtitle")}
@@ -82,6 +96,7 @@ export default async function TimesheetPage({
             {pending} pending
           </span>
         )}
+        <PrintButton />
       </PageHeader>
 
       <FilterBar
@@ -130,41 +145,52 @@ export default async function TimesheetPage({
           body={t(locale, "a.table.adjust_filter")}
         />
       ) : (
-        <form action={bulkApprove}>
-          {approvable.length > 0 && (
-            <div className="mb-3 flex items-center justify-between gap-3 rounded-lg border border-dashed border-accent/40 bg-accent/5 px-3 py-2 text-sm">
-              <span className="text-muted-foreground">
-                Select rows to approve in bulk.
-              </span>
-              <button
-                type="submit"
-                className="inline-flex h-8 items-center rounded-md bg-accent px-3 text-xs font-bold text-accent-foreground hover:opacity-90"
-              >
-                Approve selected
-              </button>
-            </div>
-          )}
+        <>
+          <form id="bulk-approve-form" action={bulkApprove} className="no-print">
+            {approvable.length > 0 && (
+              <div className="mb-3 flex items-center justify-between gap-3 rounded-lg border border-dashed border-accent/40 bg-accent/5 px-3 py-2 text-sm">
+                <span className="text-muted-foreground">
+                  Select rows to approve in bulk.
+                </span>
+                <button
+                  type="submit"
+                  className="inline-flex h-8 items-center rounded-md bg-accent px-3 text-xs font-bold text-accent-foreground hover:opacity-90"
+                >
+                  Approve selected
+                </button>
+              </div>
+            )}
+          </form>
           <DataTable
             head={
               <>
-                <Th className="w-8"></Th>
+                <Th className="w-8 no-print"></Th>
                 <Th>{t(locale, "a.col.worker")}</Th>
                 <Th>{t(locale, "a.col.placement")}</Th>
-                <Th>{t(locale, "a.col.clock_in")}</Th>
-                <Th>{t(locale, "a.col.clock_out")}</Th>
+                <Th>Date</Th>
+                <Th>{t(locale, "a.col.clock_in")} → {t(locale, "a.col.clock_out")}</Th>
                 <Th className="text-right">{t(locale, "a.col.hours")}</Th>
                 <Th>{t(locale, "a.filter.status")}</Th>
+                <Th className="no-print"></Th>
               </>
             }
           >
             {filtered.map((e) => {
               const canApprove = !e.approved && e.clock_out_at;
+              const inDate = new Date(e.clock_in_at);
+              const dateIso = inDate.toISOString().slice(0, 10);
+              const fmtTime = (iso: string | null) => {
+                if (!iso) return "";
+                const d = new Date(iso);
+                return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+              };
               return (
                 <Tr key={e.id}>
-                  <Td>
+                  <Td className="no-print">
                     {canApprove ? (
                       <input
                         type="checkbox"
+                        form="bulk-approve-form"
                         name="ids"
                         value={e.id}
                         aria-label="Select to approve"
@@ -176,13 +202,46 @@ export default async function TimesheetPage({
                   <Td className="text-xs text-muted-foreground">
                     {e.placement?.employer?.name} — {e.placement?.role_title}
                   </Td>
-                  <Td className="text-xs">{new Date(e.clock_in_at).toLocaleString()}</Td>
-                  <Td className="text-xs">
-                    {e.clock_out_at ? (
-                      new Date(e.clock_out_at).toLocaleString()
-                    ) : (
-                      <StatusPill status="open" variant="blue" />
-                    )}
+                  <Td className="text-xs tabular-nums">
+                    {inDate.toLocaleDateString("en-US", { month: "short", day: "2-digit" })}
+                  </Td>
+                  <Td>
+                    <form
+                      action={updateTimeEntry}
+                      className="flex items-center gap-1.5"
+                    >
+                      <input type="hidden" name="id" value={e.id} />
+                      <input type="hidden" name="date" value={dateIso} />
+                      <input
+                        type="time"
+                        name="clock_in"
+                        defaultValue={fmtTime(e.clock_in_at)}
+                        className="w-20 rounded border border-border bg-background px-1.5 py-0.5 font-mono text-xs tabular-nums"
+                      />
+                      <span className="text-muted-foreground">→</span>
+                      <input
+                        type="time"
+                        name="clock_out"
+                        defaultValue={fmtTime(e.clock_out_at)}
+                        className="w-20 rounded border border-border bg-background px-1.5 py-0.5 font-mono text-xs tabular-nums"
+                      />
+                      <input
+                        type="number"
+                        name="break_minutes"
+                        defaultValue={e.break_minutes ?? 0}
+                        min="0"
+                        step="5"
+                        placeholder="brk"
+                        title="Break (minutes)"
+                        className="w-12 rounded border border-border bg-background px-1 py-0.5 text-right font-mono text-xs tabular-nums"
+                      />
+                      <button
+                        type="submit"
+                        className="no-print rounded bg-foreground px-2 py-0.5 text-[10px] font-bold text-background hover:opacity-80"
+                      >
+                        Save
+                      </button>
+                    </form>
                   </Td>
                   <Td className="text-right font-mono tabular-nums">
                     {e.hours_worked != null ? Number(e.hours_worked).toFixed(2) : "—"}
@@ -196,11 +255,23 @@ export default async function TimesheetPage({
                       <span className="text-muted-foreground">—</span>
                     )}
                   </Td>
+                  <Td className="no-print">
+                    <form action={deleteTimeEntry}>
+                      <input type="hidden" name="id" value={e.id} />
+                      <button
+                        type="submit"
+                        aria-label="Delete entry"
+                        className="text-muted-foreground hover:text-red-500"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </form>
+                  </Td>
                 </Tr>
               );
             })}
           </DataTable>
-        </form>
+        </>
       )}
     </div>
   );

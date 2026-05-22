@@ -572,6 +572,7 @@ export async function updateTimeEntry(formData: FormData) {
     revalidatePath(`/admin/employers/${employer_id}/weekly`);
     if (week) revalidatePath(`/admin/employers/${employer_id}/weekly?week=${week}`);
   }
+  revalidatePath("/admin/timesheet");
 }
 
 export async function deleteTimeEntry(formData: FormData) {
@@ -580,4 +581,5 @@ export async function deleteTimeEntry(formData: FormData) {
   const supabase = await getSupabaseServer();
   await supabase.from("time_entries").delete().eq("id", id);
   if (employer_id) revalidatePath(`/admin/employers/${employer_id}/weekly`);
+  revalidatePath("/admin/timesheet");
 }
