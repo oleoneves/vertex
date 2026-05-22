@@ -9,6 +9,8 @@ import {
   FormTextarea,
   FormActions,
 } from "../../_components/form";
+import { t } from "@/lib/i18n";
+import { getLocale } from "@/lib/i18n-server";
 
 async function createWorker(formData: FormData) {
   "use server";
@@ -31,12 +33,13 @@ async function createWorker(formData: FormData) {
   redirect("/admin/workers");
 }
 
-export default function NewWorkerPage() {
+export default async function NewWorkerPage() {
+  const locale = await getLocale();
   return (
     <div>
       <PageHeader
-        title="New worker"
-        subtitle="Add a hired labor to the workforce roster."
+        title={t(locale, "a.new.worker.title")}
+        subtitle={t(locale, "a.new.worker.subtitle")}
       />
       <form action={createWorker} className="space-y-6">
         <FormSection title="Identity" description="How we'll address and identify this worker.">

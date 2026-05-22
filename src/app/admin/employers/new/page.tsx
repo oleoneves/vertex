@@ -8,6 +8,8 @@ import {
   FormTextarea,
   FormActions,
 } from "../../_components/form";
+import { t } from "@/lib/i18n";
+import { getLocale } from "@/lib/i18n-server";
 
 async function createEmployer(formData: FormData) {
   "use server";
@@ -32,12 +34,13 @@ async function createEmployer(formData: FormData) {
   redirect("/admin/employers");
 }
 
-export default function NewEmployerPage() {
+export default async function NewEmployerPage() {
+  const locale = await getLocale();
   return (
     <div>
       <PageHeader
-        title="New employer"
-        subtitle="Company that hires labors through Vertex."
+        title={t(locale, "a.new.employer.title")}
+        subtitle={t(locale, "a.new.employer.subtitle")}
       />
       <form action={createEmployer} className="space-y-6">
         <FormSection title="Company" description="Identification and primary contact.">

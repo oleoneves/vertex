@@ -3,6 +3,8 @@ import { getSupabaseServer } from "@/lib/supabase/server";
 import { listEmployers, listWorkers } from "@/lib/workforce";
 import { listProjects } from "@/lib/projects";
 import { PageHeader } from "../../_components/page-header";
+import { t } from "@/lib/i18n";
+import { getLocale } from "@/lib/i18n-server";
 import {
   FormSection,
   FormGrid,
@@ -33,16 +35,17 @@ async function createPlacement(formData: FormData) {
 }
 
 export default async function NewPlacementPage() {
-  const [workers, employers, projects] = await Promise.all([
+  const [workers, employers, projects, locale] = await Promise.all([
     listWorkers(),
     listEmployers(),
     listProjects(),
+    getLocale(),
   ]);
   return (
     <div>
       <PageHeader
-        title="New placement"
-        subtitle="Assign a worker to an employer (and optional project) with pay and bill rates."
+        title={t(locale, "a.new.placement.title")}
+        subtitle={t(locale, "a.new.placement.subtitle")}
       />
       <form action={createPlacement} className="space-y-6">
         <FormSection title="Assignment">

@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { listEmployers } from "@/lib/workforce";
 import { PageHeader } from "../../_components/page-header";
+import { t } from "@/lib/i18n";
+import { getLocale } from "@/lib/i18n-server";
 import {
   FormSection,
   FormGrid,
@@ -41,12 +43,12 @@ async function createProject(formData: FormData) {
 }
 
 export default async function NewProjectPage() {
-  const employers = await listEmployers();
+  const [employers, locale] = await Promise.all([listEmployers(), getLocale()]);
   return (
     <div>
       <PageHeader
-        title="New project"
-        subtitle="Define the engagement so you can roll up workers, hours, and margin."
+        title={t(locale, "a.new.project.title")}
+        subtitle={t(locale, "a.new.project.subtitle")}
       />
       <form action={createProject} className="space-y-6">
         <FormSection title="Basics">
