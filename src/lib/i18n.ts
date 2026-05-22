@@ -460,6 +460,12 @@ const dict = {
 
   // Common filter labels
   "a.filter.status":        { en: "Status",         es: "Estado",         pt: "Status" },
+  "a.filter.period":        { en: "Period",         es: "Período",        pt: "Período" },
+  "a.period.7d":            { en: "Last 7 days",    es: "Últimos 7 días", pt: "Últimos 7 dias" },
+  "a.period.30d":           { en: "Last 30 days",   es: "Últimos 30 días",pt: "Últimos 30 dias" },
+  "a.period.this_week":     { en: "This week",      es: "Esta semana",    pt: "Esta semana" },
+  "a.period.this_month":    { en: "This month",     es: "Este mes",       pt: "Este mês" },
+  "a.period.all":           { en: "All time",       es: "Todo",           pt: "Tudo" },
   "a.filter.all":           { en: "All",            es: "Todos",          pt: "Todos" },
   "a.filter.pending_only":  { en: "Pending only",   es: "Solo pendientes", pt: "Apenas pendentes" },
   "a.filter.open":          { en: "Open (in progress)", es: "Abierto (en curso)", pt: "Aberto (em andamento)" },

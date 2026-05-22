@@ -24,27 +24,71 @@ type Row = {
   job: { title: string; slug: string } | null;
 };
 
+type RangeKey = "7d" | "30d" | "this_week" | "this_month" | "all";
+
+function rangeStart(range: RangeKey): Date | null {
+  const now = new Date();
+  if (range === "7d") {
+    const d = new Date(now);
+    d.setDate(d.getDate() - 7);
+    return d;
+  }
+  if (range === "30d") {
+    const d = new Date(now);
+    d.setDate(d.getDate() - 30);
+    return d;
+  }
+  if (range === "this_week") {
+    const d = new Date(now);
+    const dow = d.getDay(); // 0 = Sun
+    const monOffset = (dow + 6) % 7;
+    d.setDate(d.getDate() - monOffset);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }
+  if (range === "this_month") {
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+  }
+  return null;
+}
+
 export default async function ApplicationsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; q?: string }>;
+  searchParams: Promise<{ status?: string; q?: string; range?: string }>;
 }) {
   const locale = await getLocale();
   const sp = await searchParams;
+  const range: RangeKey = (
+    ["7d", "30d", "this_week", "this_month", "all"] as const
+  ).includes(sp.range as RangeKey)
+    ? (sp.range as RangeKey)
+    : "all";
   const apps = await load(sp);
   // Unfiltered view for the funnel (always pulls the full set)
   const allApps = await load({});
+  const since = rangeStart(range);
+  const rangedApps = since
+    ? allApps.filter((a) => new Date(a.created_at) >= since)
+    : allApps;
   const byStatus = {
-    new: allApps.filter((a) => a.status === "new").length,
-    reviewing: allApps.filter((a) => a.status === "reviewing").length,
-    accepted: allApps.filter((a) => a.status === "accepted").length,
-    rejected: allApps.filter((a) => a.status === "rejected").length,
+    new: rangedApps.filter((a) => a.status === "new").length,
+    reviewing: rangedApps.filter((a) => a.status === "reviewing").length,
+    accepted: rangedApps.filter((a) => a.status === "accepted").length,
+    rejected: rangedApps.filter((a) => a.status === "rejected").length,
   };
   const funnelData = [
-    { label: t(locale, "a.applications.applied"), value: allApps.length, color: CHART_COLORS.blue, href: "/admin/applications" },
+    { label: t(locale, "a.applications.applied"), value: rangedApps.length, color: CHART_COLORS.blue, href: "/admin/applications" },
     { label: t(locale, "a.applications.reviewing"), value: byStatus.reviewing + byStatus.accepted, color: CHART_COLORS.amber, href: "/admin/applications?status=reviewing" },
     { label: t(locale, "a.applications.accepted"), value: byStatus.accepted, color: CHART_COLORS.green, href: "/admin/applications?status=accepted" },
   ];
+  const rangeLabel: Record<RangeKey, string> = {
+    "7d": t(locale, "a.period.7d"),
+    "30d": t(locale, "a.period.30d"),
+    this_week: t(locale, "a.period.this_week"),
+    this_month: t(locale, "a.period.this_month"),
+    all: t(locale, "a.period.all"),
+  };
 
   return (
     <div>
@@ -58,9 +102,14 @@ export default async function ApplicationsPage({
       {allApps.length > 0 && (
         <section className="mb-6 grid gap-4 lg:grid-cols-2">
           <div className="rounded-xl border border-border bg-background p-5">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              {t(locale, "a.applications.funnel")}
-            </h2>
+            <div className="flex items-baseline justify-between">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                {t(locale, "a.applications.funnel")}
+              </h2>
+              <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                {rangeLabel[range]}
+              </span>
+            </div>
             <div className="mt-4 text-foreground">
               <FunnelChart
                 data={funnelData}
@@ -69,9 +118,14 @@ export default async function ApplicationsPage({
             </div>
           </div>
           <div className="rounded-xl border border-border bg-background p-5">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              {t(locale, "a.applications.by_status")}
-            </h2>
+            <div className="flex items-baseline justify-between">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                {t(locale, "a.applications.by_status")}
+              </h2>
+              <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                {rangeLabel[range]}
+              </span>
+            </div>
             <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
               <StatusCount label={t(locale, "a.applications.new")} value={byStatus.new} color="blue" />
               <StatusCount label={t(locale, "a.applications.reviewing")} value={byStatus.reviewing} color="amber" />
@@ -83,9 +137,9 @@ export default async function ApplicationsPage({
                 <>
                   {t(locale, "a.applications.hire_rate")}:{" "}
                   <strong className="text-foreground">
-                    {Math.round((byStatus.accepted / allApps.length) * 100)}%
+                    {Math.round((byStatus.accepted / rangedApps.length) * 100)}%
                   </strong>{" "}
-                  ({byStatus.accepted} / {allApps.length})
+                  ({byStatus.accepted} / {rangedApps.length})
                 </>
               )}
             </p>
@@ -106,6 +160,18 @@ export default async function ApplicationsPage({
               { value: "reviewing", label: t(locale, "a.applications.reviewing") },
               { value: "accepted", label: t(locale, "a.applications.accepted") },
               { value: "rejected", label: t(locale, "a.applications.rejected") },
+            ],
+          },
+          {
+            name: "range",
+            label: t(locale, "a.filter.period"),
+            value: range,
+            options: [
+              { value: "7d", label: t(locale, "a.period.7d") },
+              { value: "this_week", label: t(locale, "a.period.this_week") },
+              { value: "30d", label: t(locale, "a.period.30d") },
+              { value: "this_month", label: t(locale, "a.period.this_month") },
+              { value: "all", label: t(locale, "a.period.all") },
             ],
           },
         ]}
