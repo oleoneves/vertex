@@ -171,7 +171,18 @@ export default async function EditInvoicePage({
               </span>
             </div>
 
-            <div className="mt-3 space-y-2">
+            {/* Column header labels — what each field means */}
+            <div className="mt-3 hidden grid-cols-12 gap-2 px-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground sm:grid">
+              <div className="col-span-5">Description</div>
+              <div className="col-span-2">
+                Qty {k.value === "labor" ? "(hrs)" : k.value === "per_diem" ? "(days)" : k.value === "hotel" ? "(nights)" : k.value === "travel" ? "(hrs)" : ""}
+              </div>
+              <div className="col-span-1">Unit</div>
+              <div className="col-span-2">Rate ($)</div>
+              <div className="col-span-2">Amount ($)</div>
+            </div>
+
+            <div className="mt-2 space-y-2">
               {(linesByKind[k.value] ?? []).map((l) => (
                 <form
                   key={l.id}

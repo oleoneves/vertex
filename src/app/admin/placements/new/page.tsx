@@ -75,7 +75,17 @@ export default async function NewPlacementPage() {
               }))}
               hint="Group this placement under a project to roll up budget and reporting."
             />
-            <FormField label="Role title" name="role_title" required span2 />
+            <FormSelect
+              label="Role"
+              name="role_title"
+              required
+              span2
+              options={[
+                { value: "Skilled Labor", label: "Skilled Labor" },
+                { value: "Unskilled Labor", label: "Unskilled Labor" },
+                { value: "Supervisor", label: "Supervisor" },
+              ]}
+            />
           </FormGrid>
         </FormSection>
 
