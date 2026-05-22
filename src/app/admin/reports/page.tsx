@@ -266,14 +266,19 @@ export default async function ReportsPage({
       </section>
 
       {/* Top project managers (by employer) */}
-      {r.byProjectManager.length > 0 && (
-        <section className="rounded-xl border border-border bg-background p-5">
-          <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-muted-foreground">
-            <TrendingUp className="h-4 w-4" /> Top project managers
-          </h2>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Which contact at each contractor drove the most work + revenue in the selected period.
+      <section className="rounded-xl border border-border bg-background p-5">
+        <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-muted-foreground">
+          <TrendingUp className="h-4 w-4" /> Top project managers
+        </h2>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Which contact at each contractor drove the most work + revenue in the selected period.
+        </p>
+        {r.byProjectManager.length === 0 ? (
+          <p className="mt-4 rounded-md border border-dashed border-border bg-muted/30 px-4 py-6 text-center text-xs text-muted-foreground">
+            No invoices in the selected period have a project manager assigned yet.
+            Set one on the invoice edit page to see PMs ranked here.
           </p>
+        ) : (
           <table className="mt-4 w-full text-sm">
             <thead className="text-left text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
               <tr>
@@ -296,8 +301,8 @@ export default async function ReportsPage({
               ))}
             </tbody>
           </table>
-        </section>
-      )}
+        )}
+      </section>
 
       {/* Top workers */}
       <section className="rounded-xl border border-border bg-background p-5">

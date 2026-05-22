@@ -86,9 +86,9 @@ export default async function AdminDashboard() {
         </div>
       </section>
 
-      {/* Money row with sparklines */}
+      {/* Money row — month + week × revenue + margin */}
       {showMoney && (
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <KpiSpark
           label={t(locale, "a.dash.revenue_mtd")}
           value={fmtUsd(d.revenueMtd)}
@@ -97,6 +97,14 @@ export default async function AdminDashboard() {
           spark={revenueSpark}
           color={CHART_COLORS.accent}
           accent
+        />
+        <Kpi
+          label="Margin MTD"
+          value={fmtUsd(d.marginMtd)}
+        />
+        <Kpi
+          label="Revenue this week"
+          value={fmtUsd(d.revenueThisWeek)}
         />
         <KpiSpark
           label={t(locale, "a.dash.margin_week")}

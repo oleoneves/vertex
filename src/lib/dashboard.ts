@@ -4,6 +4,8 @@ import { isDemoMode, demoDashboard } from "./demo";
 
 export type DashboardData = {
   revenueMtd: number;
+  revenueThisWeek: number;
+  marginMtd: number;
   outstanding: number;
   pendingPayoutCents: number;
   marginThisWeek: number;
@@ -51,6 +53,8 @@ export type DashboardData = {
 
 export const EMPTY_DASHBOARD: DashboardData = {
   revenueMtd: 0,
+  revenueThisWeek: 0,
+  marginMtd: 0,
   outstanding: 0,
   pendingPayoutCents: 0,
   marginThisWeek: 0,
@@ -369,6 +373,19 @@ export async function loadDashboard(): Promise<DashboardData> {
     const margin = (Number(e.bill_rate_at_entry) || 0) - (Number(e.pay_rate_at_entry) || 0);
     return a + hrs * margin;
   }, 0);
+  const revenueThisWeek = entriesThisWeek.reduce((a, e) => {
+    const hrs = Number(e.hours_worked) || 0;
+    return a + hrs * (Number(e.bill_rate_at_entry) || 0);
+  }, 0);
+  const monthStartMs = new Date(monthStart).getTime();
+  const entriesMtd = entries.filter(
+    (e) => +new Date(e.clock_in_at) >= monthStartMs,
+  );
+  const marginMtd = entriesMtd.reduce((a, e) => {
+    const hrs = Number(e.hours_worked) || 0;
+    const margin = (Number(e.bill_rate_at_entry) || 0) - (Number(e.pay_rate_at_entry) || 0);
+    return a + hrs * margin;
+  }, 0);
   const hoursByDay = buckets.map((b) => {
     const total = entriesThisWeek
       .filter((e) => {
@@ -604,6 +621,8 @@ export async function loadDashboard(): Promise<DashboardData> {
 
   return {
     revenueMtd: Math.round(revenueMtd * 100) / 100,
+    revenueThisWeek: Math.round(revenueThisWeek * 100) / 100,
+    marginMtd: Math.round(marginMtd * 100) / 100,
     outstanding: Math.round(outstanding * 100) / 100,
     pendingPayoutCents: 0,
     marginThisWeek: Math.round(marginThisWeek * 100) / 100,

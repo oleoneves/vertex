@@ -421,6 +421,8 @@ export function demoDashboard() {
 
   return {
     revenueMtd: 218_400,
+    revenueThisWeek: 52_500,
+    marginMtd: 87_360,
     outstanding: 152_000,
     pendingPayoutCents: 0,
     marginThisWeek,
