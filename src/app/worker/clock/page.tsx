@@ -15,14 +15,27 @@ export default async function WorkerClockPage() {
   const locale = await getLocale();
   const supabase = await getSupabaseServer();
 
-  const [open, placementsRes] = await Promise.all([
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const [open, placementsRes, todayEntriesRes] = await Promise.all([
     getOpenTimeEntry(worker.id),
     supabase
       .from("placements")
       .select("id, role_title, employer:employers(name)")
       .eq("worker_id", worker.id)
       .eq("status", "active"),
+    supabase
+      .from("time_entries")
+      .select("hours_worked, pay_rate_at_entry")
+      .eq("worker_id", worker.id)
+      .gte("clock_in_at", todayStart.toISOString()),
   ]);
+  const todayEntries = (todayEntriesRes.data as Array<{ hours_worked: number | null; pay_rate_at_entry: number | null }> | null) ?? [];
+  const todayHours = todayEntries.reduce((s, e) => s + (Number(e.hours_worked) || 0), 0);
+  const todayEarnings = todayEntries.reduce(
+    (s, e) => s + (Number(e.hours_worked) || 0) * (Number(e.pay_rate_at_entry) || 0),
+    0,
+  );
   const placements =
     (placementsRes.data as unknown as Array<{
       id: string;
@@ -42,6 +55,26 @@ export default async function WorkerClockPage() {
             : "Selecione onde está trabalhando e aperte clock-in."}
         </p>
       </header>
+
+      {/* Today totals */}
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="rounded-xl border border-border bg-background p-4">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+            Hoje · horas
+          </p>
+          <p className="mt-1 font-mono text-2xl font-extrabold tabular-nums">
+            {todayHours.toFixed(2)}<span className="ml-1 text-xs font-medium text-muted-foreground">hrs</span>
+          </p>
+        </div>
+        <div className="rounded-xl border border-border bg-background p-4">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+            Hoje · ganhos
+          </p>
+          <p className="mt-1 font-mono text-2xl font-extrabold tabular-nums text-green-700 dark:text-green-400">
+            ${todayEarnings.toFixed(2)}
+          </p>
+        </div>
+      </div>
 
       {open ? (
         <ClockForm
