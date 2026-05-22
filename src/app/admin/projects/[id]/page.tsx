@@ -122,6 +122,12 @@ export default async function ProjectDashboard({
         >
           + Invoice
         </Link>
+        <Link
+          href={`/admin/projects/${id}/estimate`}
+          className="inline-flex h-9 items-center rounded-md border border-border bg-background px-3 text-sm font-medium hover:bg-muted"
+        >
+          Generate estimate
+        </Link>
         <TimesheetUploader projectId={id} defaultEmployerName={project.employer?.name} />
       </PageHeader>
 
