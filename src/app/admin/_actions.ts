@@ -662,7 +662,7 @@ export async function sendComposedEmail(formData: FormData) {
       <div style="font-weight:900;letter-spacing:2px;font-size:14px;color:#1F2A3D;margin-bottom:16px;">VERTEX RESTORATION</div>
       <div style="white-space:pre-line;line-height:1.55;">${body.replace(/</g, "&lt;")}</div>
       <hr style="border:none;border-top:1px solid #eee;margin:24px 0 12px;" />
-      <div style="font-size:11px;color:#888;">Sent from Vertex Restoration · vertexlaborservice.com</div>
+      <div style="font-size:11px;color:#888;">Sent from Vertex Restoration · vertexrestoration.us</div>
     </div></body></html>`;
 
   if (!emailReady()) {
