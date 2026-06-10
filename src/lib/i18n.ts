@@ -328,6 +328,7 @@ const dict = {
   "a.section.dates":         { en: "Dates",           es: "Fechas",           pt: "Datas" },
   "a.section.estimate":      { en: "Estimate inputs", es: "Datos de estimación", pt: "Dados do estimate" },
   "a.nav.documents":    { en: "Documents",    es: "Documentos",    pt: "Documentos" },
+  "a.nav.estimates":    { en: "Estimates",    es: "Estimates",     pt: "Estimates" },
   "a.nav.invoices":     { en: "Invoices",     es: "Invoices",      pt: "Invoices" },
   "a.nav.payroll":      { en: "Payroll",      es: "Nómina",        pt: "Folha" },
   "a.nav.payments":     { en: "Payments",     es: "Pagos",         pt: "Pagamentos" },

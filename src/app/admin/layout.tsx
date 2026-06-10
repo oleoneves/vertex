@@ -59,6 +59,7 @@ const WORKFORCE: NavItem[] = [
 ];
 
 const MONEY: NavItem[] = [
+  { href: "/admin/estimates", labelKey: "a.nav.estimates", Icon: FileText },
   { href: "/admin/invoices", labelKey: "a.nav.invoices", Icon: Receipt },
   { href: "/admin/payroll", labelKey: "a.nav.payroll", Icon: DollarSign },
   { href: "/admin/payments", labelKey: "a.nav.payments", Icon: DollarSign },
