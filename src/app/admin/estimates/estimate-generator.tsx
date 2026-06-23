@@ -101,10 +101,31 @@ function Field({
 const inputCls =
   "h-9 w-full rounded-md border border-border bg-background px-2.5 text-sm text-foreground outline-none focus:border-foreground/40";
 
-export function EstimateGenerator({ employers }: { employers: EmployerOption[] }) {
+export function EstimateGenerator({
+  employers: initialEmployers,
+}: {
+  employers?: EmployerOption[];
+} = {}) {
   const [form, setForm] = useState<Form>(EMPTY);
   const [estimateNumber, setEstimateNumber] = useState("EST-DRAFT");
   const [todayLabel, setTodayLabel] = useState("");
+  const [employers, setEmployers] = useState<EmployerOption[]>(
+    initialEmployers ?? []
+  );
+
+  useEffect(() => {
+    if (initialEmployers && initialEmployers.length > 0) return;
+    let active = true;
+    fetch("/admin/estimates/employers")
+      .then((r) => (r.ok ? r.json() : { employers: [] }))
+      .then((d) => {
+        if (active) setEmployers((d.employers as EmployerOption[]) ?? []);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [initialEmployers]);
 
   useEffect(() => {
     const now = new Date();
