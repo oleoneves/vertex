@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { listEmployers } from "@/lib/workforce";
@@ -42,8 +43,16 @@ async function createProject(formData: FormData) {
   redirect(`/admin/projects/${data.id}`);
 }
 
-export default async function NewProjectPage() {
-  const [employers, locale] = await Promise.all([listEmployers(), getLocale()]);
+export default async function NewProjectPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ employer_id?: string }>;
+}) {
+  const [employers, locale, sp] = await Promise.all([
+    listEmployers(),
+    getLocale(),
+    searchParams,
+  ]);
   return (
     <div>
       <PageHeader
@@ -53,14 +62,22 @@ export default async function NewProjectPage() {
       <form action={createProject} className="space-y-6">
         <FormSection title="Basics">
           <FormGrid>
-            <FormSelect
-              label="Employer"
-              name="employer_id"
-              required
-              placeholder="Select employer…"
-              options={employers.map((e) => ({ value: e.id, label: e.name }))}
-              span2
-            />
+            <div className="sm:col-span-2">
+              <FormSelect
+                label="Empresa contratante"
+                name="employer_id"
+                required
+                placeholder="Select employer…"
+                options={employers.map((e) => ({ value: e.id, label: e.name }))}
+                defaultValue={sp.employer_id ?? ""}
+              />
+              <Link
+                href="/admin/employers/new?return_to=/admin/projects/new"
+                className="mt-1 inline-block text-xs font-medium text-accent hover:underline"
+              >
+                + Cadastrar empresa
+              </Link>
+            </div>
             <FormField label="Project name" name="name" required span2 placeholder="e.g. Sunbelt Refinery Expansion" />
             <FormField label="Location" name="location" placeholder="City, state · site name" />
             <FormSelect
